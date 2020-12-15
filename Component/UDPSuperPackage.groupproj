@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{8A6F3D6A-A65D-4710-8282-766F67BACE49}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="UDPSuperComponents.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\Demos\Aegys\Server\AegysServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\Demos\Aegys\Client\AegysClient.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="UDPSuperComponents">
+        <MSBuild Projects="UDPSuperComponents.dproj"/>
+    </Target>
+    <Target Name="UDPSuperComponents:Clean">
+        <MSBuild Projects="UDPSuperComponents.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UDPSuperComponents:Make">
+        <MSBuild Projects="UDPSuperComponents.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AegysServer">
+        <MSBuild Projects="..\Demos\Aegys\Server\AegysServer.dproj"/>
+    </Target>
+    <Target Name="AegysServer:Clean">
+        <MSBuild Projects="..\Demos\Aegys\Server\AegysServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysServer:Make">
+        <MSBuild Projects="..\Demos\Aegys\Server\AegysServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AegysClient">
+        <MSBuild Projects="..\Demos\Aegys\Client\AegysClient.dproj"/>
+    </Target>
+    <Target Name="AegysClient:Clean">
+        <MSBuild Projects="..\Demos\Aegys\Client\AegysClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysClient:Make">
+        <MSBuild Projects="..\Demos\Aegys\Client\AegysClient.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="UDPSuperComponents;AegysServer;AegysClient"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="UDPSuperComponents:Clean;AegysServer:Clean;AegysClient:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="UDPSuperComponents:Make;AegysServer:Make;AegysClient:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

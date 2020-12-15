@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2016/02/02 16:32:25.000.390,=C:\Users\XyberX\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2016/02/02 16:32:59.000.485,C:\Users\XyberX\Documents\Embarcadero\Studio\Projects\Unit2.pas=D:\Meus Dados\Projetos\AccessControl\Server\uPrincipalVCL.pas</Transaction>
+    <Transaction>2016/02/02 16:32:59.000.485,C:\Users\XyberX\Documents\Embarcadero\Studio\Projects\Unit2.dfm=D:\Meus Dados\Projetos\AccessControl\Server\uPrincipalVCL.dfm</Transaction>
+    <Transaction>2016/02/02 16:33:03.000.731,C:\Users\XyberX\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\Meus Dados\Projetos\AccessControl\Server\ServerControl.dproj</Transaction>
+    <Transaction>2016/02/02 16:42:11.000.202,=D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\ULanguage.pas</Transaction>
+    <Transaction>2016/02/02 16:42:11.000.170,=D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\sndkey32.pas</Transaction>
+    <Transaction>2016/02/02 16:42:11.000.216,=D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\uUteis.pas</Transaction>
+    <Transaction>2016/02/02 16:42:11.000.231,=D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\ZLIBEX.pas</Transaction>
+    <Transaction>2016/02/02 16:42:11.000.156,=D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\DSSupportClasses.pas</Transaction>
+    <Transaction>2016/02/02 16:42:11.000.182,=D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\StreamManager.pas</Transaction>
+    <Transaction>2016/02/02 16:42:46.000.439,D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\DSSupportClasses.pas=D:\Meus Dados\Projetos\AccessControl\Utils\DSSupportClasses.pas</Transaction>
+    <Transaction>2016/02/02 16:42:58.000.666,D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\StreamManager.pas=D:\Meus Dados\Projetos\AccessControl\Utils\StreamManager.pas</Transaction>
+    <Transaction>2016/02/02 16:43:16.000.403,D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\uUteis.pas=D:\Meus Dados\Projetos\AccessControl\Utils\uUtils.pas</Transaction>
+    <Transaction>2016/02/02 16:43:36.000.685,D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\ZLIBEX.pas=D:\Meus Dados\Projetos\AccessControl\Utils\ZLIBEX.pas</Transaction>
+    <Transaction>2016/02/02 16:43:51.000.755,D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\sndkey32.pas=D:\Meus Dados\Projetos\AccessControl\Utils\sndkey32.pas</Transaction>
+    <Transaction>2016/02/02 16:44:06.000.022,D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Units\ULanguage.pas=D:\Meus Dados\Projetos\AccessControl\Utils\ULanguage.pas</Transaction>
+    <Transaction>2016/02/02 16:47:50.000.728,=D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Server\uUteisServer.pas</Transaction>
+    <Transaction>2016/02/02 16:48:08.000.665,D:\Meus Dados\Projetos\SUGV\Componentes\AllaKore_Remote_Group-master\AllaKore_Remote_Group-master\Source\Server\uUteisServer.pas=D:\Meus Dados\Projetos\AccessControl\Server\uUtilServer.pas</Transaction>
+    <Transaction>2016/02/22 11:22:41.000.857,D:\Meus Dados\Projetos\AccessControl\Server\FastVisioServer.dproj=D:\Meus Dados\Projetos\AccessControl\Server\ServerControl.dproj</Transaction>
+    <Transaction>2016/02/26 10:29:00.000.758,=D:\Meus Dados\Projetos\AccessControl\XyberPower\uIpPoolerService.pas</Transaction>
+    <Transaction>2016/03/04 22:00:17.000.093,D:\Meus Dados\Projetos\AccessControl\Utils\ZLIBEX.pas=</Transaction>
+    <Transaction>2016/07/22 12:27:25.000.955,=D:\Meus Dados\Projetos\Teste_UDP\Units\sndkey32.pas</Transaction>
+    <Transaction>2016/07/22 12:27:25.000.230,=D:\Meus Dados\Projetos\Teste_UDP\Units\DSSupportClasses.pas</Transaction>
+    <Transaction>2016/07/22 12:27:25.000.988,=D:\Meus Dados\Projetos\Teste_UDP\Units\StreamManager.pas</Transaction>
+    <Transaction>2016/07/22 12:27:26.000.021,=D:\Meus Dados\Projetos\Teste_UDP\Units\ULanguage.pas</Transaction>
+    <Transaction>2016/07/22 12:27:26.000.055,=D:\Meus Dados\Projetos\Teste_UDP\Units\uUteis.pas</Transaction>
+    <Transaction>2016/07/22 12:27:50.000.246,D:\Meus Dados\Projetos\Teste_UDP\Units\uUteis.pas=</Transaction>
+    <Transaction>2016/07/25 11:38:39.000.896,=D:\Meus Dados\Projetos\Teste_UDP\XyberPower\Code64.pas</Transaction>
+    <Transaction>2016/07/25 20:57:40.000.912,=D:\Meus Dados\Projetos\Teste_UDP\XyberPower\JSON\uLkJSON.pas</Transaction>
+    <Transaction>2016/08/04 12:32:36.000.112,=D:\Meus Dados\Projetos\Teste_UDP\XyberPower\uUDPPooler.pas</Transaction>
+    <Transaction>2018/06/10 20:18:05.000.412,D:\Meus Dados\Projetos\Teste_UDP\Server\FastVisioServer.dproj=D:\Meus Dados\Projetos\Teste_UDP\Server\AegysServer.dproj</Transaction>
+  </Transactions>
+</BorlandProject>
