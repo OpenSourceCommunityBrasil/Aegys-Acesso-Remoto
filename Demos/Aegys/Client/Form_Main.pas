@@ -20,13 +20,11 @@ uses
   IdMultipartFormData, TThreadTimer,
   IdIOHandler, IdIOHandlerSocket, IdIOHandlerStack, IdIOHandlerStream,
   System.NetEncoding, IdIntercept, IdCompressionIntercept,
-  MaskUtils, SimpleTimer,
+  MaskUtils, SimpleTimer, uScanlineComparer,
   System.DateUtils, uComboChoose, uCaptureDeviceMode,
   IdSocketHandle, IdStack, IdUDPClient, IdUDPBase, IdUDPServer, uFilesFoldersOP,
-  uRtlCompression,
   Tlhelp32, uUDPPooler, uUDPSuperComponents, ComObj, ActiveX,
-  JDRMGraphics, ImageCapture, uScanlineComparer, System.ImageList, Vcl.ImgList,
-  AdvGDIPicture;
+  JDRMGraphics, ImageCapture, System.ImageList, Vcl.ImgList;
 
 Type
   TConnectionInfo = Packed Record
@@ -4640,8 +4638,8 @@ Var
   vDecompressOK, vNewFrame, vNoDiff: Boolean;
   vScreenWidth, vScreenHeight, vLeft, vTop, vWidth, vHeight, vFRResult: Integer;
   PeerConnected: TPeerconnected;
-  Procedure StringToStream(Const S: String; Imagem: TAdvGDIPPicture;
-  NoDiff: Boolean; ImageState: String);
+  Procedure StringToStream(Const S: String; Imagem: TImage;
+                           NoDiff: Boolean; ImageState: String);
   Var
     vDados: TStringStream;
     Bitmap2: TBitmap;
@@ -4660,18 +4658,17 @@ Var
       vDados.Position := 0;
       If Not NewDeskCapture Then
       Begin
-        Imagem.Picture.Transparent := False;
         If Not(NoDiff) Then
         Begin
-          // Bitmap2 := TBitmap.Create;
+          Bitmap2 := TBitmap.Create;
           Try
-            // Bitmap2.LoadFromStream(vDados);
-            Imagem.Picture.LoadFromStream(vDados);
+            Bitmap2.LoadFromStream(vDados);
+            Imagem.Picture.Assign(Bitmap2);
           Except
 
           End;
-          // Bitmap2.FreeImage;
-          // Bitmap2.Free;
+           Bitmap2.FreeImage;
+           Bitmap2.Free;
         End
         Else
         Begin
@@ -4681,7 +4678,7 @@ Var
           If (Pos('FULL', ImageState) > 0) Then
           Begin
             frm_Main.vInitImageCapture.ImageBase := Bitmap2;
-            Imagem.Picture.LoadFromStream(vDados); // Assign(Bitmap);
+            Imagem.Picture.Assign(Bitmap2);
           End
           Else
           Begin
@@ -4899,7 +4896,7 @@ Var
   vNewFrame, vNoDiff: Boolean;
   vScreenWidth, vScreenHeight, vLeft, vTop, vWidth, vHeight, vFRResult: Integer;
   PeerConnected: TPeerconnected;
-  Procedure StringToStream(Const S: String; Imagem: TAdvGDIPPicture;
+  Procedure StringToStream(Const S: String; Imagem: TImage;
   NoDiff: Boolean; ImageState: String);
   Var
     vDados: TStringStream;
@@ -4915,7 +4912,13 @@ Var
       If Not NewDeskCapture Then
       Begin
         If Not(NoDiff) Then
-          Imagem.Picture.LoadFromStream(vDados)
+         Begin
+          Bitmap := TBitmap.Create;
+          Bitmap.LoadFromStream(vDados);
+          Imagem.Picture.Assign(Bitmap); // .LoadFromStream(vDados);
+          Bitmap.FreeImage;
+          FreeAndNil(Bitmap);
+         End
         Else
         Begin
           Bitmap := TBitmap.Create;
@@ -5110,7 +5113,7 @@ Var
   vNewFrame, vNoDiff: Boolean;
   PeerConnected: TPeerconnected;
   vFRResult: Integer;
-  Procedure StringToStream(Const S: TMemoryStream; Imagem: TAdvGDIPPicture);
+  Procedure StringToStream(Const S: TMemoryStream; Imagem: TImage);
   Var
     Bitmap: TBitmap;
   Begin

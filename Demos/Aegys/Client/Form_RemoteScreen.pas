@@ -7,10 +7,10 @@ uses
   System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.pngimage,
   Vcl.ExtCtrls,
-  Vcl.StdCtrls, Vcl.Imaging.jpeg, System.Generics.Collections, uUteis,
-  Vcl.Buttons, AdvGlowButton, AdvGDIPicture, System.DateUtils,
+  Vcl.StdCtrls, Vcl.Imaging.jpeg, System.Generics.Collections,
+  Vcl.Buttons, System.DateUtils,
   Vcl.ComCtrls, TThreadTimer, IdBaseComponent, IdComponent, IdUDPBase,
-  uUDPSuperComponents, IdUDPServer, JDRMGraphics;
+  uUDPSuperComponents, IdUDPServer, JDRMGraphics, uUteis;
 
 const
   SC_MAXIMIZE2 = 61490;
@@ -45,26 +45,26 @@ Type
 type
   Tfrm_RemoteScreen = class(TForm)
     ScrollBox1: TScrollBox;
-    iDesktopCapture: TAdvGDIPPicture;
-    btn_ac: TAdvGlowButton;
-    btn_aclose: TAdvGlowButton;
-    DesktopViewCapture: TJDRMDesktopView;
+    iDesktopCapture: TImage;
+    btn_ac: TSpeedButton;
+    btn_aclose: TSpeedButton;
     Menu_Panel: TPanel;
     Panel15: TPanel;
     Panel10: TPanel;
     Panel12: TPanel;
     Panel20: TPanel;
-    MouseIcon_Image: TAdvGlowButton;
-    KeyboardIcon_Image: TAdvGlowButton;
-    Chat_Image: TAdvGlowButton;
-    FileShared_Image: TAdvGlowButton;
-    sbMinimize: TAdvGlowButton;
-    sbRestaure: TAdvGlowButton;
-    sbMiximize: TAdvGlowButton;
-    btn_close: TAdvGlowButton;
+    MouseIcon_Image: TSpeedButton;
+    KeyboardIcon_Image: TSpeedButton;
+    Chat_Image: TSpeedButton;
+    FileShared_Image: TSpeedButton;
+    sbMinimize: TSpeedButton;
+    sbRestaure: TSpeedButton;
+    sbMaximize: TSpeedButton;
+    btn_close: TSpeedButton;
     rzpDownload: TPanel;
-    advCancel: TAdvGlowButton;
+    advCancel: TSpeedButton;
     pbDados: TProgressBar;
+    DesktopViewCapture: TJDRMDesktopView;
     procedure Resize_CheckBoxKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure KeyboardRemote_CheckBoxKeyDown(Sender: TObject; var Key: Word;
@@ -79,7 +79,7 @@ type
     procedure Label1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure btn_closeClick(Sender: TObject);
-    procedure sbMiximizeClick(Sender: TObject);
+    procedure sbMaximizeClick(Sender: TObject);
     procedure sbRestaureClick(Sender: TObject);
     procedure sbMinimizeClick(Sender: TObject);
     procedure Chat_ImageClick(Sender: TObject);
@@ -434,7 +434,7 @@ Begin
     frm_Main.CloseSockets;
   end;
 
-  procedure Tfrm_RemoteScreen.sbMiximizeClick(Sender: TObject);
+  procedure Tfrm_RemoteScreen.sbMaximizeClick(Sender: TObject);
   begin
     PostMessage(Self.Handle, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
   end;
@@ -1132,7 +1132,7 @@ Begin
     vSendMouse := Now;
     vSendEvents := Now;
     OnSendComands := False;
-    iDesktopCapture.DoubleBuffered := True;
+//    iDesktopCapture.DoubleBuffered := True;
     If frm_Main.SendType = stNAT Then
       Self.Caption := 'Aegys - Computador Remoto - P2P'
     Else
