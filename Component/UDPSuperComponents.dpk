@@ -35,9 +35,7 @@ requires
   IndyCore,
   vcl,
   fmx,
-  vclimg,
-  tmsexdXE9,
-  tmsdXE9;
+  vclimg;
 
 contains
   uUDPSuperComponents in 'uUDPSuperComponents.pas',
