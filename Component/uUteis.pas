@@ -6,7 +6,7 @@ interface
   //Marcones Freitas - 16/10/2015 -> Algumas Constantes Novas
  const
  cGeneral            = 'General';
- cHost               = '192.168.15.8';//'144.217.189.109';
+ cHost               = '192.168.25.11';//'144.217.189.109';
  cPort               = '0';
  cGroup              = 'Group';
  cMachine            = 'Machine';
@@ -85,7 +85,6 @@ var ArqIni : TIniFile;
     ValueINI : string;
 begin
   ArqIni := TIniFile.Create(Path);
-
   ValueINI := ArqIni.ReadString(Section, Key, KeyValue);
   if ValueINI = '' then
      ValueINI := '0'
@@ -171,22 +170,22 @@ begin
  Else
   Begin
    frm_Main.ipPSMain_Socket.Host      := Host;
-   frm_Main.ipPSMain_Socket.Port      := 9078;
+   frm_Main.ipPSMain_Socket.Port      := 8078;
    frm_Main.ipCommandsClient.Host     := Host;
-   frm_Main.ipCommandsClient.Port     := 9079;
-   frm_Main.ipCommandsClient.TCPPort  := 9084;
+   frm_Main.ipCommandsClient.Port     := 8079;
+   frm_Main.ipCommandsClient.TCPPort  := 8084;
    frm_Main.ipPSDeskTopClient.Host    := Host;
-   frm_Main.ipPSDeskTopClient.Port    := 9082;
-   frm_Main.ipPSDeskTopClient.TCPPort := 9083;
+   frm_Main.ipPSDeskTopClient.Port    := 8082;
+   frm_Main.ipPSDeskTopClient.TCPPort := 8083;
    frm_Main.ipPSFilesClient.Host      := Host;
-   frm_Main.ipPSFilesClient.Port      := 9081;
-   frm_Main.ipPSFilesClient.TCPPort   := 9085;
+   frm_Main.ipPSFilesClient.Port      := 8081;
+   frm_Main.ipPSFilesClient.TCPPort   := 8085;
   End;
 End;
 
 procedure SetLanguage;
 begin
- xLanguage := strtoint(GetIni( ExtractFilePath(Application.ExeName) + Application.Title + '.ini', cGeneral, cLanguage, '0', False));
+ xLanguage := strtoint(GetIni( ExtractFilePath(Application.ExeName) + Application.Title + '.ini', cGeneral, 'language', '0', False));
  ReadCaptions(xLanguage);
 {
   frm_Main.YourID_Label.Caption       := Languages.YourID_Label;

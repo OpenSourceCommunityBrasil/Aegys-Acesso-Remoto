@@ -6,8 +6,8 @@ uses
 //ipwCore, ipwIPDaemon, ipwNetCode, ipwIPPort,
   SysUtils, Classes, Graphics, Controls, Forms, IdTCPConnection,
   Vcl.Dialogs, SimpleTimer, IdBuffer, IdComponent, IdCustomTCPServer, IdTCPServer, IdStackConsts, IdIPWatch, IdHTTP,
-  IdContext, IdServerIOHandlerSocket, IdUDPBase, IdUDPServer, IdGlobal, IdSocketHandle, IdTCPClient, Code64, uLkJSON,
-  Vcl.ExtCtrls, IdHashMessageDigest,
+  IdContext, IdServerIOHandlerSocket, IdUDPBase, IdUDPServer, IdGlobal, IdSocketHandle, IdTCPClient, Code64,
+  uDWJSONInterface, Vcl.ExtCtrls, IdHashMessageDigest,
   {$IF CompilerVersion >= 24} //XE3 or higher
   Winapi.Windows, System.Generics.Collections, System.SyncObjs, System.ZLib, System.DateUtils;
   {$ELSE}
@@ -26,6 +26,12 @@ Const
  mtFUDPDataReq 	  = 8002;
  mtFUDPDataACK 	  = 9002;
  udpBuffer        = 512;
+
+Type
+ TIpPort = Record
+  IP   : String;
+  Port : Integer;
+End;
 
 //Eventos
 Type
@@ -441,7 +447,7 @@ Type
                                ConnectionId : Integer) : TIdContext;
   Function    HandleExists(Contexts : TIdContextThreadList;
                            ConnectionId : Integer) : Boolean;
-  Function    GetIP(ConnectionId : Integer) : String;
+  Function    GetIP(ConnectionId : Integer) : TIpPort;
   Function    UDPWelcomeMessage(ConnectionId : Integer) : String;
   Function    UDPClient(ConnectionId : Integer; Var Found : Boolean) : TClientRect;
   Procedure   ClearPeers;
@@ -542,7 +548,7 @@ End;
 
 Function GetMyASInfo : TASInfo;
 Var
- json   : TlkJSONobject;
+ json   : TDWJSONObject;
  IdHTTP : TIdHTTP;
 Begin
  Result.ip       := '0.0.0.0';
@@ -554,14 +560,14 @@ Begin
  Result.org      := Result.loc;
  IdHTTP          := TIdHTTP.Create(Nil);
  Try
-  json := TlkJSON.ParseText(IdHTTP.Get('http://ipinfo.io/json')) as TlkJSONobject;
-  Result.ip       := json.Field['ip'].Value;
-  Result.hostname := json.Field['hostname'].Value;
-  Result.city     := json.Field['city'].Value;
-  Result.region   := json.Field['region'].Value;
-  Result.country  := json.Field['country'].Value;
-  Result.loc      := json.Field['loc'].Value;
-  Result.org      := json.Field['org'].Value;
+  json := TDWJSONObject.Create(IdHTTP.Get('http://ipinfo.io/json'));
+  Result.ip       := json.PairByName['ip'].Value;
+  Result.hostname := json.PairByName['hostname'].Value;
+  Result.city     := json.PairByName['city'].Value;
+  Result.region   := json.PairByName['region'].Value;
+  Result.country  := json.PairByName['country'].Value;
+  Result.loc      := json.PairByName['loc'].Value;
+  Result.org      := json.PairByName['org'].Value;
   json.Free;
  Except
  End;
@@ -2131,12 +2137,13 @@ Begin
   End;
 End;
 
-Function TipPoolerService.GetIP(ConnectionId : Integer) : String;
+Function TipPoolerService.GetIP(ConnectionId : Integer) : TIpPort;
 Var
  I, NumClients : Integer;
  ContextsList  : TList;
 Begin
- Result := '0.0.0.0';
+ Result.IP := '0.0.0.0';
+ Result.Port := 0;
  ContextsList := TIdTCPServer(vipTCPObject).Contexts.LockList;
  With ContextsList Do
   Begin
@@ -2146,7 +2153,8 @@ Begin
      Begin
       If TIdContext(ContextsList[I]).Binding.Handle = ConnectionId Then
        Begin
-        Result := TIdContext(ContextsList[I]).Binding.PeerIP;
+        Result.Ip   := TIdContext(ContextsList[I]).Binding.PeerIP;
+        Result.Port := TIdContext(ContextsList[I]).Binding.PeerPort;
         Break;
        End;
      End;

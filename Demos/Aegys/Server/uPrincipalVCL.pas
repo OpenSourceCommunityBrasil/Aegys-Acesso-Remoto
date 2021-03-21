@@ -88,12 +88,14 @@ type
     ipPSDeskTop: TUDPSuperServer;
     ipPSFiles: TUDPSuperServer;
     ipCommandsServer: TUDPSuperServer;
+    Connections_ListView: TListView;
+    Ping_Timer: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure Sair1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure LigarServidor1Click(Sender: TObject);
     procedure DesligarServidor1Click(Sender: TObject);
-    procedure idTCPMainExecute(AContext: TIdContext);
+    procedure Ping_TimerTimer(Sender: TObject);
   private
     { Private declarations }
    FConexoes : TListClients; //Lista de Peers Conectados
@@ -118,12 +120,15 @@ type
    Procedure UpdateDesktopUDPPort(ClientRect : TPeerConnected);
    Procedure UpdateFilesUDPPort(ClientRect : TPeerConnected);
    Procedure UpdateCommandsUDPPort(ClientRect : TPeerConnected);
+   Procedure AddItems(Value : TClientSetings);
+   Procedure UpdateItem(Value: TClientSetings);
   public
     { Public declarations }
    ipPSTCPMain     : TipPoolerService;
-//   ipPSDeskTop,
-//   ipPSFiles       : TComunicationDataCenter;
    CriticalSection : TCriticalSection;
+   Procedure ClearItem    (Value : TClientSetings);
+   Function FindListItemID(ID    : String): TListItem;
+   Function FindItemID    (ID    : String): PCliente;
   end;
 
 var
@@ -173,6 +178,7 @@ Begin
         End;
  //      FreeAndNil(TClientSetings(FConexoes[I]^));
        Dispose(vConexoes[I]);
+       Connections_ListView.Items.Delete(FindListItemID(vConexoes[I].ID).Index);
        vConexoes[I] := Nil;
        vConexoes.Delete(I);
       Except
@@ -188,13 +194,14 @@ End;
 
 Function TfServerControl.StartServer(Value : Boolean = False) : Boolean;
 Begin
- Result              := False;
+ Result                   := False;
  Try
+  Ping_Timer.Enabled      := False;
   CloseConnections;
-  ipPSTCPMain.Active := False;
-  ipPSDeskTop.Active := False;
+  ipPSTCPMain.Active      := False;
+  ipPSDeskTop.Active      := False;
   ipCommandsServer.Active := False;
-  ipPSFiles.Active   := False;
+  ipPSFiles.Active        := False;
  Except
  End;
  If Value Then
@@ -205,6 +212,7 @@ Begin
     ipCommandsServer.Active := Value;
     ipPSFiles.Active        := Value;
     Result                  := True;
+    Ping_Timer.Enabled      := (Result) And (PingTest);
     sbAcesso.SimpleText     := 'Servidor Ligado...';
    Except
     sbAcesso.SimpleText     := 'Erro ao ligar o Serviço...';
@@ -423,6 +431,7 @@ Begin
    Begin
     If StrToInt(vConexoes[I]^.ipMain.Main) = ConnectionId Then
      Begin
+      ClearItem(vConexoes[I]^);
       If vConexoes[I]^.ipMain.Target <> '-1' Then
        Begin
         Try
@@ -434,6 +443,7 @@ Begin
         Except
         End;
        End;
+      Connections_ListView.Items.Delete(FindListItemID(vConexoes[I].ID).Index);
       ipPSTCPMain.ReleaseCacheAction(ConnectionId);
       Dispose(vConexoes[I]);
       vConexoes.Delete(I);
@@ -471,7 +481,10 @@ Begin
     If Trim(vConexoes[I].ID) = Trim(Value) Then
      Begin
       If vConexoes[I].ipMain.Main <> '-1' Then
-       ipPSTCPMain.ClientDisconnect(StrToInt(vConexoes[I].ipMain.Main));
+       Begin
+        ClearItem(vConexoes[I]^);
+        ipPSTCPMain.ClientDisconnect(StrToInt(vConexoes[I].ipMain.Main));
+       End;
       Break;
      End;
     Dec(I);
@@ -481,9 +494,100 @@ Begin
 // FConexoes.unlockList;
 End;
 
+Function TfServerControl.FindItemID(ID : String) : PCliente;
+Var
+ I : Integer;
+ vConexoes : TList<PCliente>;
+Begin
+ vConexoes := FConexoes;
+ Result    := Nil;
+ Try
+ For I := vConexoes.Count -1 Downto 0 do
+  Begin
+   If Trim(vConexoes[I]^.ID) = Trim(ID) Then
+    Begin
+     Result := vConexoes[I];
+     Break;
+    End;
+  End;
+ Finally
+ End;
+End;
+
+procedure TfServerControl.UpdateItem(Value : TClientSetings);
+Var
+ ListItem : TListItem;
+ dCliente : PCliente;
+Begin
+ ListItem := FindListItemID(Value.ID);
+ If ListItem <> Nil Then
+  Begin
+   ListItem.SubItems[3] := Value.TargetID;
+   ListItem.SubItems[4] := IntToStr(Value.EndPing);
+  End;
+ ListItem := FindListItemID(Value.TargetID);
+ If ListItem <> Nil Then
+  Begin
+   ListItem.SubItems[3] := Value.ID;
+   dCliente             := FindItemID(Value.TargetID);
+   If dCliente <> Nil Then
+    ListItem.SubItems[4] := IntToStr(dCliente^.EndPing);
+  End;
+End;
+
+procedure TfServerControl.ClearItem(Value : TClientSetings);
+Var
+ ListItem : TListItem;
+ dCliente : PCliente;
+Begin
+ ListItem := FindListItemID(Value.ID);
+ If ListItem <> Nil Then
+  Begin
+   ListItem.SubItems[3] := '';
+   ListItem.SubItems[4] := IntToStr(Value.EndPing);
+  End;
+ ListItem := FindListItemID(Value.TargetID);
+ If ListItem <> Nil Then
+  Begin
+   ListItem.SubItems[3] := '';
+   dCliente             := FindItemID(Value.TargetID);
+   If dCliente <> Nil Then
+    ListItem.SubItems[4] := IntToStr(dCliente^.EndPing);
+  End;
+End;
+
+procedure TfServerControl.AddItems(Value : TClientSetings);
+Var
+ L : TListItem;
+Begin
+ L         := Connections_ListView.Items.Add;
+ L.Caption := IntToStr(L.Index);
+ L.SubItems.Add(Value.IP);
+ L.SubItems.Add(Value.ID);
+ L.SubItems.Add(Value.Password);
+ L.SubItems.Add('');
+ L.SubItems.Add('Calculating...');
+ L.SubItems.Objects[4] := TObject(0);
+End;
+
+Function TfServerControl.FindListItemID(ID : string): TListItem;
+Var
+ i : Integer;
+Begin
+ i := 0;
+ While i < Connections_ListView.Items.Count do
+  Begin
+   If (Connections_ListView.Items.Item[i].SubItems[1] = ID) Then
+    Break;
+   Inc(i);
+  End;
+ Result := Connections_ListView.Items.Item[i];
+end;
+
 procedure TfServerControl.TCPMainDataIn(ConnectionId : Integer);
 Var
  vDifTeste : String;
+ IpPort    : TIpPort;
  Function InCommands(s : String) : Boolean;
  Begin
   Result := (Pos('<|PONG|>',            Uppercase(s)) > 0) or (Pos('<|MAINSOCKET|>', Uppercase(s)) > 0)     or
@@ -590,26 +694,6 @@ Var
 
   End;
  End;
- Function FindItemID(ID : String) : PCliente;
- Var
-  I : Integer;
-  vConexoes : TList<PCliente>;
- Begin
-  vConexoes := FConexoes;
-  Result    := Nil;
-  Try
-  For I := vConexoes.Count -1 Downto 0 do
-   Begin
-    If Trim(vConexoes[I]^.ID) = Trim(ID) Then
-     Begin
-      Result := vConexoes[I];
-      Break;
-     End;
-   End;
-  Finally
-
-  End;
- End;
 Begin
  If ipPSTCPMain.HasBuffer(ConnectionId) > 0 Then
   Begin
@@ -630,11 +714,14 @@ Begin
               Begin
                Delete(vLine, 1, Pos(vCommandEnd, vLine) + Length(vCommandEnd) -1);
                vConexoes[I]^.EndPing := (GetTickCount - vConexoes[I]^.StartPing);
+               UpdateItem(vConexoes[I]^);
+//               FindListItemID(vConexoes[I]^.ID).
               End;
              If (Pos('<|GETMYIP|>', vLine) > 0) Then
               Begin
                Delete(vLine, 1, Pos(vCommandEnd, vLine) + Length(vCommandEnd) -1);
-               ipPSTCPMain.Write(StrToInt(vConexoes[I]^.ipMain.Main), '<|MYIP|>' + ipPSTCPMain.GetIP(ConnectionId) + vCommandEnd);
+               IpPort := ipPSTCPMain.GetIP(ConnectionId);
+               ipPSTCPMain.Write(StrToInt(vConexoes[I]^.ipMain.Main), '<|MYIP|>' + IpPort.IP + vCommandEnd);
               End;
              If (Pos('<|MAINSOCKET|>', vLine) > 0) Then
               Begin
@@ -683,6 +770,7 @@ Begin
                 ipPSTCPMain.Write(StrToInt(vConexoes[I]^.ipMain.Main), '<|ID|>' + vConexoes[I]^.ID + '<|>' + vConexoes[I]^.LastPassword + vCommandEnd)
                Else
                 ipPSTCPMain.Write(StrToInt(vConexoes[I]^.ipMain.Main), '<|ID|>' + vConexoes[I]^.ID + '<|>' + vConexoes[I]^.Password + vCommandEnd);
+               AddItems(vConexoes[I]^);
               End
              Else If (Pos('<|GETCONNECTCLIENTINFO|>', vLine) > 0) Then
               Begin
@@ -746,11 +834,12 @@ Begin
                Delete(vLine2, 1, Pos('<|>', vLine2) + 2);
                vConexoes[I]^.TargetID := Copy(vLine2, 1, Pos('<|>', vLine2) - 1);
                Delete(vLine2, 1, Pos('<|>', vLine2) + 2);
-//               vConexoes[I]^.lItem    := FindListItemID(vConexoes[I]^.ID);
-//               vConexoes[I]^.lItem2   := FindListItemID(vConexoes[I]^.TargetID);
+               vConexoes[I]^.lItem    := FindListItemID(vConexoes[I]^.ID);
+               vConexoes[I]^.lItem2   := FindListItemID(vConexoes[I]^.TargetID);
                vInitConnection  := FindItemID(vConexoes[I]^.ID);
                vFinalConnection := FindItemID(vConexoes[I]^.TargetID);
                vFinalConnection^.TargetID := vConexoes[I]^.ID;
+               UpdateItem(vConexoes[I]^);
 //               InsertTargetID(vConexoes[I]);
                // Relates the main Sockets
                vInitConnection^.ipMain.Target  := vFinalConnection^.ipMain.Main;
@@ -900,11 +989,13 @@ End;
 procedure TfServerControl.TCPMainReadyToSendServer(ConnectionId : Integer);
 Var
  ClienteNovo : PCliente;
+ IpPort      : TIpPort;
 begin
  New(ClienteNovo);
  ClienteNovo^.ipMain.Target          := '-1';
  ClienteNovo^.ipMain.Main            := IntToStr(ConnectionId);
- ClienteNovo^.ipMain.Host            := ipPSTCPMain.GetIP(ConnectionId);
+ IpPort                              := ipPSTCPMain.GetIP(ConnectionId);
+ ClienteNovo^.ipMain.Host            := IpPort.IP;
  ClienteNovo^.ipDesktop.Main         := '-1';
  ClienteNovo^.ipDesktop.Target       := '-1';
  ClienteNovo^.ipDesktop.Host         := '';
@@ -922,28 +1013,29 @@ begin
  ClienteNovo^.ipOthers.UdpLocalPort  := -1;
  ClienteNovo^.lItem                  := Nil;
  ClienteNovo^.lItem2                 := Nil;
+ ClienteNovo^.IP                     := IpPort.IP;
  FConexoes.Add(ClienteNovo);
 End;
 
 procedure TfServerControl.FormCreate(Sender: TObject);
 begin
  CriticalSection                    := TCriticalSection.Create;
- ipPSDeskTop.Port                   := 9082;
- ipPSDeskTop.TCPPort                := 9083;
+ ipPSDeskTop.Port                   := 8082;
+ ipPSDeskTop.TCPPort                := 8083;
  ipPSDeskTop.BufferSize             := MaxBuffer;
  ipPSDeskTop.OnClientConnected      := DeskTopReadyToSend;
- ipCommandsServer.Port              := 9079;
- ipCommandsServer.TCPPort           := 9084;
+ ipCommandsServer.Port              := 8079;
+ ipCommandsServer.TCPPort           := 8084;
  ipCommandsServer.BufferSize        := MaxBuffer;
  ipCommandsServer.OnClientConnected := CommandsReadyToSend;
- ipPSFiles.Port                     := 9081;
- ipPSFiles.TCPPort                  := 9085;
+ ipPSFiles.Port                     := 8081;
+ ipPSFiles.TCPPort                  := 8085;
  ipPSFiles.OnClientConnected        := ReadyToSendFiles;
  ipPSFiles.BufferSize               := MaxBuffer;
  ipPSTCPMain                        := TipPoolerService.Create(Self);
  ipPSTCPMain.Compression            := False;
  ipPSTCPMain.EncryptData            := False;
- ipPSTCPMain.Port                   := 9078;
+ ipPSTCPMain.Port                   := 8078;
  ipPSTCPMain.TimeOut                := TimeOutC;
  ipPSTCPMain.TCPObject              := idTCPMain;
  ipPSTCPMain.OnDisconnectedServer   := TCPMainDisconnected;
@@ -954,6 +1046,7 @@ begin
  ipPSTCPMain.AutoGarbage            := True;
  ipPSTCPMain.LineBreak              := vEOB;
  FConexoes                          := TListClients.Create;
+ Ping_Timer.Interval                := TPingTimer;
  StartServer;
 end;
 
@@ -990,11 +1083,6 @@ Begin
   Result := IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9));
 End;
 
-procedure TfServerControl.idTCPMainExecute(AContext: TIdContext);
-begin
- //
-end;
-
 procedure TfServerControl.DesligarServidor1Click(Sender: TObject);
 begin
  StartServer;
@@ -1005,6 +1093,24 @@ begin
  StartServer(True);
 end;
 
+procedure TfServerControl.Ping_TimerTimer(Sender: TObject);
+Var
+ vTarget,
+ I         : Integer;
+ vConexoes : TList<PCliente>;
+Begin
+ vConexoes := FConexoes;
+ Try
+  For I := vConexoes.Count - 1 DownTo 0 do
+   Begin
+    vTarget := StrToInt(vConexoes[I].ipMain.Main);
+    vConexoes[I]^.StartPing := GetTickCount;
+    ipPSTCPMain.Write(vTarget, '<|PING|>' + vCommandEnd);
+   End;
+ Finally
+ End;
+End;
+
 procedure TfServerControl.Sair1Click(Sender: TObject);
 begin
  Close;

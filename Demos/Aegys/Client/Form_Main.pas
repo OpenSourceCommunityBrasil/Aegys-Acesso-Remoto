@@ -51,6 +51,7 @@ Const // 2kb  //4Kb  //8kb  //16kb
   MaxNewFrame = 40;
   FrameTimeOut = 2000;
   MaxSendFrames = 0;
+  cHostActive   = '127.0.0.1';
   SendForThread = False;
   SendSync = False;
   NewDeskCapture = False;
@@ -1413,11 +1414,10 @@ Procedure Tfrm_Main.LoadConfigs;
 Begin
   vMachine := GetComputerNameFunc;
   vGroup := 'XyberPower';
-
   Host := EnDecryptString(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'host', cHost, True), 250);
   Port := StrToInt(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'port', cPort, False));
-  vGroup := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'group', cGroup, True);
-  vMachine := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'machine', cMachine, True);
+  vGroup := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'group', cGroup, False);
+  vMachine := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'machine', cMachine, False);
   ConnectionTimeout := StrToInt(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'connecttimeout', cConnectTimeOut, False));
   Proxy := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'proxy', cProxy, False) = '1';
 End;
@@ -1490,20 +1490,11 @@ End;
 Procedure Tfrm_Main.ConnectAll;
 Begin
   ipPSDeskTopClient.Active := False;
-  If Not(vWhereNew) Then
-    ipPSDeskTopClient.SendType := stNAT
-  Else
-    ipPSDeskTopClient.SendType := stProxy;
+  ipPSDeskTopClient.SendType := stNAT;
   ipCommandsClient.Active := False;
-  If Not(vWhereNew) Then
-    ipCommandsClient.SendType := stNAT
-  Else
-    ipCommandsClient.SendType := stProxy;
+  ipCommandsClient.SendType := stNAT;
   ipPSFilesClient.Active := False;
-  If Not(vWhereNew) Then
-    ipPSFilesClient.SendType := stNAT
-  Else
-    ipPSFilesClient.SendType := stProxy;
+  ipPSFilesClient.SendType := stNAT;
   vLinhaSend := '';
   Try
     ipPSDeskTopClient.Welcome := MyID;
@@ -1604,10 +1595,7 @@ Begin
   If (vTries <= 2) Then
   Begin
     vWhereNew := True;
-    If vSendType = stProxy then
-     vSendType := stNAT
-    Else
-     vSendType := stProxy;
+    vSendType := stNAT;
     If ipPSDeskTopClient.SendType = stNAT Then
       lStatusCon.Caption :=
         'Status : Falha na conexão P2P, Tentando uma nova conexão.'
@@ -1937,13 +1925,11 @@ begin
       vTries := 0;
       // Starta as Conexões
       vWhereNew := DefaultAction = stProxy;
-      If Not vWhereNew Then
-      Begin
-        ConnectAll(DefaultAction, True);
-        vWhereNew := True;
-      End
-      Else
-        ConnectAll(stProxy, True);
+      ConnectAll(DefaultAction, True);
+//      vWhereNew := True;
+//      End
+//      Else
+//        ConnectAll(stProxy, True);
       If ipPSDeskTopClient.SendType = stNAT Then
         lStatusCon.Caption := 'Status : Tentando conexão P2P'
       Else
@@ -3877,7 +3863,7 @@ begin
   Caption := Caption + ' - ' + GetAppVersionStr;
 
   // salva a versão do aplicativo no ini
-  SaveIni(cVersion, Caption, ExtractFilePath(Application.ExeName) + 'Aegys.ini',
+  SaveIni('version', Caption, ExtractFilePath(Application.ExeName) + 'Aegys.ini',
     cGeneral, False);
 
   If (ParamCount > 0) Then
