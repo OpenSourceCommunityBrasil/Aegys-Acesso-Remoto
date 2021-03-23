@@ -6,12 +6,13 @@ Uses
  Windows,      SysUtils,    Classes,      IdBaseComponent, IdUDPBase,
  IdHashMessageDigest,       IdUDPClient,  IdGlobal,        IdUDPServer,
  DateUtils,    StrUtils,    ZLibEX,       IdThreadSafe,    IdSocketHandle,
- SyncObjs,     Contnrs{$IFDEF MSWINDOWS},
-                      {$IFDEF FMX}FMX.Forms
-                      {$ELSE}VCL.Forms{$ENDIF},
-                            Winsock2  {$ENDIF},
+ SyncObjs,     Contnrs
+ {$IFDEF MSWINDOWS},
+ {$IFDEF FMX}FMX.Forms
+ {$ELSE}VCL.Forms
+ {$ENDIF},Winsock2{$ENDIF},
  IdIcmpClient, IdCustomTransparentProxy,  IdSocks,         IdComponent,
- IdTCPClient,  IdTCPServer, IdWinsock2,      IdContext;
+ IdTCPClient,  IdTCPServer, IdWinsock2,   IdContext;
 
 Const
  TSepValueMemString    = '\\';
@@ -550,7 +551,7 @@ Type
  TUDPSuperClient = Class(TComponent)
  Private
   vClientUDP               : TUDPClient;
-  vBufferCapture, //TIdThreadSafeString;
+  vBufferCapture,
   vWelcome,
   vMyOnLineIP,
   vHostIP,
@@ -638,10 +639,10 @@ Type
   Procedure GetPeerInfo        (Peer      : String;
                                 Port      : Word);
   Function  AddPeer            (Var AItem : TPeerConnected) : Boolean;
-  Function  GetActivePeer :    TPeerConnected;
+  Function  GetActivePeer                 : TPeerConnected;
   Function  GetIpSend          (PeerConnected : TPeerConnected) : String;
   Procedure AbortSendOperation;
-  Procedure SetOnGetData(Value : TOnGetData);
+  Procedure SetOnGetData      (Value : TOnGetData);
   Procedure SetOnGetLongString(Value : TOnGetLongString);
  Published
   Property  PeerConnectionOK        : Boolean                   Read vPeerConnectionOK;
@@ -2055,7 +2056,6 @@ Begin
        End;
       vWelcomeTemp       := Copy(StrTemp, Pos(TMyLocalIPFinal, StrTemp) + Length(TMyLocalIPFinal), Length(StrTemp));
       vReplyLine         := vRemoteIP + TGetIp + IntToStr(vRemotePort) + TGetPort;
-//      DataPack.aValue    := tIdBytes(CompressionDecoding.GetBytes(vReplyLine));
       BuildDataPack(Self.Binding.IP,
                     vRemoteIP,
                     Self.Binding.Port,
@@ -2065,7 +2065,6 @@ Begin
       StrToByte(vTransactionData, vTempBuffer);
       If UDPServer.Active Then
        Begin
-//       If UDPSendThread <> Nil Then
         UDPServer.SendBuffer(vRemoteIP, vRemotePort, vTempBuffer);
         {$IFDEF MSWINDOWS}
         {$IFNDEF FMX}Application.Processmessages;
@@ -3817,9 +3816,9 @@ Begin
  //Verifica se estou enviando para o Host Remoto
  DataPack         := TDataPack.Create;
  Try
-//  Result := (Value.HostSend = vHostIP) And (Value.PortSend = vHostPort);
-//  If Result Then
-//   Exit;
+  Result := (Value.HostSend = vHostIP) And (Value.PortSend = vHostPort);
+  If Result Then
+   Exit;
   Try
    Try
     vHolePunch   := vGeralEncode.GetString(Value.aValue); //BytesToString(Value, vCodificao);

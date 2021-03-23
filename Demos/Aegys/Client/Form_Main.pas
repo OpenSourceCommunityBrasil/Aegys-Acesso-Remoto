@@ -51,7 +51,6 @@ Const // 2kb  //4Kb  //8kb  //16kb
   MaxNewFrame = 40;
   FrameTimeOut = 2000;
   MaxSendFrames = 0;
-  cHostActive   = '127.0.0.1';
   SendForThread = False;
   SendSync = False;
   NewDeskCapture = False;

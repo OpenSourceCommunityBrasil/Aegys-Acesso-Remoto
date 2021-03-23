@@ -847,11 +847,11 @@ Begin
                //Teste para escolha automática de tipo de captura
                vDifTeste := TestDiff(vInitConnection^.EndPing,
                                      vFinalConnection^.EndPing);
-               If PingTest Then
-                Begin
-                 ipPSTCPMain.Write(StrToInt(vInitConnection^.ipMain.Main),  '<|TESTEDIFF|>' + vDifTeste + vCommandEnd);
-                 ipPSTCPMain.Write(StrToInt(vFinalConnection^.ipMain.Main), '<|TESTEDIFF|>' + vDifTeste + vCommandEnd);
-                End;
+//               If PingTest Then
+//                Begin
+//                 ipPSTCPMain.Write(StrToInt(vInitConnection^.ipMain.Main),  '<|TESTEDIFF|>' + vDifTeste + vCommandEnd);
+//                 ipPSTCPMain.Write(StrToInt(vFinalConnection^.ipMain.Main), '<|TESTEDIFF|>' + vDifTeste + vCommandEnd);
+//                End;
                // XyberX
                if Pos(vCommandEnd, vLine2) = 0 then
                 vLine2 := vLine2 + vCommandEnd;
