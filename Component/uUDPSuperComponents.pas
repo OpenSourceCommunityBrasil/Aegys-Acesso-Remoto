@@ -6,13 +6,14 @@ Uses
  Windows,      SysUtils,    Classes,      IdBaseComponent, IdUDPBase,
  IdHashMessageDigest,       IdUDPClient,  IdGlobal,        IdUDPServer,
  DateUtils,    StrUtils,    ZLibEX,       IdThreadSafe,    IdSocketHandle,
- SyncObjs,     Contnrs
- {$IFDEF MSWINDOWS},
- {$IFDEF FMX}FMX.Forms
- {$ELSE}VCL.Forms
- {$ENDIF},Winsock2{$ENDIF},
+ SyncObjs,     Contnrs{$IFDEF MSWINDOWS},
+                      {$IFDEF FMX}FMX.Forms
+                      {$ELSE}VCL.Forms{$ENDIF},
+                            Winsock2,     Rtti,
+                            TypInfo   {$ENDIF},
  IdIcmpClient, IdCustomTransparentProxy,  IdSocks,         IdComponent,
- IdTCPClient,  IdTCPServer, IdWinsock2,   IdContext;
+ IdTCPClient,  IdTCPServer, uKBDynamic,   IdWinsock2,      IdContext,
+ JDRMGraphics;
 
 Const
  TSepValueMemString    = '\\';
@@ -20,7 +21,6 @@ Const
 
 Type
  THeaderSizeData = LongInt;
- DWInteger       = Int64;
 
 Type
  TErrorType           = (etConnection,  etTimeOut, etLostConnection);
@@ -34,7 +34,6 @@ Type
  TPackSendType        = (pstUDP = 0,    pstTCP  = 1);
  PSendType            = ^TSendType;
  PConnected           = ^Boolean;
- PSafeInteger         = ^Integer; //TIdThreadSafeString;
  PSafeString          = ^String; //TIdThreadSafeString;
  PMyOnLineIP          = PString;
  PMyPort              = PWord;
@@ -44,17 +43,23 @@ Type
  TStringData          = Array of String;
 
 Type
- TDataPack            = Class
+ TDataPack            = Packed Record
+  InitBuffer,
+  FinalBuffer,
+  Compression         : Boolean;
   DataType,
   DataTransactionType,
-  SendType,
+  SendType            : Integer;
   PartsTotal,
   PackIndex,
-  PackSize            : Integer;
+  PackSize,
+  ValueSize,
+  TotalSize           : String;
   aValue              : TIdBytes;
   vHostSend,
-  vHostDest           : String;
- Public
+  vHostDest,
+  PackMD5,
+  MD5                 : String;
   Function  HostSend  : String;
   Function  HostDest  : String;
   Function  PortSend  : Word;
@@ -65,10 +70,9 @@ Type
   Procedure FromString(Const FromValue  : String);
   Function  ToString : String;
   Procedure New;
-  Constructor Create;
-  Destructor  Destroy;Override;
   Const
    cVersion        = 2;
+   cDefaultOptions = [kdoAnsiStringCodePage, kdoUTF16ToUTF8];
 End;
 
 Const
@@ -116,7 +120,7 @@ Const
  TTransportRTTI       = False;
  TIdAntiFreezeIDLE    = 250;
  TDelayThread         = 2;
- TReceiveTimeThread   = 3;
+ TReceiveTimeThread   = 2;
  TTimePunch           = 10;
  TPulseHits           = 0;
  TReceiveTime         = 3;
@@ -130,7 +134,7 @@ Const
  TReceiveTimeOutUDPServer = 5000;
  MaxPunchs            = 3;
  MaxRetriesPeerCon    = 100;
- BUFFER_SIZE          = 1024 * 4;
+ BUFFER_SIZE          = 1024 * 8;
  STREAM_SIZE          = 512  * 10; //Limite máximo de Stream
  szMyObject           = SizeOf(TDataPack) - SizeOf(String);
  szChar               = Sizeof(AnsiChar);
@@ -247,9 +251,13 @@ End;
 
 Type
  TDataValue = Class
+  MasterPackID,
+  PackID,
   LocalHost,
   HostSend,
-  HostDest            : String;
+  HostDest,
+  MD5,
+  Value               : String;
   aValue              : TIdBytes;
   PortSend,
   LocalPortSend,
@@ -267,7 +275,6 @@ Type
   SendType            : TSendType;
   DataTransactionType : TDataTransactionType;
  Public
-  Function   GetValue : String;
   Destructor Destroy;Override;
 End;
 
@@ -326,7 +333,8 @@ Type
   Destructor Destroy;Override;
   Procedure  AddItem   (Const AItem   : TDataValue);
   Procedure  DeleteItem(aItemIndex    : Integer); Overload;
-  Function   GetBufferForID(Value     : Integer) : TDataValue;
+  Procedure  DeleteItem(MD5           : String);  Overload;
+  Function   GetBufferForID(Value     : String) : TDataValue;
   Property   Items[Index : Integer]   : TDataValue Read GetValue;
 End;
 
@@ -407,6 +415,8 @@ Type
   vTCPClient           : TIdTCPClient;
   vSelf                : TObject;
   vAtualStreamB        : TIdBytes;
+  OldMD5,
+  vLastMD5,
   vWelcome             : String;
   vTimeOut,
   vRetryPacks          : Word;
@@ -464,7 +474,7 @@ Type
                       FinalBuffer            : Boolean              = False;
                       InitBufferID           : String               = '';
                       PackNum                : Integer              = 0;
-                      PartsTotal             : Integer              = 0)  : Integer; Overload;
+                      PartsTotal             : Integer              = 0)  : String; Overload;
   Function    AddPack(Peer                   : String;
                       Port                   : Word;
                       Value                  : String;
@@ -475,11 +485,11 @@ Type
                       DataTransactionType    : TDataTransactionType = dtt_Sync;
                       InitBufferID           : String               = '';
                       PackIndex              : Integer              = 0;
-                      PartsTotal             : Integer              = 0)  : Integer; Overload;
+                      PartsTotal             : Integer              = 0)  : String; Overload;
   Function    AddPack(Peer                   : String;
                       Port,
                       LocalPort              : Word;
-                      Value                  : String                  )  : Integer; Overload;
+                      Value                  : String                  )  : String; Overload;
   Constructor Create (aSelf                  : TObject;
                       TransparentProxy       : TIdCustomTransparentProxy;
                       HostIP                 : String;
@@ -551,7 +561,7 @@ Type
  TUDPSuperClient = Class(TComponent)
  Private
   vClientUDP               : TUDPClient;
-  vBufferCapture,
+  vBufferCapture, //TIdThreadSafeString;
   vWelcome,
   vMyOnLineIP,
   vHostIP,
@@ -597,7 +607,7 @@ Type
   Procedure SetConnected       (Value     : Boolean);
   Procedure DataPeerInfo       (Value     : String);
   Function  WaitConnectionEvent(BufferID  : String) : Boolean;
-  Procedure WaitTerminateEvent (BufferID  : Integer);
+  Procedure WaitTerminateEvent (BufferID  : String);
   Procedure SetTextEncoding(Value : IdTextEncodingType);
   Procedure QueryFinished(Sender : TObject);
  Public
@@ -639,10 +649,10 @@ Type
   Procedure GetPeerInfo        (Peer      : String;
                                 Port      : Word);
   Function  AddPeer            (Var AItem : TPeerConnected) : Boolean;
-  Function  GetActivePeer                 : TPeerConnected;
+  Function  GetActivePeer :    TPeerConnected;
   Function  GetIpSend          (PeerConnected : TPeerConnected) : String;
   Procedure AbortSendOperation;
-  Procedure SetOnGetData      (Value : TOnGetData);
+  Procedure SetOnGetData(Value : TOnGetData);
   Procedure SetOnGetLongString(Value : TOnGetLongString);
  Published
   Property  PeerConnectionOK        : Boolean                   Read vPeerConnectionOK;
@@ -754,6 +764,7 @@ Function  CompressStream  (Value         : TIdBytes;
 Function LocalIP : String;
 {$ENDIF}
 Function MyIpClass(MyIP : String; IPVersion : TIdIPVersion) : String;
+
 Procedure Register;
 
 Var
@@ -765,7 +776,8 @@ Implementation
 
 Procedure Register;
 Begin
- RegisterComponents('UDP Super Components', [TUDPSuperServer, TUDPSuperClient]);
+ RegisterComponents('UDP Super Components', [TUDPSuperServer, TUDPSuperClient,
+                                             TJDRMDesktop, TJDRMDesktopView]);
 End;
 
 Function MyIpClass(MyIP : String; IPVersion : TIdIPVersion) : String;
@@ -798,11 +810,6 @@ Destructor TDataValueReceive.Destroy;
 Begin
  SetLength(aValue, 0);
  Inherited;
-End;
-
-Function   TDataValue.GetValue : String;
-Begin
- Result := CompressionDecoding.GetString(TBytes(aValue));
 End;
 
 Destructor TDataValue.Destroy;
@@ -944,107 +951,96 @@ Begin
 End;
 {$ENDIF}
 
-Constructor TDataPack.Create;
-Begin
- New;
-End;
-
-Destructor TDataPack.Destroy;
-Begin
- Setlength(aValue, 0);
- Inherited;
-End;
-
 procedure TDataPack.FromString(Const FromValue : String);
-//Var
-// Status    : Boolean;
-// Value     : String;
-// AValue    : TValue;
-// AContext  : TRttiContext;
-// ARecord   : TRttiRecordType;
-// AField    : TRttiField;
-// AFldName  : String;
+Var
+ Status    : Boolean;
+ Value     : String;
+ AValue    : TValue;
+ AContext  : TRttiContext;
+ ARecord   : TRttiRecordType;
+ AField    : TRttiField;
+ AFldName  : String;
 Begin
  If FromValue = '' Then
   Exit;
  // We use RTTI to iterate thru all fields of THdr and use each field name
  // to get field value from metadata string and then set value into Hdr.
-// AContext := TRttiContext.Create;
-// Try
-//  ARecord := AContext.GetType(TypeInfo(TDataPack)).AsRecord;
-//  For AField In ARecord.GetFields Do
-//   Begin
-//    AFldName := AField.Name;
-//    Value    := ParamByNameAsString(FromValue, AFldName, Status, '0');
-//    If Status Then
-//     Begin
-//      Try
-//       Case AField.FieldType.TypeKind of
-//        tkFloat :  // Also for TDateTime !
-//         Begin
-//          If Pos('/', Value) >= 1 Then
-//           AValue := StrToDateTime(Value)
-//          Else
-//           AValue := StrToFloat(Value);
-//          AField.SetValue(@Self, AValue);
-//         End;
-//        tkInteger :
-//         Begin
-//          AValue := StrToInt(Value);
-//          AField.SetValue(@Self, AValue);
-//         End;
-//        tkUString :
-//         Begin
-//          AValue := Value;
-//          AField.SetValue(@Self, AValue);
-//         End;
-//        tkDynArray :
-//         Begin
-//          AValue.From(ToBytes(Value));
-//          AField.SetValue(@Self, AValue);
-//         End;
-//        // You should add other types as well
-//       End;
-//      Except
-//       // Ignore any exception here. Likely to be caused by
-//       // invalid value format
-//      End;
-//     End
-//    Else
-//     Begin
-//      // Do whatever you need if the string lacks a field
-//      // For example clear the field, or just do nothing
-//     End;
-//   End;
-// Finally
-//  AContext.Free;
-// End;
+ AContext := TRttiContext.Create;
+ Try
+  ARecord := AContext.GetType(TypeInfo(TDataPack)).AsRecord;
+  For AField In ARecord.GetFields Do
+   Begin
+    AFldName := AField.Name;
+    Value    := ParamByNameAsString(FromValue, AFldName, Status, '0');
+    If Status Then
+     Begin
+      Try
+       Case AField.FieldType.TypeKind of
+        tkFloat :  // Also for TDateTime !
+         Begin
+          If Pos('/', Value) >= 1 Then
+           AValue := StrToDateTime(Value)
+          Else
+           AValue := StrToFloat(Value);
+          AField.SetValue(@Self, AValue);
+         End;
+        tkInteger :
+         Begin
+          AValue := StrToInt(Value);
+          AField.SetValue(@Self, AValue);
+         End;
+        tkUString :
+         Begin
+          AValue := Value;
+          AField.SetValue(@Self, AValue);
+         End;
+        tkDynArray :
+         Begin
+          AValue.From(ToBytes(Value));
+          AField.SetValue(@Self, AValue);
+         End;
+        // You should add other types as well
+       End;
+      Except
+       // Ignore any exception here. Likely to be caused by
+       // invalid value format
+      End;
+     End
+    Else
+     Begin
+      // Do whatever you need if the string lacks a field
+      // For example clear the field, or just do nothing
+     End;
+   End;
+ Finally
+  AContext.Free;
+ End;
 End;
 
 {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 Function TDataPack.ToString : String;
-//Type
-// TDynamicArray = Array Of Byte;
-//Var
-// AContext  : TRttiContext;
-// AField    : TRttiField;
-// ARecord   : TRttiRecordType;
-// AFldName  : String;
-// AValue    : TValue;
+Type
+ TDynamicArray = Array Of Byte;
+Var
+ AContext  : TRttiContext;
+ AField    : TRttiField;
+ ARecord   : TRttiRecordType;
+ AFldName  : String;
+ AValue    : TValue;
 Begin
  Result := '';
-// AContext := TRttiContext.Create;
-// Try
-//  ARecord := AContext.GetType(TypeInfo(TDataPack)).AsRecord;
-//  For AField In ARecord.GetFields Do
-//   Begin
-//    AFldName := AField.Name;
-//    AValue   := AField.GetValue(@Self);
-//    Result := Result + AFldName + '="' + EscapeQuotes(AValue.ToString) + '";';
-//   End;
-// Finally
-//  AContext.Free;
-// End;
+ AContext := TRttiContext.Create;
+ Try
+  ARecord := AContext.GetType(TypeInfo(TDataPack)).AsRecord;
+  For AField In ARecord.GetFields Do
+   Begin
+    AFldName := AField.Name;
+    AValue   := AField.GetValue(@Self);
+    Result := Result + AFldName + '="' + EscapeQuotes(AValue.ToString) + '";';
+   End;
+ Finally
+  AContext.Free;
+ End;
 End;
 
 Function TDataPack.GetValue : String;
@@ -1056,14 +1052,14 @@ Procedure WriteRecord(Var ARecord : TDataPack; AStream: TStream);
 Begin
  AStream.Position := 0;
  AStream.Write(ARecord, szMyObject);
- AStream.Write(Pointer(ARecord.GetValue)^, ARecord.PackSize);
+ AStream.Write(Pointer(ARecord.GetValue)^, StrToInt(ARecord.ValueSize));
 End;
 
 Procedure ReadRecord (Var ARecord : TDataPack; AStream: TStream);
 Begin
  AStream.Position := 0;
  AStream.Read (ARecord, szMyObject);
- AStream.Read (Pointer(ARecord.GetValue)^, ARecord.PackSize);
+ AStream.Read (Pointer(ARecord.GetValue)^, StrToInt(ARecord.ValueSize));
 End;
 
 Function GenBufferID : String;
@@ -1108,31 +1104,43 @@ Procedure BuildDataPack(HostSend, HostDest  : String;
                         DataType            : TDataTypeDef;
                         Var Result          : TDataPack;
                         Compression         : Boolean = False;
+                        MD5                 : String  = '';
                         PackSize            : Integer = -1;
+                        PackMD5             : String  = '';
                         PackIndex           : Integer = -1;
                         PartsTotal          : Integer = 1;
                         DataTransactionType : TDataTransactionType = dtt_Sync;
                         SendType            : TSendType            = stNAT);Overload;
 Begin
-// Result.New;
+ Result.New;
  Result.vHostSend                   := HostSend + ':' + IntToStr(PortSend);
  Result.vHostDest                   := HostDest + ':' + IntToStr(PortDest);
+ Result.MD5                         := MD5;
  Result.DataType                    := Integer(DataType);
  Result.DataTransactionType         := Integer(DataTransactionType);
+ Result.Compression                 := Compression;
+ Result.InitBuffer                  := False;
+ Result.FinalBuffer                 := False;
  Result.SendType                    := Integer(SendType);
+ If Result.MD5 = '' Then
+  Result.MD5   := GenBufferID;
+ Result.PackMD5                     := PackMD5;
+ If Result.PackMD5 = '' Then
+  Result.PackMD5 := Result.MD5;
  If PackIndex = -1 Then
-  Result.PackIndex := 0
+  Result.PackIndex := '0'
  Else
-  Result.PackIndex := PackIndex;
- Result.PartsTotal := PartsTotal;
+  Result.PackIndex := IntToStr(PackIndex);
+ Result.PartsTotal := IntToStr(PartsTotal);
  If Length(Value) > 0 Then
   Begin
    If Compression Then
     Value           := CompressString(Value);
    If PackSize = -1 Then
-    Result.PackSize := Length(Value) // * szChar
+    Result.PackSize := IntToStr(Length(Value)) // * szChar
    Else
-    Result.PackSize := PackSize;
+    Result.PackSize := IntToStr(PackSize);
+   Result.ValueSize := IntToStr(Length(Value));
    Result.aValue    := tIdBytes(CompressionDecoding.GetBytes(Value)); //ToBytes(Value, vGeralEncode);
   End;
 End;
@@ -1143,6 +1151,7 @@ Procedure BuildDataPack(HostSend, HostDest  : String;
                         DataType            : TDataTypeDef;
                         Var Result          : TDataPack;
                         Compression         : Boolean = False;
+                        MD5                 : String  = '';
                         PackSize            : Integer = -1;
                         PackIndex           : Integer = -1;
                         PackTotalSize       : Integer = -1;
@@ -1156,18 +1165,28 @@ Begin
  Result.New;
  Result.vHostSend                   := HostSend + ':' + IntToStr(PortSend);
  Result.vHostDest                   := HostDest + ':' + IntToStr(PortDest);
+ Result.MD5                         := MD5;
  Result.DataType                    := Integer(DataType);
  Result.DataTransactionType         := Integer(DataTransactionType);
+ Result.Compression                 := Compression;
  Result.SendType                    := Integer(SendType);
  If PackIndex    = -1 Then
-  Result.PackIndex                  := 0
+  Result.PackIndex                  := '0'
  Else
-  Result.PackIndex                  := PackIndex;
- Result.PartsTotal                  := PartsTotal;
+  Result.PackIndex                  := IntToStr(PackIndex);
+ Result.InitBuffer                  := InitBuffer;
+ Result.FinalBuffer                 := FinalBuffer;
+ Result.PartsTotal                  := IntToStr(PartsTotal);
+ If Result.MD5   = '' Then
+  Result.MD5   := GenBufferID;
+ If MasterPackID = '' Then
+  Result.PackMD5 := Result.MD5
+ Else
+  Result.PackMD5 := MasterPackID;
  If Length(Value) > 0 Then
   Begin
-   Result.PackSize  := Length(Value);
-//   Result.ValueSize := Length(Value);
+   Result.PackSize  := IntToStr(PackSize);
+   Result.ValueSize := IntToStr(Length(Value));
    Result.aValue    := Value;
   End;
 End;
@@ -1183,13 +1202,13 @@ Var
 Begin
  Try
   Result := '';
-//  If TTransportRTTI Then
-//   StringStream := TStringStream.Create(DataPack.ToString, CompressionDecoding)
-//  Else
-//   Begin
-  StringStream := TStringStream.Create('', CompressionDecoding);
-  DataPack.SaveTo(StringStream);
-//   End;
+  If TTransportRTTI Then
+   StringStream := TStringStream.Create(DataPack.ToString, CompressionDecoding)
+  Else
+   Begin
+    StringStream := TStringStream.Create('', CompressionDecoding);
+    DataPack.SaveTo(StringStream);
+   End;
   StringStream.Position := 0;
  Finally
   Result := Format(TFormatPackData, [StringStream.DataString]); //XyberX
@@ -1197,9 +1216,7 @@ Begin
  End;
 End;
 
-Procedure BytesDataPack(Value        : String;
-                        Var Result   : TDataPack;
-                        TextEncoding : IIdTextEncoding);
+Function BytesDataPack(Value : String; TextEncoding : IIdTextEncoding) : TDataPack;
 Var
  StringStream : TStringStream;
  vTemp        : String;
@@ -1207,8 +1224,7 @@ Begin
  Result.New;
  StringStream := Nil;
  Try
-  vTemp := Copy(Value, Pos(TInitPack, Value) + Length(TInitPack), Length(Value));
-  vTemp := Copy(vTemp, 1, Pos(TFinalPack, vTemp) - 1);
+  vTemp := Copy(Value, Pos(TInitPack, Value) + Length(TInitPack), Pos(TFinalPack, Value) - 1);
   If vTemp <> '' Then
    Begin
     StringStream := TStringStream.Create(vTemp, CompressionDecoding); //XyberX
@@ -1320,99 +1336,24 @@ End;
 
 Procedure TDataPack.New;
 Begin
- vHostSend           := '';
- vHostDest           := vHostSend;
- DataType            := 0;
- DataTransactionType := 0;
- SendType            := 0;
- PartsTotal          := 0;
- PackIndex           := 0;
- PackSize            := 0;
- SetLength(aValue, 0);
+ Self.vHostSend   := '';
+ Self.vHostDest   := Self.vHostSend;
+ Self.MD5         := Self.vHostDest;
+ Self.Compression := False;
+ Self.PackSize    := '0';
+ Self.ValueSize   := '0';
+ Self.SendType    := Integer(stNAT);
 End;
 
 Procedure TDataPack.SaveTo(AStream : TStream);
-Var
- J : Integer;
 Begin
- J := DataType;
- AStream.Write(J, Sizeof(DWInteger));
- J := DataTransactionType;
- AStream.Write(J, Sizeof(DWInteger));
- J := SendType;
- AStream.Write(J, Sizeof(DWInteger));
- J := PartsTotal;
- AStream.Write(J, Sizeof(DWInteger));
- J := PackIndex;
- AStream.Write(J, Sizeof(DWInteger));
- J := PackSize;
- AStream.Write(J, Sizeof(DWInteger));
- J := Length(CompressionDecoding.GetBytes(vHostSend));
- AStream.Write(J, Sizeof(DWInteger));
- If J > 0 then
-  AStream.Write(CompressionDecoding.GetBytes(vHostSend), J);
- J := Length(CompressionDecoding.GetBytes(vHostDest));
- AStream.Write(J, Sizeof(DWInteger));
- If J > 0 then
-  AStream.Write(CompressionDecoding.GetBytes(vHostDest), J);
- J := Length(aValue);
- AStream.Write(J, Sizeof(DWInteger));
- If J <> 0 then
-  AStream.Write(Tbytes(aValue), J);
-// TKBDynamic.WriteTo(AStream, Self, TypeInfo(TDataPack), cVersion, cDefaultOptions);
+ TKBDynamic.WriteTo(AStream, Self, TypeInfo(TDataPack), cVersion, cDefaultOptions);
 End;
 
 Function TDataPack.LoadFrom(AStream : TStream) : Boolean;
-Var
- J : Integer;
- bValue : TBytes;
- vHostSendB,
- vHostDestB : String;
 Begin
- New;
- AStream.Position    := 0;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J <> 0 Then
-  DataType := J;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J <> 0 Then
-  DataTransactionType := J;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J <> 0 Then
-  SendType := J;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J <> 0 Then
-  PartsTotal := J;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J <> 0 Then
-  PackIndex := J;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J <> 0 Then
-  PackSize := J;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J > 0 then
-  Begin
-   SetLength(bValue, J);
-   AStream.ReadBuffer(TBytes(bValue), J);
-   vHostSend := CompressionDecoding.GetString(bValue);
-//   vHostSend := vHostSendB;
-  End;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J > 0 then
-  Begin
-   SetLength(bValue, 0);
-   SetLength(bValue, J);
-   AStream.ReadBuffer(TBytes(bValue), J);
-   vHostDest := CompressionDecoding.GetString(bValue);
-//   vHostDest := vHostDestB;
-  End;
- AStream.ReadBuffer(J, Sizeof(DWInteger));
- If J <> 0 Then
-  Begin
-   SetLength(aValue, J);
-   AStream.ReadBuffer(TBytes(aValue), J);
-  End;
-// Result := TKBDynamic.ReadFrom(AStream, Self, TypeInfo(TDataPack), cVersion);
+ AStream.Position := 0;
+ Result := TKBDynamic.ReadFrom(AStream, Self, TypeInfo(TDataPack), cVersion);
 End;
 
 Function  TUDPSuperServer.GetActive : Boolean;
@@ -1487,7 +1428,6 @@ Var
  vDados       : String;
 Begin
  vTempBuffer := ABuffer;
- DataPackTemp := TDataPack.Create;
  If SendDataPack Then
   Begin
    BuildDataPack(AHost, Self.Binding.IP, APort, Self.Binding.Port, BytesToString(ABuffer, vTextEncoding), dtString, DataPackTemp);
@@ -1496,15 +1436,12 @@ Begin
   End
  Else
   vTempBuffer := ABuffer;
- DataPackTemp.Free;
  If UDPServer.Active Then
-  Begin
    UDPServer.SendBuffer(AHost, APort, vIPVersion, vTempBuffer);
-   {$IFDEF MSWINDOWS}
-   {$IFNDEF FMX}Application.Processmessages;
-         {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-   {$ENDIF}
-  End;
+ {$IFDEF MSWINDOWS}
+ {$IFNDEF FMX}Application.Processmessages;
+       {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+ {$ENDIF}
 End;
 
 Procedure   TUDPSuperServer.Send(Const AHost   : String;
@@ -1518,7 +1455,6 @@ Var
 Begin
  If UDPServer.Active Then
   Begin
-   DataPackTemp := TDataPack.Create;
    If SendDataPack Then
     Begin
      BuildDataPack(AHost, Self.Binding.IP, APort, Self.Binding.Port, AData, dtString, DataPackTemp);
@@ -1526,7 +1462,6 @@ Begin
     End
    Else
     vDados       := AData;
-   DataPackTemp.Free;
    If AByteEncoding = Nil Then
     UDPServer.SendBuffer(AHost, APort, ToBytes(vDados, vTextEncoding))
 //    UDPServer.Send(AHost, APort, vDados, vTextEncoding)
@@ -1606,7 +1541,8 @@ Var
  StrTemp,
  vReplyLine,
  vReply,
- vHost            : String;
+ vHost,
+ StrMD5           : String;
  vPort            : Word;
  vGetAtualTick    : Integer;
  vTempBuffer      : tidBytes;
@@ -1651,7 +1587,6 @@ Var
   vPeersConnected.GetPeerInfo(vHost1, Port1, AItem1);
   vPeersConnected.GetPeerInfo(vHost2, Port2, AItem2);
   Try
-   DataPack         := TDataPack.Create;
    vTransactionData := Format(TOpenTransactionInfo, [HostString1]);
    BuildDataPack(Self.Binding.IP,
                  vHost1,
@@ -1660,6 +1595,11 @@ Var
                  vTransactionData, dtString, DataPack);
    RawBytesPack(DataPack, vTransactionData);
    StrToByte(vTransactionData, vTempBuffer, stProxy);
+//   TCPServer.IOHandler. Write(vTempBuffer);
+   Try
+    AItem1.AContext.Connection.IOHandler.Write(vTempBuffer);
+   Except
+   End;
    If UDPServer.Active Then
 //    If UDPSendThread <> Nil Then
      UDPServer.SendBuffer(vHost1, Port1, vTempBuffer);
@@ -1675,10 +1615,13 @@ Var
                  vTransactionData, dtString, DataPack);
    RawBytesPack(DataPack, vTransactionData);
    StrToByte(vTransactionData, vTempBuffer, stProxy);
-   DataPack.Free;
+   Try
+    AItem2.AContext.Connection.IOHandler.Write(vTempBuffer);
+   Except
+   End;
    If UDPServer.Active Then
 //    If UDPSendThread <> Nil Then
-     UDPServer.SendBuffer(vHost2, Port2, vTempBuffer);
+    UDPServer.SendBuffer(vHost2, Port2, vTempBuffer);
    {$IFDEF MSWINDOWS}
    {$IFNDEF FMX}Application.Processmessages;
          {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
@@ -1695,25 +1638,21 @@ Begin
   AContext.Connection.IOHandler.CheckForDisconnect;
   If AContext.Connection.IOHandler.InputBuffer.Size > 0 Then
    Begin
-    If AContext.Connection.IOHandler.Readable(-1) Then
+    AContext.Connection.IOHandler.InputBuffer.ExtractToBytes(aBuf);
+//    AContext.Connection.IOHandler.ReadBytes(aBuf, -1);
+    If (Length(aBuf) = 0) Then //IOHandler.CheckForDataOnSource(TReceiveTime)) Then
      Begin
-      AContext.Connection.IOHandler.ReadBytes(aBuf, -1);
-      If (Length(aBuf) = 0) Then //IOHandler.CheckForDataOnSource(TReceiveTime)) Then
-       Begin
-        {$IFDEF MSWINDOWS}
-        {$IFNDEF FMX}Application.Processmessages;
-              {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-        {$ENDIF}
-        Exit;
-       End;
+//      {$IFDEF MSWINDOWS}
+//      {$IFNDEF FMX}Application.Processmessages;
+//            {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+//      {$ENDIF}
+      Sleep(1);
+      Exit;
      End;
    End
   Else
    Begin
-    {$IFDEF MSWINDOWS}
-    {$IFNDEF FMX}Application.Processmessages;
-          {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-    {$ENDIF}
+    Sleep(1);
     Exit;
    End;
  Except
@@ -1727,12 +1666,11 @@ Begin
 //  If AContext.Connection.IOHandler.InputBuffer.Size > 0 Then
 //   AContext.Connection.IOHandler.InputBuffer.ExtractToBytes(aBuf)
  Try
-  DataPack     := TDataPack.Create;
   vHolePunch   := CompressionDecoding.GetString(TBytes(aBuf));
-  BytesDataPack(vHolePunch, DataPack, vTextEncoding);
+  DataPack     := BytesDataPack(vHolePunch, vTextEncoding);
  Except
   vHolePunch   := CompressionDecoding.GetString(TBytes(aBuf));
-  BytesDataPack(vHolePunch, DataPack, vTextEncoding);
+  DataPack     := BytesDataPack(vHolePunch, vTextEncoding);
  End;
  StrTemp  := DataPack.GetValue;//BytesToString(AData,   vTextEncoding);
  If Pos(TInitPack, vHolePunch) = 0 Then
@@ -1745,10 +1683,13 @@ Begin
   End
  Else
   Begin
-   StrTemp  := DataPack.GetValue;
+   StrMD5   := DataPack.MD5;
+   If Length(StrTemp) = 0 Then
+    Exit;
+//   StrTemp  := DataPack.GetValue;
    Try
-//    If DataPack.Compression Then
-//     StrTemp  := DecompressString(StrTemp);
+    If DataPack.Compression Then
+     StrTemp  := DecompressString(StrTemp);
     If Pos(TConnecClient, StrTemp) > 0 Then
      Begin
       StrTemp            := Copy(StrTemp, Pos(TConnecClient, StrTemp) + Length(TConnecClient), Length(StrTemp));
@@ -1771,9 +1712,9 @@ Begin
                     vReplyLine, dtString, DataPack);
       RawBytesPack(DataPack, vTransactionData);
       StrToByte(vTransactionData, vTempBuffer, stProxy);
+      AContext.Connection.IOHandler.Write(vTempBuffer);
       If UDPServer.Active Then
-//       If UDPSendThread <> Nil Then
-        UDPServer.SendBuffer(AContext.Binding.PeerIP, AContext.Binding.PeerPort, vTempBuffer);
+       UDPServer.SendBuffer(AContext.Binding.PeerIP, AContext.Binding.PeerPort, vTempBuffer);
       {$IFDEF MSWINDOWS}
       {$IFNDEF FMX}Application.Processmessages;
             {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
@@ -1805,7 +1746,6 @@ Begin
        vReply := Format(TPeerNoDataPackData, [vHost, IntToStr(vPort)])
       Else
        vReply := Format(TPeerInfoPackData,   [vHost, IntToStr(vPort), AItem.LocalIP]);
-      DataPackTemp := TDataPack.Create;
       BuildDataPack(DataPack.HostSend, Self.Binding.IP, DataPack.PortSend, TCPServer.DefaultPort, vReply, dtString, DataPackTemp);
       RawBytesPack(DataPackTemp, vTransactionData);
       StrToByte(vTransactionData, vTempBuffer, stProxy);
@@ -1833,14 +1773,11 @@ Begin
     Else If TSendType(DataPack.SendType) = stProxy Then
      Begin
       If UDPServer.Active Then
-       Begin
-//       If UDPSendThread <> Nil Then
-        UDPServer.SendBuffer(DataPack.HostSend, DataPack.PortSend, aBuf);
-        {$IFDEF MSWINDOWS}
-        {$IFNDEF FMX}Application.Processmessages;
-              {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-        {$ENDIF}
-       End;
+       UDPServer.SendBuffer(DataPack.HostSend, DataPack.PortSend, aBuf);
+      {$IFDEF MSWINDOWS}
+      {$IFNDEF FMX}Application.Processmessages;
+            {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+      {$ENDIF}
      End
     Else If Assigned(vOnRead) Then
      Begin
@@ -1850,10 +1787,6 @@ Begin
    Except
    End;
   End;
- If Assigned(DataPack) Then
-  DataPack.Free;
- If Assigned(DataPackTemp) Then
-  DataPackTemp.Free;
  {$IFDEF MSWINDOWS}
  {$IFNDEF FMX}Application.Processmessages;
        {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
@@ -1916,8 +1849,6 @@ Procedure TUDPSuperServer.UDPRead(AThread     : TIdUDPListenerThread;
                                   Const AData : TIdBytes;
                                   ABinding    : TIdSocketHandle);
 Var
- Error,
- vRemoteIP,
  vTransactionData,
  vHolePunch,
  vWelcomeTemp,
@@ -1927,7 +1858,6 @@ Var
  vHost,
  StrMD5           : String;
  vPort            : Word;
- vRemotePort,
  vGetAtualTick    : Integer;
  vTempBuffer      : tidBytes;
  AItem            : TPeerConnected;
@@ -1979,15 +1909,16 @@ Var
                  vTransactionData, dtString, DataPack);
    RawBytesPack(DataPack, vTransactionData);
    StrToByte(vTransactionData, vTempBuffer);
+   Try
+    AItem1.AContext.Connection.IOHandler.Write(vTempBuffer);
+   Except
+   End;
    If UDPServer.Active Then
-    Begin
-  //    If UDPSendThread <> Nil Then
-     UDPServer.SendBuffer(vHost1, Port1, vTempBuffer);
-     {$IFDEF MSWINDOWS}
-     {$IFNDEF FMX}Application.Processmessages;
-           {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-     {$ENDIF}
-    End;
+    UDPServer.SendBuffer(vHost1, Port1, vTempBuffer);
+   {$IFDEF MSWINDOWS}
+   {$IFNDEF FMX}Application.Processmessages;
+         {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+   {$ENDIF}
    vTransactionData := Format(TOpenTransactionInfo, [HostString2]);
    BuildDataPack(Self.Binding.IP,
                  vHost2,
@@ -1996,15 +1927,16 @@ Var
                  vTransactionData, dtString, DataPack);
    RawBytesPack(DataPack, vTransactionData);
    StrToByte(vTransactionData, vTempBuffer);
+   Try
+    AItem2.AContext.Connection.IOHandler.Write(vTempBuffer);
+   Except
+   End;
    If UDPServer.Active Then
-    Begin
-//    If UDPSendThread <> Nil Then
-     UDPServer.SendBuffer(vHost2, Port2, vTempBuffer);
-     {$IFDEF MSWINDOWS}
-     {$IFNDEF FMX}Application.Processmessages;
-           {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-     {$ENDIF}
-    End;
+    UDPServer.SendBuffer(vHost2, Port2, vTempBuffer);
+   {$IFDEF MSWINDOWS}
+   {$IFNDEF FMX}Application.Processmessages;
+         {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+   {$ENDIF}
   Except
    On E : Exception Do
     Begin
@@ -2013,16 +1945,12 @@ Var
   End;
  End;
 Begin
- vRemoteIP     := ABinding.PeerIP;
- vRemotePort   := ABinding.PeerPort;
- DataPackTemp  := TDataPack.Create;
- DataPack      := TDataPack.Create;
  Try
   vHolePunch   := CompressionDecoding.GetString(TBytes(AData));
-  BytesDataPack(vHolePunch, DataPack, vTextEncoding);
+  DataPack     := BytesDataPack(vHolePunch, vTextEncoding);
  Except
   vHolePunch   := CompressionDecoding.GetString(TBytes(AData));
-  BytesDataPack(vHolePunch, DataPack, vTextEncoding);
+  DataPack     := BytesDataPack(vHolePunch, vTextEncoding);
  End;
  StrTemp  := DataPack.GetValue;//BytesToString(AData,   vTextEncoding);
  If Pos(TInitPack, vHolePunch) = 0 Then
@@ -2035,18 +1963,19 @@ Begin
   End
  Else
   Begin
+   StrMD5   := DataPack.MD5;
    StrTemp  := DataPack.GetValue;
    Try
-//    If DataPack.Compression Then
-//     StrTemp  := DecompressString(StrTemp);
+    If DataPack.Compression Then
+     StrTemp  := DecompressString(StrTemp);
     If Pos(TConnecClient, StrTemp) > 0 Then
      Begin
       StrTemp            := Copy(StrTemp, Pos(TConnecClient, StrTemp) + Length(TConnecClient), Length(StrTemp));
       AItem              := TPeerConnected.Create;
-      AItem.SocketHandle := @ABinding;
-      AItem.RemoteIP     := vRemoteIP;
-      AItem.Port         := vRemotePort;
+      AItem.RemoteIP     := ABinding.PeerIP;
+      AItem.Port         := ABinding.PeerPort;
       AItem.LastCheck    := Now;
+      AItem.SocketHandle := @ABinding;
       If Pos(TMyLocalIPInit, StrTemp) > 0 Then
        Begin
         AItem.LocalIP   := Copy(StrTemp, Pos(TMyLocalIPInit, StrTemp)  + Length(TMyLocalIPInit),  Pos(':', StrTemp) - 1 - Length(TMyLocalIPInit));
@@ -2055,22 +1984,21 @@ Begin
         Delete(StrTemp, 1,  Pos(TMyLocalIPFinal, StrTemp) -1);
        End;
       vWelcomeTemp       := Copy(StrTemp, Pos(TMyLocalIPFinal, StrTemp) + Length(TMyLocalIPFinal), Length(StrTemp));
-      vReplyLine         := vRemoteIP + TGetIp + IntToStr(vRemotePort) + TGetPort;
+      vReplyLine         := ABinding.PeerIP + TGetIp + IntToStr(ABinding.PeerPort) + TGetPort;
+//      DataPack.aValue    := tIdBytes(CompressionDecoding.GetBytes(vReplyLine));
       BuildDataPack(Self.Binding.IP,
-                    vRemoteIP,
+                    ABinding.PeerIP,
                     Self.Binding.Port,
-                    vRemotePort,
+                    ABinding.PeerPort,
                     vReplyLine, dtString, DataPack);
       RawBytesPack(DataPack, vTransactionData);
       StrToByte(vTransactionData, vTempBuffer);
       If UDPServer.Active Then
-       Begin
-        UDPServer.SendBuffer(vRemoteIP, vRemotePort, vTempBuffer);
-        {$IFDEF MSWINDOWS}
-        {$IFNDEF FMX}Application.Processmessages;
-              {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-        {$ENDIF}
-       End;
+       UDPServer.SendBuffer(ABinding.PeerIP, ABinding.PeerPort, vTempBuffer);
+      {$IFDEF MSWINDOWS}
+      {$IFNDEF FMX}Application.Processmessages;
+            {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+      {$ENDIF}
       AItem.WelcomeMessage := vWelcomeTemp;
       If vPeersConnected.AddPeer(AItem) Then
        Begin
@@ -2102,14 +2030,11 @@ Begin
       RawBytesPack(DataPackTemp, vTransactionData);
       StrToByte(vTransactionData, vTempBuffer);
       If UDPServer.Active Then
-       Begin
-//       If UDPSendThread <> Nil Then
-        UDPServer.SendBuffer(DataPack.HostSend, DataPack.PortSend, vTempBuffer);
-        {$IFDEF MSWINDOWS}
-        {$IFNDEF FMX}Application.Processmessages;
-              {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-        {$ENDIF}
-       End;
+       UDPServer.SendBuffer(DataPack.HostSend, DataPack.PortSend, vTempBuffer);
+      {$IFDEF MSWINDOWS}
+      {$IFNDEF FMX}Application.Processmessages;
+            {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+      {$ENDIF}
      End
     Else If Pos(TSendPing, StrTemp)     > 0 Then
      Begin
@@ -2127,14 +2052,11 @@ Begin
     Else If TSendType(DataPack.SendType) = stProxy Then
      Begin
       If UDPServer.Active Then
-       Begin
-//       If UDPSendThread <> Nil Then
-        UDPServer.SendBuffer(DataPack.HostSend, DataPack.PortSend, AData); //, pstTCP);
-        {$IFDEF MSWINDOWS}
-        {$IFNDEF FMX}Application.Processmessages;
-              {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-        {$ENDIF}
-       End;
+       UDPServer.SendBuffer(DataPack.HostSend, DataPack.PortSend, AData); //, pstTCP);
+      {$IFDEF MSWINDOWS}
+      {$IFNDEF FMX}Application.Processmessages;
+            {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+      {$ENDIF}
      End
     Else If Assigned(vOnRead) Then
      Begin
@@ -2142,16 +2064,8 @@ Begin
        vOnRead(AThread, StrTemp, ABinding);
      End;
    Except
-    On E : Exception Do
-     Begin
-      Error := E.Message;
-     End;
    End;
   End;
- If Assigned(DataPackTemp) Then
-  DataPackTemp.Free;
- If Assigned(DataPack) Then
-  DataPack.Free;
 End;
 
 Function TReceiveBuffers.GetValue(PackID : String) : String;
@@ -2668,7 +2582,7 @@ Begin
   End;
 End;
 
-Function  TDataList.GetBufferForID(Value : Integer) : TDataValue;
+Function  TDataList.GetBufferForID(Value : String) : TDataValue;
 Var
  I : Integer;
 Begin
@@ -2677,12 +2591,35 @@ Begin
   Begin
    If I < (Self.Count - 1) Then
     Begin
-     If Self.Items[I].PackIndex = Value Then
+     If Self.Items[I].MD5 = Value Then
       Begin
        Result := Self.Items[I];
        Break;
       End;
     End;
+  End;
+End;
+
+Procedure TDataList.DeleteItem(MD5 : String);
+Var
+ I : Integer;
+Begin
+ If (Count > 0) Then
+  Begin
+   Try
+    System.TMonitor.Enter(Self);
+    For I := 0 to Count -1 Do
+     Begin
+      If Trim(Items[I].PackID) = Trim(MD5) Then
+       Begin
+        Self.Delete(I);
+        Break;
+       End;
+     End;
+   Finally
+    System.TMonitor.PulseAll(Self);
+    System.TMonitor.Exit(Self);
+   End;
   End;
 End;
 
@@ -2738,7 +2675,10 @@ Begin
  If vClientUDP <> Nil Then
   If vClientUDP.vClientUDP <> Nil Then
    If vClientUDP.vClientUDP.Active Then
-    vClientUDP.vClientUDP.SendBuffer(Peer, Port, Value);
+    Begin
+     vClientUDP.vSendType^ := SendType;
+     vClientUDP.vClientUDP.SendBuffer(Peer, Port, Value);
+    End;
 End;
 
 Procedure TUDPSuperClient.SendBuffer(AData               : String;
@@ -2746,7 +2686,10 @@ Procedure TUDPSuperClient.SendBuffer(AData               : String;
                                      DataTransactionType : TDataTransactionType = dtt_Sync);
 Begin
  If vClientUDP <> Nil Then
-  vClientUDP.AddPack(vHostIP, vHostPort, AData, Compression, ht_Server, dtString, -1, DataTransactionType);
+  Begin
+   vClientUDP.vSendType^ := SendType;
+   vClientUDP.AddPack(vHostIP, vHostPort, AData, Compression, ht_Server, dtString, -1, DataTransactionType);
+  End;
 End;
 
 Function CompressString(Value : String) : String;
@@ -3003,8 +2946,8 @@ Procedure TUDPSuperClient.ConnectPeer(Peer,
                                       Port,
                                       LocalPort : Word);
 Var
- vLastBuffer : String;
  vBufferID,
+ vLastBuffer : String;
  A, I        : Integer;
  vWaitFor    : Boolean;
 Begin
@@ -3029,7 +2972,7 @@ Begin
    AbortSendOperation;
    vLastBufferCon := vLastBuffer;
    vBufferID := vClientUDP.AddPack(Peer, Port, vLastBuffer, False, ht_Server);
-   ConnectPeerThread                 := TThreadConnection.Create(vLastBuffer + TDelimiter + IntToStr(vBufferID),
+   ConnectPeerThread                 := TThreadConnection.Create(vLastBuffer + TDelimiter + vBufferID,
                                                                  @vPeerConnectionOK,   vPeerConnectionTimeOut,
                                                                  @TObject(vClientUDP), vOnConnectionPeerTimeOut,
                                                                  @vPeersConnected);
@@ -3072,11 +3015,11 @@ Procedure TUDPSuperClient.SendBinary(Peer                : String;
                                      DataTransactionType : TDataTransactionType = dtt_Sync);
 Var
  vBufferString,
+ vLastBufferID,
  vHostData     : String;
  vBuffValue,
  vCompressData : TIdBytes;
  AItem         : TPeerConnected;
- vLastBufferID,
  vPackCopy,
  vSTREAM_SIZE,
  vPackSize,
@@ -3149,11 +3092,11 @@ Var
  vTransactionData,
  vTempString,
  vBufferString,
+ vInitBufferID,
+ vLastBufferID,
  vHostData,
  vCompressData : String;
  AItem         : TPeerConnected;
- vInitBufferID,
- vLastBufferID,
  A,
  vPortReturn,
  vPartsTotal,
@@ -3177,7 +3120,6 @@ Var
    End;
  End;
 Begin
- DataPack      := TDataPack.Create;
  vHostData     := Peer;
  AbortSend     := False;
  vInitBuffer   := True;
@@ -3185,7 +3127,7 @@ Begin
   vCompressData := CompressString(AData, vPackSize)
  Else
   vCompressData := AData;
- vInitBufferID  := 0;
+ vInitBufferID  := '';
  vPackSize      := Length(vCompressData);
  vTempString    := Format(TBufferInfo,  [vCompressData]);
  vPackNum       := 0;
@@ -3217,9 +3159,10 @@ Begin
         vBufferString       := vTempString;
         vTempString         := '';
        End;
+      vClientUDP.vSendType^ := SendType;
       vLastBufferID := vClientUDP.AddPack(Peer, Port,    vBufferString, Compression, ht_client,
                                           dtBytes,       vPackSize,     DataTransactionType,
-                                          IntToStr(vInitBufferID), vPackNum,      vPartsTotal);
+                                          vInitBufferID, vPackNum,      vPartsTotal);
       {$IFDEF MSWINDOWS}
       {$IFNDEF FMX}Application.Processmessages;
             {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
@@ -3236,8 +3179,6 @@ Begin
      WaitTerminateEvent(vLastBufferID);
    End;
   End;
- If Assigned(DataPack) Then
-  DataPack.Free;
 End;
 
 Procedure TUDPSuperClient.SendRawString(Peer                : String;
@@ -3394,7 +3335,7 @@ Begin
  vGeralEncode := vTextEncoding;
 End;
 
-Procedure TUDPSuperClient.WaitTerminateEvent(BufferID : Integer);
+Procedure TUDPSuperClient.WaitTerminateEvent(BufferID : String);
 Begin
  Try
   While (vClientUDP.vClientUDP <> Nil) And   (Not (AbortSend)) Do
@@ -3611,109 +3552,52 @@ Begin
               (vTCPPort   > 0)       And
               (vTCPClient.Connected) Then
             Begin
-             If vTCPClient.Socket.InputBuffer.Size > 0 Then
-              SetLength(vGetDataI, vTCPClient.Socket.InputBuffer.Size);
+//             vTCPClient.IOHandler.Readable()
+             If vTCPClient.IOHandler.InputBuffer.Size > 0 Then
+              vTCPClient.IOHandler.InputBuffer.ExtractToBytes(vGetDataI);
+//              SetLength(vGetDataI, vTCPClient.IOHandler.InputBuffer.Size);
+             vBufferSizeD := Length(vGetDataI);
             End
            Else
-            SetLength(vGetDataI, vClientUDP.BufferSize);
-           Try
-            Application.Processmessages;
-            If (vSendType^ = stProxy) And
-               (vTCPPort > 0)         And
-               (vTCPClient.Connected) Then
-             Begin
-              vBufferSizeD := Length(vGetDataI);
-              If vBufferSizeD > 0 Then
-               Begin
-                SetLength(vGetDataI, 0);
-//                StringToBytes(vTCPClient.IOHandler.InputBufferAsString, vGetDataI);
-                vTCPClient.Socket.ReadBytes(vGetDataI, -1);
-                vBufferSizeD := Length(vGetDataI);
-               End;
-             End
-            Else
+            Begin
+             SetLength(vGetDataI, vClientUDP.BufferSize);
              vBufferSizeD := vClientUDP.ReceiveBuffer(vGetDataI, TReceiveTime);
-           Except
-            Try
-             Application.Processmessages;
-             If (vSendType^ = stProxy) And
-                (vTCPPort > 0)         And
-                (vTCPClient.Connected) Then
-              vStringReceive := vTCPClient.Socket.InputBufferAsString
-             Else
-              vStringReceive := vClientUDP.ReceiveString(TReceiveTime);
-             vBufferSizeD := Length(vStringReceive);
-             If vBufferSizeD > 0 Then
-              Begin
-               SetLength(vGetDataI, 0);
-               vGetDataI := TidBytes(CompressionDecoding.GetBytes(vStringReceive));
-              End;
-            Except
-             SetLength(vGetDataI, 0);
+             If vBufferSizeD = 0 Then
+              SetLength(vGetDataI, 0);
             End;
-           End;
           End;
+         {$IFDEF MSWINDOWS}
+         {$IFNDEF FMX}Application.Processmessages;
+               {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+         {$ENDIF}
          If vBufferSizeD > 0 Then
           Begin
            vIndex := 0;
-           While vBufferSizeD > 0 Do
+           If (vSendType^ = stProxy) Then
             Begin
-             If (vSendType^ = stProxy) Then
-              Begin
- //              SetLength(vGetDataSize, 0);
-               SetLength(vGetDataSize, SizeOf(Integer));
-               Move(vGetDataI[vIndex], vGetDataSize[0], SizeOf(Integer));
-               vIndexSize := BytesToInt16(vGetDataSize);
-               vIndex     := vIndex + SizeOf(Integer);
-               SetLength(vGetDataD, vIndexSize);
-               Move(vGetDataI[vIndex], vGetDataD[0], vIndexSize);
+//              SetLength(vGetDataSize, 0);
+             SetLength(vGetDataSize, SizeOf(Integer));
+             Move(vGetDataI[vIndex], vGetDataSize[0], SizeOf(Integer));
+             vIndexSize := BytesToInt16(vGetDataSize);
+             vIndex     := vIndex + SizeOf(Integer);
+             SetLength(vGetDataD, vIndexSize);
+             Move(vGetDataI[vIndex], vGetDataD[0], vIndexSize);
 //              SetLength(vGetDataI, 0);
-               If DataListReceive <> Nil Then
-                DataListReceive.AddValue(vGetDataD);
-               SetLength(vGetDataD, 0);
-               vBufferSizeD := vBufferSizeD - vIndexSize - SizeOf(Integer);
-               If vBufferSizeD > 0 Then
-                vIndex := vIndex + vIndexSize;
-               FTerminateEvent.WaitFor(TReceiveTimeThread);
-               Application.Processmessages;
-               Continue;
-              End
-             Else
-              Begin
-               SetLength(vGetDataD, vBufferSizeD);
-               Move(vGetDataI[0], vGetDataD[0], vBufferSizeD);
-               SetLength(vGetDataI, 0);
-               If DataListReceive <> Nil Then
-                DataListReceive.AddValue(vGetDataD);
-              End;
-             If ProcessDataThread = Nil Then
-              Begin
-               Application.Processmessages;
-               If vClientUDP <> Nil Then
-                Begin
-                 If OnPunch Then
-                  Break;
-                 If (vSendType^ = stProxy) And
-                    (vTCPPort > 0)         And
-                    (vTCPClient.Connected) Then
-                  Begin
-                   If (vTCPClient.Socket.InputBuffer.Size > 0) Then //IOHandler.CheckForDataOnSource(TReceiveTime) then
-                    Begin
-                     SetLength(vGetDataI, 0);
-                     vTCPClient.Socket.ReadBytes(vGetDataI, -1);
-                     vBufferSizeD := Length(vGetDataI);
-                    End;
-                  End
-                 Else
-                  Begin
-                   SetLength(vGetDataI, vClientUDP.BufferSize);
-                   vBufferSizeD := vClientUDP.ReceiveBuffer(vGetDataI, TReceiveTime);
-                  End;
-                End;
-              End
-             Else
-              vBufferSizeD := 0;
+             If DataListReceive <> Nil Then
+              DataListReceive.AddValue(vGetDataD);
+             SetLength(vGetDataD, 0);
+             vBufferSizeD := vBufferSizeD - vIndexSize - SizeOf(Integer);
+             If vBufferSizeD > 0 Then
+              vIndex := vIndex + vIndexSize;
             End
+           Else
+            Begin
+             SetLength(vGetDataD, vBufferSizeD);
+             Move(vGetDataI[0], vGetDataD[0], vBufferSizeD);
+             SetLength(vGetDataI, 0);
+             If DataListReceive <> Nil Then
+              DataListReceive.AddValue(vGetDataD);
+            End;
           End
          Else
           SetLength(vGetDataI, 0);
@@ -3737,7 +3621,6 @@ Var
  vPortReturn  : Word;
  DataPackTemp : TDataPack;
 Begin
- DataPackTemp := TDataPack.Create;
  If (vClientUDP <> Nil) Then
   Begin
    vPeerReturn        := vHostIP;
@@ -3763,8 +3646,6 @@ Begin
       End;
     End;
   End;
- If Assigned(DataPackTemp) Then
-  DataPackTemp.Free;
 End;
 
 Procedure TUDPClient.GetPeer(Var Result : TPeerConnected; Host : String; Port : Integer);
@@ -3812,117 +3693,112 @@ Var
  DataPack         : TDataPack;
  vTempBuffer      : TIdBytes;
 Begin
- Result := False;
  //Verifica se estou enviando para o Host Remoto
- DataPack         := TDataPack.Create;
+ Result := (Value.HostSend = vHostIP) And (Value.PortSend = vHostPort);
+ If Result Then
+  Exit;
  Try
-  Result := (Value.HostSend = vHostIP) And (Value.PortSend = vHostPort);
+  Try
+   vHolePunch   := vGeralEncode.GetString(Value.aValue); //BytesToString(Value, vCodificao);
+  Except
+   vHolePunch   := CompressionDecoding.GetString(TBytes(Value.aValue));
+  End;
+  DataPack     := BytesDataPack(vHolePunch, vCodificao);
+  If (Pos(TPunchOKString, vHolePunch) > 0) Or
+     (Pos(TPeerConnect, vHolePunch) > 0)   Then
+   Begin
+    Result := True;
+    Exit;
+   End;
+  //Verifica se o Peer Remoto foi adicionado antes
+  If Value.DataTransactionType = dtt_direct then
+   Begin
+    Result := True;
+    Exit;
+   End;
+  GetPeer(PeerConnected, Value.HostSend, Value.PortSend);
+  If (PeerConnected = Nil) Then
+   Exit;
+  //Verifica se o Peer já foi conectado antes
+  Result := (PeerConnected.TransactionOpen) Or (PeerConnected.Connected);
   If Result Then
    Exit;
-  Try
-   Try
-    vHolePunch   := vGeralEncode.GetString(Value.aValue); //BytesToString(Value, vCodificao);
-   Except
-    vHolePunch   := CompressionDecoding.GetString(TBytes(Value.aValue));
-   End;
-   BytesDataPack(vHolePunch, DataPack, vCodificao);
-   If (Pos(TPunchOKString, vHolePunch) > 0) Or
-      (Pos(TPeerConnect, vHolePunch) > 0)   Then
-    Begin
-     Result := True;
-     Exit;
-    End;
-   //Verifica se o Peer Remoto foi adicionado antes
-   If Value.DataTransactionType = dtt_direct then
-    Begin
-     Result := True;
-     Exit;
-    End;
-   GetPeer(PeerConnected, Value.HostSend, Value.PortSend);
-   If (PeerConnected = Nil) Then
-    Exit;
-   //Verifica se o Peer já foi conectado antes
-   Result := (PeerConnected.TransactionOpen) Or (PeerConnected.Connected);
-   If Result Then
-    Exit;
-   //Verifica se já tentou o máximo as reconexões no peer
-   If PeerConnected.RetriesTransaction = PeerConnected.vMaxRetriesPeerCon Then
-    Exit;
-   If PeerConnected.RetriesTransaction = 0 Then
-    PeerConnected.LastNegociateCheck  := Now
-   Else If (MilliSecondsBetween(Now, PeerConnected.LastNegociateCheck) > TPunchTimeOut) Then
-    PeerConnected.LastNegociateCheck  := Now
-   Else
-    Exit;
-   Inc(PeerConnected.RetriesTransaction);
-   If Not(PeerConnected.Punch) Then
-    Begin
-     PeerConnected.Punch := True;
-     If ((PeerConnected.RemoteIP = vMyOnLineIP^)         And
-         (MyIpClass(LocalIP, vIPVersion) =
-          MyIpClass(PeerConnected.LocalIP, vIPVersion))) And
-        ((PeerConnected.LocalIP <> '') And
-        (PeerConnected.LocalIP  <> '0.0.0.0'))           Then
-      vPeerReturn                 := PeerConnected.LocalIP
-     Else
-      vPeerReturn                 := PeerConnected.RemoteIP;
-     vPortReturn                  := PeerConnected.Port;
-     vBufferSend                  := Format('%s%s', [TPunchString, vMyOnLineIP^ + '|' + LocalIP + ':' + IntToStr(vMyOnlinePort^)]);
-     OnPunch                      := True;
-     IcmpClient                   := @Client;
-     If (TSendType(Integer(vSendType^)) = stProxy) Then
-      Begin
-       DataPack.aValue              := tIdBytes(CompressionDecoding.GetBytes(vBufferSend));
-       DataPack.SendType            := Integer(vSendType^);
-       DataPack.vHostSend           := vPeerReturn + ':' + IntToStr(vPortReturn);
-       DataPack.vHostDest           := vMyOnLineIP^ + ':' + IntToStr(vMyOnlinePort^);
-       RawBytesPack(DataPack, vTransactionData);
-       StrToByte(vTransactionData, vTempBuffer, stProxy);
-      End
-     Else
-      StrToByte(vBufferSend, vTempBuffer);
-     If (TSendType(DataPack.SendType) = stNAT) Then
-      Begin
-       For I := 0 To MaxPunchs - 1 Do
-        Begin
-         Try
- //         If (TSendType(DataPack.SendType) = stProxy) Then
- //          Begin
- //           If (vTCPPort > 0) And (vTCPClient.Connected) Then
- //            vTCPClient.Socket.WriteDirect(vTempBuffer, Length(vTempBuffer));
- //          End
- //         Else
- //          Begin
-          If IcmpClient^.Active Then
-           IcmpClient^.SendBuffer(vPeerReturn, vPortReturn, vTempBuffer); //tIdBytes(CompressionDecoding.GetBytes(vBufferSend)));
-          If ProcessDataThread = Nil Then
-           Begin
-            {$IFDEF MSWINDOWS}
-            {$IFNDEF FMX}Application.Processmessages;
-                  {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-           {$ENDIF}
-           End;
+  //Verifica se já tentou o máximo as reconexões no peer
+  If PeerConnected.RetriesTransaction = PeerConnected.vMaxRetriesPeerCon Then
+   Exit;
+  If PeerConnected.RetriesTransaction = 0 Then
+   PeerConnected.LastNegociateCheck  := Now
+  Else If (MilliSecondsBetween(Now, PeerConnected.LastNegociateCheck) > TPunchTimeOut) Then
+   PeerConnected.LastNegociateCheck  := Now
+  Else
+   Exit;
+  Inc(PeerConnected.RetriesTransaction);
+  If Not(PeerConnected.Punch) Then
+   Begin
+    PeerConnected.Punch := True;
+    If ((PeerConnected.RemoteIP = vMyOnLineIP^)         And
+        (MyIpClass(LocalIP, vIPVersion) =
+         MyIpClass(PeerConnected.LocalIP, vIPVersion))) And
+       ((PeerConnected.LocalIP <> '') And
+       (PeerConnected.LocalIP  <> '0.0.0.0'))           Then
+     vPeerReturn                 := PeerConnected.LocalIP
+    Else
+     vPeerReturn                 := PeerConnected.RemoteIP;
+    vPortReturn                  := PeerConnected.Port;
+    vBufferSend                  := Format('%s%s', [TPunchString, vMyOnLineIP^ + '|' + LocalIP + ':' + IntToStr(vMyOnlinePort^)]);
+    OnPunch                      := True;
+    IcmpClient                   := @Client;
+    If (TSendType(Integer(vSendType^)) = stProxy) Then
+     Begin
+      DataPack.aValue              := tIdBytes(CompressionDecoding.GetBytes(vBufferSend));
+      DataPack.SendType            := Integer(vSendType^);
+      DataPack.vHostSend           := vPeerReturn + ':' + IntToStr(vPortReturn);
+      DataPack.MD5                 := GenBufferID;
+      DataPack.vHostDest           := vMyOnLineIP^ + ':' + IntToStr(vMyOnlinePort^);
+      RawBytesPack(DataPack, vTransactionData);
+      StrToByte(vTransactionData, vTempBuffer, stProxy);
+     End
+    Else
+     StrToByte(vBufferSend, vTempBuffer);
+    If (TSendType(DataPack.SendType) = stNAT) Then
+     Begin
+      For I := 0 To MaxPunchs - 1 Do
+       Begin
+        Try
+//         If (TSendType(DataPack.SendType) = stProxy) Then
+//          Begin
+//           If (vTCPPort > 0) And (vTCPClient.Connected) Then
+//            vTCPClient.Socket.WriteDirect(vTempBuffer, Length(vTempBuffer));
+//          End
+//         Else
+//          Begin
+           If IcmpClient^.Active Then
+            IcmpClient^.SendBuffer(vPeerReturn, vPortReturn, vTempBuffer); //tIdBytes(CompressionDecoding.GetBytes(vBufferSend)));
+           If ProcessDataThread = Nil Then
+            Begin
+             {$IFDEF MSWINDOWS}
+             {$IFNDEF FMX}Application.Processmessages;
+                   {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+             {$ENDIF}
+            End;
 //          End;
-          FTerminateEvent.WaitFor(TReceiveTimeThread);
-         Except
-         End;
+         FTerminateEvent.WaitFor(TReceiveTimeThread);
+        Except
         End;
-      End
-     Else
-      Begin
-       If (vTCPPort > 0) And (vTCPClient.Connected) Then
-        Begin
- //        vTCPClient.IOHandler.Write(vTempBuffer, Length(vTempBuffer));
-         vTCPClient.Socket.WriteDirect(vTempBuffer, Length(vTempBuffer));
-         vTCPClient.Socket.WriteBufferFlush;
-        End;
-      End;
-     PeerConnected.Punch := False;
-    End;
-  Except
-  End;
- Finally
-  DataPack.Free;
+       End;
+     End
+    Else
+     Begin
+      If (vTCPPort > 0) And (vTCPClient.Connected) Then
+       Begin
+//        vTCPClient.IOHandler.Write(vTempBuffer, Length(vTempBuffer));
+        vTCPClient.Socket.WriteDirect(vTempBuffer, Length(vTempBuffer));
+        vTCPClient.Socket.WriteBufferFlush;
+       End;
+     End;
+    PeerConnected.Punch := False;
+   End;
+ Except
  End;
  OnPunch := False;
 End;
@@ -4196,9 +4072,13 @@ Var
  Begin
   Dest.InitBuffer          := Source.InitBuffer;
   Dest.FinalBuffer         := Source.FinalBuffer;
+  Dest.PackID              := Source.PackID;
+  Dest.MasterPackID        := Source.MasterPackID;
   Dest.LocalHost           := Source.LocalHost;
   Dest.HostSend            := Source.HostSend;
   Dest.HostDest            := Source.HostDest;
+  Dest.MD5                 := Source.MD5;
+  Dest.Value               := Source.Value;
   Dest.aValue              := Source.aValue;
   Dest.PortSend            := Source.PortSend;
   Dest.LocalPortSend       := Source.LocalPortSend;
@@ -4216,8 +4096,6 @@ Var
  End;
 Begin
  Try
-  DataPack                        := TDataPack.Create;
-  DataPackRec                     := TDataPack.Create;
   vConnected^                     := False;
   vErrorConnect                   := False;
   vClientUDP.BufferSize           := vBufferSize^;
@@ -4238,8 +4116,6 @@ Begin
   vClientUDPSend.TransparentProxy := vTransparentProxy;
   vClientUDPSend.ReceiveTimeout   := TReceiveTimeOutUDP;
   vClientUDPSend.Active           := True;
-  vMyOnLineIP^                    := vClientUDP.Binding.Ip;
-  vMyOnlinePort^                  := vClientUDP.Binding.Port;
   If (vTCPPort > 0) Then
    Begin
     Try
@@ -4284,6 +4160,7 @@ Begin
   Exit;
  End;
  vNotEnter  := False;
+ vLastMD5   := '';
  vLastTimer := Now;
  vLastPing  := Now;
  DataValue  := Nil;
@@ -4342,13 +4219,13 @@ Begin
                             If Assigned(vOnError) Then
                              vOnError(etTimeOut);
                            End);
-               If (Pos(TConnecClient, DataValue.GetValue) > 0) And
+               If (Pos(TConnecClient, DataValue.Value) > 0) And
                   (vSendType^ <> stProxy) Then
                 Begin
                  Kill;
                  Continue;
                 End;
-               vListSend.DeleteItem(DataValue.PackIndex);
+               vListSend.DeleteItem(DataValue.MD5);
                vLastTimer := Now;
                vTries     := 0;
               End;
@@ -4361,10 +4238,10 @@ Begin
                                          DataValue) Or
                    (DataValue.HostType = ht_Server) Then
                   Begin
-                   If (DataValue.GetValue = '') And
+                   If (DataValue.Value = '') And
                       (Length(DataValue.aValue) = 0) Then
                     Begin
-                     vListSend.DeleteItem(DataValue.PackIndex);
+                     vListSend.DeleteItem(DataValue.MD5);
                      vLastTimer := Now;
                      vTries     := 0;
                      Continue;
@@ -4380,14 +4257,15 @@ Begin
                    vPortReturn                    := DataValue.PortSend;
                    vLocalPortSend                 := DataValue.LocalPortSend;
                    vHostType                      := DataValue.HostType;
-                   vSendData                      := DataValue.GetValue;
+                   vSendData                      := DataValue.Value;
                    vSendDataB                     := DataValue.aValue;
                    If vSendData <> '' Then
                     BuildDataPack(DataValue.HostSend,     DataValue.HostDest,
                                   DataValue.PortSend,     DataValue.PortDest,
                                   vSendData,              DataValue.DataType,
                                   DataPack,               DataValue.Compression,
-                                  DataValue.PackSize,     DataValue.PackIndex,
+                                  '',                     DataValue.PackSize,
+                                  DataValue.MasterPackID, DataValue.PackIndex,
                                   DataValue.PartsTotal,   DataTransactionType,
                                   vSendType^)
                    Else
@@ -4395,10 +4273,10 @@ Begin
                                   DataValue.PortSend,     DataValue.PortDest,
                                   vSendDataB,             DataValue.DataType,
                                   DataPack,               DataValue.Compression,
-                                  DataValue.PackSize,     DataValue.PackIndex,
-                                  DataValue.ValueSize,
+                                  '',                     DataValue.PackSize,
+                                  DataValue.PackIndex,    DataValue.ValueSize,
                                   DataValue.InitBuffer,   DataValue.FinalBuffer,
-                                  '', DataValue.PartsTotal,
+                                  DataValue.MasterPackID, DataValue.PartsTotal,
                                   DataTransactionType,    vSendType^);
                    If vHostType = ht_Server Then
                     Begin
@@ -4410,12 +4288,13 @@ Begin
                     End;
                    vTempString := StringReplace(StringReplace(DataPack.GetValue, TInitPack,  '', [rfReplaceAll]),
                                                               TFinalPack, '', [rfReplaceAll]);
-//                   If (DataPack.Compression) And (vTempString <> '') Then
-//                    vTempString := DecompressString(vTempString);
+                   If (DataPack.Compression) And (vTempString <> '') Then
+                    vTempString := DecompressString(vTempString);
                    If vTempString <> '' Then
                     vSendData := vTempString
                    Else
                     vSendData := '';
+                   DataPack.MD5      := DataValue.MD5;
                    DataPack.SendType := Integer(vSendType^);
                    If (vHostType = ht_Server) Or (TSendType(DataPack.SendType) = stProxy) Then
                     Begin
@@ -4433,7 +4312,7 @@ Begin
 //                           vTCPClient.IOHandler.Write(vTempBuffer, Length(vTempBuffer));
                            vTCPClient.Socket.WriteDirect(vTempBuffer, Length(vTempBuffer));
                            vTCPClient.Socket.WriteBufferFlush;
-                           vListSend.DeleteItem(DataPack.PackIndex);
+                           vListSend.DeleteItem(DataPack.MD5);
                            If (ProcessDataThread = Nil) And (Not(OnPunch)) Then
                             GetData;
                            ResolveData;
@@ -4453,7 +4332,7 @@ Begin
 //                           vTCPClient.IOHandler.Write(vTempBuffer, Length(vTempBuffer));
                            vTCPClient.Socket.WriteDirect(vTempBuffer, Length(vTempBuffer));
                            vTCPClient.Socket.WriteBufferFlush;
-                           vListSend.DeleteItem(DataPack.PackIndex);
+                           vListSend.DeleteItem(DataPack.MD5);
                            If (ProcessDataThread = Nil) And (Not(OnPunch)) Then
                             GetData;
                            ResolveData;
@@ -4474,10 +4353,10 @@ Begin
                           (vTCPClient.Connected)                   Then
                         Begin
                          StrToByte(vTransactionData, vTempBuffer, TSendType(DataPack.SendType));
-//                         vTCPClient.IOHandler.Write(vTempBuffer, Length(vTempBuffer));
-                         vTCPClient.Socket.WriteDirect(vTempBuffer, Length(vTempBuffer));
+                         vTCPClient.IOHandler.Write(vTempBuffer, Length(vTempBuffer));
+//                         vTCPClient.Socket.WriteDirect(vTempBuffer, Length(vTempBuffer));
                          vTCPClient.Socket.WriteBufferFlush;
-                         vListSend.DeleteItem(DataPack.PackIndex);
+                         vListSend.DeleteItem(DataPack.MD5);
                         End
                        Else
                         Begin
@@ -4575,7 +4454,7 @@ Begin
                                                 dtt_direct])) Or
                       (vPeerReturn = '')                      Then
                     Begin
-                     vListSend.DeleteItem(DataPack.PackIndex);
+                     vListSend.DeleteItem(DataPack.MD5);
                      vLastTimer := Now;
                      vTries     := 0;
                      vNotEnter  := False;
@@ -4599,8 +4478,6 @@ Begin
                        {$ENDIF}
                        If vClientUDP <> Nil Then
                         Begin
-                         vMyOnLineIP^   := vClientUDP.BoundIP;
-                         vMyOnlinePort^ := vClientUDP.BoundPort;
                          UDPReceive(DataListReceive.Items[0].aValue);
                          DataListReceive.DeleteItem(0);
                         End;
@@ -4703,8 +4580,6 @@ Begin
      End;
     End;
   End;
- DataPack.Free;
- DataPackRec.Free;
  vConnected^ := False;
  vListSend.ClearList;
  vListSend.Free;
@@ -4784,8 +4659,8 @@ Var
  vHolePunch,
  StrMD5,
  StrTemp,
- vReturnValue,
- vPeerReturn  : String;
+ vPeerReturn,
+ vReturnValue  : String;
  vPosInit,
  vPortReturn   : Integer;
  vAtualStreamL2,
@@ -5072,376 +4947,382 @@ Var
  End;
 Begin
  //XyberX
- DataPack      := TDataPack.Create;
  Try
-  Try
-   vHolePunch   := CompressionDecoding.GetString(TBytes(Value));
-   If vSendType^ = stProxy Then
-    If Pos(TFinalPack, vHolePunch) = 0 Then
-     Exit;
-   BytesDataPack(vHolePunch, DataPack, vCodificao);
-  Except
-   vHolePunch   := CompressionDecoding.GetString(TBytes(Value));
-   BytesDataPack(vHolePunch, DataPack, vCodificao);
-  End;
-  vHolePunch   := DataPack.GetValue;
-  If vHolePunch = '' Then
-   vHolePunch   := CompressionDecoding.GetString(TBytes(Value));
- {
-  Try
-   vHolePunch   := vGeralEncode.GetString(Value); //BytesToString(Value, vCodificao);
-  Except
-   vHolePunch   := CompressionDecoding.GetString(TBytes(Value));
-  End;
- }
-  If Pos(TReplyString, vHolePunch) > 0 Then
-   Begin
-    vReturnValue := StringReplace(vReturnValue, TReplyString, '', [rfReplaceAll]);
-    vListSend.DeleteItem(StrToInt(vReturnValue));
-    vLastTimer := Now;
-    vTries     := 0;
+  vHolePunch   := CompressionDecoding.GetString(TBytes(Value));
+  If vSendType^ = stProxy Then
+   If Pos(TFinalPack, vHolePunch) = 0 Then
     Exit;
-   End;
-  If Pos(TPunchString, vHolePunch) > 0          Then
-   Begin
-    SendPunchOK(vClientUDP, vHolePunch);
-    Exit;
-   End
-  Else If Pos(TPunchOKString, vHolePunch) > 0   Then
-   Begin
-    vNoPunch := False;
+  DataPack     := BytesDataPack(vHolePunch, vCodificao);
+ Except
+  vHolePunch   := CompressionDecoding.GetString(TBytes(Value));
+  DataPack     := BytesDataPack(vHolePunch, vCodificao);
+ End;
+ vHolePunch   := DataPack.GetValue;
+ If vHolePunch = '' Then
+  vHolePunch   := CompressionDecoding.GetString(TBytes(Value));
+{
+ Try
+  vHolePunch   := vGeralEncode.GetString(Value); //BytesToString(Value, vCodificao);
+ Except
+  vHolePunch   := CompressionDecoding.GetString(TBytes(Value));
+ End;
+}
+ If Pos(TReplyString, vHolePunch) > 0 Then
+  Begin
+   vReturnValue := StringReplace(vReturnValue, TReplyString, '', [rfReplaceAll]);
+   vListSend.DeleteItem(vReturnValue);
+   vLastTimer := Now;
+   vTries     := 0;
+   Exit;
+  End;
+ If Pos(TPunchString, vHolePunch) > 0          Then
+  Begin
+   SendPunchOK(vClientUDP, vHolePunch);
+   Exit;
+  End
+ Else If Pos(TPunchOKString, vHolePunch) > 0   Then
+  Begin
+   vNoPunch := False;
+   UpdatePunch(vClientUDP, vHolePunch);
+   Exit;
+  End
+ Else If Pos(TPeerConnect, vHolePunch) > 0     Then
+  Begin
+   If (vSendType^ = stProxy) And
+      (vNoPunch)             Then
     UpdatePunch(vClientUDP, vHolePunch);
-    Exit;
-   End
-  Else If Pos(TPeerConnect, vHolePunch) > 0     Then
-   Begin
-    If (vSendType^ = stProxy) And
-       (vNoPunch)             Then
-     UpdatePunch(vClientUDP, vHolePunch);
-    PeerConnect(vHolePunch);
-    Exit;
-   End
-  Else If Pos(TOpenTransaction, vHolePunch) > 0 Then
-   Begin
-    vNoPunch := True;
-    OpenTransaction(vHolePunch);
-    Exit;
-   End
-  Else If (vHolePunch = '') Then
+   PeerConnect(vHolePunch);
    Exit;
-  vHolePunch   := vGeralEncode.GetString(Value); // CompressionDecoding.GetString(TBytes(Value));
-  BytesDataPack(vHolePunch, DataPack, vCodificao);
-  If (Length(Value) > 0) Then
-   Begin
-    vReturnValue    := BytesToString(Value, vCodificao);
-    vBufferCapture^ := vReturnValue;
-    Synchronize(Procedure
-                Begin
-                  If Assigned(vOnGetData)    Then
-                   vOnGetData(vReturnValue);
-                End);
-    If ProcessDataThread = Nil Then
-     Begin
-      {$IFDEF MSWINDOWS}
-      {$IFNDEF FMX}Application.Processmessages;
-            {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-      {$ENDIF}
-     End;
-    Exit;
-   End;
-  If DataPack.PackSize <> Length(DataPack.GetValue) Then
+  End
+ Else If Pos(TOpenTransaction, vHolePunch) > 0 Then
+  Begin
+   vNoPunch := True;
+   OpenTransaction(vHolePunch);
    Exit;
-  StrTemp  := DataPack.GetValue;
-  If Assigned(vOnDataIn) Then
-   Begin
-    Synchronize(Procedure
-                Begin
-                 vOnDataIn(DataPack.aValue);
-                End);
-    If ProcessDataThread = Nil Then
-     Begin
-      {$IFDEF MSWINDOWS}
-      {$IFNDEF FMX}Application.Processmessages;
-            {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-      {$ENDIF}
-     End;
-   End;
-  If Not (TDataTypeDef(DataPack.DataType) in [dtBytes, dtBroadcastBytes, dtDataStream]) Then
-   Begin
- //   If DataPack.Compression Then
- //    StrTemp     := DecompressString(StrTemp);
-    If StrTemp <> BytesToString(Value, vCodificao) Then
-     vReturnValue := StrTemp
-    Else
-     vReturnValue := DataPack.GetValue;
-   End
-  Else
-   vReturnValue := StrTemp;
-  If (TDataTypeDef(DataPack.DataType) in [dtBytes, dtBroadcastBytes, dtDataStream]) Then
-   Begin
-    PeerConnectionOK^ := True;
-    If TDataTransactionType(DataPack.DataTransactionType) = dtt_Sync Then
-     Begin
-      If (DataPack.HostDest <> '0.0.0.0') And
-         (DataPack.HostDest <> '')        Then
-       Begin
-        vPeerReturn := DataPack.HostDest;
-        vPortReturn := DataPack.PortDest;
-       End
-      Else
-       Begin
-        vPeerReturn := DataPack.HostSend;
-        vPortReturn := DataPack.PortSend;
-       End;
-      AddPack(vPeerReturn, vPortReturn, TReplyString + IntToStr(DataPack.PackIndex), False);
-     End;
-    If TDataTypeDef(DataPack.DataType) <> dtDataStream Then
-     Begin
-      vPosInit                  := Pos(TInitBuffer, vReturnValue) + Length(TInitBuffer);
-      ReceiveBuffer             := TReceiveBuffer.Create;
-      ReceiveBuffer.vBufferSize := DataPack.PackSize;
-      ReceiveBuffer.PackNo      := DataPack.PackIndex;
-      ReceiveBuffer.PartsTotal  := DataPack.PartsTotal;
-      ReceiveBuffer.vLastCheck  := Now;
-      If (Pos(TInitBuffer, vReturnValue)       > 0) And
-         (Pos(TFinalBuffer, vReturnValue)      > 0) Then //Bug Aqui, Falta um Caracter, está indo o Dado de forma inapropriada, XyberX
-       ReceiveBuffer.vBuffer := StringReplace(StringReplace(vReturnValue, TInitBuffer,  '', [rfReplaceAll]),
-                                                                 TFinalBuffer, '', [rfReplaceAll]) //Copy(vReturnValue, vPosInit, Pos(TFinalBuffer,  vReturnValue) - vPosInit + 1)
-      Else If (Pos(TInitBuffer, vReturnValue)  > 0) Then
-       ReceiveBuffer.vBuffer := Copy(vReturnValue, vPosInit,
-                                          Length(vReturnValue))
-      Else If (Pos(TFinalBuffer, vReturnValue) > 0) Then
-       ReceiveBuffer.vBuffer := Copy(vReturnValue, 1, Pos(TFinalBuffer, vReturnValue) -1)
-      Else
-       ReceiveBuffer.vBuffer := Copy(vReturnValue, 1, Length(vReturnValue));
-      ReceiveBuffers.AddItem(ReceiveBuffer);
-      Try
-       vAtualStream := ReceiveBuffers.GetValue(ReceiveBuffer.vIdBuffer);
-      Except
-      End;
-      If vAtualStream <> '' Then
-       Begin
-        ReceiveBuffers.DeleteItem(ReceiveBuffer.vIdBuffer);
- //       If DataPack.PackSize = Length(vAtualStream) Then
- //        Begin
- //       If DataPack.Compression Then
- //        vAtualStream := DecompressString(vAtualStream);
-        If vAtualStream <> '' Then
-         Begin
-          If Assigned(vOnGetLongString) Then
-           Begin
-            Synchronize(Procedure
-                        Begin
-                         vOnGetLongString(vAtualStream);
-                         vAtualStream := '';
-                        End);
-            If ProcessDataThread = Nil Then
-             Begin
-              {$IFDEF MSWINDOWS}
-              {$IFNDEF FMX}Application.Processmessages;
-                    {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-              {$ENDIF}
-             End;
-           End;
-         End;
- //        End;
-       End;
-     End
-    Else
-     Begin
-      If DataPack.PackIndex = 1 Then
-       Begin
-        vDataReceived := 0;
-        SetLength(vAtualStreamB, 0);
-        SetLength(vAtualStreamB, DataPack.PackSize);
-       End;
-      If Length(DataPack.aValue) > 0 Then
-       Begin
-        If (DataPack.PackIndex > -1) And (DataPack.PackIndex <= DataPack.PackSize) Then
-         Begin
-          Move(DataPack.aValue[0], vAtualStreamB[DataPack.PackIndex], DataPack.PackSize);
-          vDataReceived := vDataReceived + Length(DataPack.aValue);
-          If (vDataReceived = DataPack.PackSize) Then
-           Begin
-            SetLength(vAtualStreamL, Length(vAtualStreamB));
-            Move(vAtualStreamB[0], vAtualStreamL[0], Length(vAtualStreamB));
-            SetLength(vAtualStreamB, 0);
- //           If DataPack.Compression Then
- //            DecompressStream(vAtualStreamL, vAtualStreamL2)
- //           Else
- //            Begin
-            SetLength(vAtualStreamL2, Length(vAtualStreamL));
-            Move(vAtualStreamL[0], vAtualStreamL2[0], Length(vAtualStreamL));
- //            End;
-            If Length(vAtualStreamL2) > 0 Then
-             Begin
-              If Assigned(vOnBinaryIn) Then
+  End
+ Else If (vHolePunch = '') Then
+  Exit;
+ If (DataPack.MD5 = '') And
+    (DataPack.PackMD5 = '') Then
+  Begin
+   vHolePunch   := vGeralEncode.GetString(Value); // CompressionDecoding.GetString(TBytes(Value));
+   DataPack     := BytesDataPack(vHolePunch, vCodificao);
+  End;
+ StrMD5       := DataPack.MD5;
+ If (StrMD5 = '') And (Length(Value) > 0) Then
+  Begin
+   vReturnValue    := BytesToString(Value, vCodificao);
+   vBufferCapture^ := vReturnValue;
+   Synchronize(Procedure
                Begin
-                Synchronize(Procedure
-                            Begin
-                             vOnBinaryIn(vAtualStreamL2);
-                             SetLength(vAtualStreamL2, 0);
-                            End);
-                If ProcessDataThread = Nil Then
-                 Begin
-                  {$IFDEF MSWINDOWS}
-                  {$IFNDEF FMX}Application.Processmessages;
-                        {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-                  {$ENDIF}
-                 End;
-               End;
-              SetLength(vAtualStreamL, 0);
-             End;
-           End;
-         End;
-       End;
+                 If Assigned(vOnGetData)    Then
+                  vOnGetData(vReturnValue);
+               End);
+   If ProcessDataThread = Nil Then
+    Begin
+     {$IFDEF MSWINDOWS}
+     {$IFNDEF FMX}Application.Processmessages;
+           {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+     {$ENDIF}
+    End;
+   Exit;
+  End;
+ If (StrMD5 = OldMD5) Then
+  Exit;
+ If StrToInt(DataPack.ValueSize) <> Length(DataPack.GetValue) Then
+  Exit;
+ OldMD5   := StrMD5;
+ StrTemp  := DataPack.GetValue;
+ If Assigned(vOnDataIn) Then
+  Begin
+   Synchronize(Procedure
+               Begin
+                vOnDataIn(DataPack.aValue);
+               End);
+   If ProcessDataThread = Nil Then
+    Begin
+     {$IFDEF MSWINDOWS}
+     {$IFNDEF FMX}Application.Processmessages;
+           {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+     {$ENDIF}
+    End;
+  End;
+ If Not (TDataTypeDef(DataPack.DataType) in [dtBytes, dtBroadcastBytes, dtDataStream]) Then
+  Begin
+   If DataPack.Compression Then
+    StrTemp     := DecompressString(StrTemp);
+   If StrTemp <> BytesToString(Value, vCodificao) Then
+    vReturnValue := StrTemp
+   Else
+    vReturnValue := DataPack.GetValue;
+  End
+ Else
+  vReturnValue := StrTemp;
+ If (TDataTypeDef(DataPack.DataType) in [dtBytes, dtBroadcastBytes, dtDataStream]) Then
+  Begin
+   PeerConnectionOK^ := True;
+   If TDataTransactionType(DataPack.DataTransactionType) = dtt_Sync Then
+    Begin
+     If (DataPack.HostDest <> '0.0.0.0') And
+        (DataPack.HostDest <> '')        Then
+      Begin
+       vPeerReturn := DataPack.HostDest;
+       vPortReturn := DataPack.PortDest;
+      End
+     Else
+      Begin
+       vPeerReturn := DataPack.HostSend;
+       vPortReturn := DataPack.PortSend;
+      End;
+     AddPack(vPeerReturn, vPortReturn, TReplyString + OldMD5, False);
+    End;
+   If TDataTypeDef(DataPack.DataType) <> dtDataStream Then
+    Begin
+     vPosInit                  := Pos(TInitBuffer, vReturnValue) + Length(TInitBuffer);
+     ReceiveBuffer             := TReceiveBuffer.Create;
+     ReceiveBuffer.vIdBuffer   := DataPack.PackMD5;
+     ReceiveBuffer.vBufferSize := StrToInt(DataPack.PackSize);
+     ReceiveBuffer.PackNo      := StrToInt(DataPack.PackIndex);
+     ReceiveBuffer.PartsTotal  := StrToInt(DataPack.PartsTotal);
+     ReceiveBuffer.vLastCheck  := Now;
+     If (Pos(TInitBuffer, vReturnValue)       > 0) And
+        (Pos(TFinalBuffer, vReturnValue)      > 0) Then //Bug Aqui, Falta um Caracter, está indo o Dado de forma inapropriada, XyberX
+      ReceiveBuffer.vBuffer := StringReplace(StringReplace(vReturnValue, TInitBuffer,  '', [rfReplaceAll]),
+                                                                TFinalBuffer, '', [rfReplaceAll]) //Copy(vReturnValue, vPosInit, Pos(TFinalBuffer,  vReturnValue) - vPosInit + 1)
+     Else If (Pos(TInitBuffer, vReturnValue)  > 0) Then
+      ReceiveBuffer.vBuffer := Copy(vReturnValue, vPosInit,
+                                         Length(vReturnValue))
+     Else If (Pos(TFinalBuffer, vReturnValue) > 0) Then
+      ReceiveBuffer.vBuffer := Copy(vReturnValue, 1, Pos(TFinalBuffer, vReturnValue) -1)
+     Else
+      ReceiveBuffer.vBuffer := Copy(vReturnValue, 1, Length(vReturnValue));
+     ReceiveBuffers.AddItem(ReceiveBuffer);
+     Try
+      vAtualStream := ReceiveBuffers.GetValue(ReceiveBuffer.vIdBuffer);
+     Except
      End;
-   End
-  Else
-   Begin
-    If Pos(TWelcomeMessage, vReturnValue) > 0  Then
-     Begin
-      vHolePunch := StringReplace(StrTemp, TWelcomeMessage, '', [rfReplaceAll]);
-      PeerConnectionOK^ := True;
-      If GetPeerWelcome(vHolePunch) Then
+     If vAtualStream <> '' Then
+      Begin
+       ReceiveBuffers.DeleteItem(ReceiveBuffer.vIdBuffer);
+//       If DataPack.PackSize = Length(vAtualStream) Then
+//        Begin
+       If DataPack.Compression Then
+        vAtualStream := DecompressString(vAtualStream);
+       If vAtualStream <> '' Then
+        Begin
+         If Assigned(vOnGetLongString) Then
+          Begin
+           Synchronize(Procedure
+                       Begin
+                        vOnGetLongString(vAtualStream);
+                        vAtualStream := '';
+                       End);
+           If ProcessDataThread = Nil Then
+            Begin
+             {$IFDEF MSWINDOWS}
+             {$IFNDEF FMX}Application.Processmessages;
+                   {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+             {$ENDIF}
+            End;
+          End;
+        End;
+//        End;
+      End;
+    End
+   Else
+    Begin
+     If DataPack.InitBuffer Then
+      Begin
+       vDataReceived := 0;
+       SetLength(vAtualStreamB, 0);
+       SetLength(vAtualStreamB, StrToInt(DataPack.PackSize));
+      End;
+     If Length(DataPack.aValue) > 0 Then
+      Begin
+       If (StrToInt(DataPack.PackIndex) > -1) And (StrToInt(DataPack.PackIndex) <= StrToInt(DataPack.PackSize)) Then
+        Begin
+         Move(DataPack.aValue[0], vAtualStreamB[StrToInt(DataPack.PackIndex)], StrToInt(DataPack.ValueSize));
+         vDataReceived := vDataReceived + Length(DataPack.aValue);
+         If (vDataReceived = StrToInt(DataPack.PackSize)) Then
+          Begin
+           SetLength(vAtualStreamL, Length(vAtualStreamB));
+           Move(vAtualStreamB[0], vAtualStreamL[0], Length(vAtualStreamB));
+           SetLength(vAtualStreamB, 0);
+           If DataPack.Compression Then
+            DecompressStream(vAtualStreamL, vAtualStreamL2)
+           Else
+            Begin
+             SetLength(vAtualStreamL2, Length(vAtualStreamL));
+             Move(vAtualStreamL[0], vAtualStreamL2[0], Length(vAtualStreamL));
+            End;
+           If Length(vAtualStreamL2) > 0 Then
+            Begin
+             If Assigned(vOnBinaryIn) Then
+              Begin
+               Synchronize(Procedure
+                           Begin
+                            vOnBinaryIn(vAtualStreamL2);
+                            SetLength(vAtualStreamL2, 0);
+                           End);
+               If ProcessDataThread = Nil Then
+                Begin
+                 {$IFDEF MSWINDOWS}
+                 {$IFNDEF FMX}Application.Processmessages;
+                       {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+                 {$ENDIF}
+                End;
+              End;
+             SetLength(vAtualStreamL, 0);
+            End;
+          End;
+        End;
+      End;
+    End;
+  End
+ Else
+  Begin
+   If Pos(TWelcomeMessage, vReturnValue) > 0  Then
+    Begin
+     vHolePunch := StringReplace(StrTemp, TWelcomeMessage, '', [rfReplaceAll]);
+     PeerConnectionOK^ := True;
+     If GetPeerWelcome(vHolePunch) Then
+      Synchronize(Procedure
+                  Begin
+                   If Assigned(vOnPeerRemoteConnect) Then
+                    vOnPeerRemoteConnect(vHolePunch);
+                  End);
+     Exit;
+    End
+   Else If (vLastMD5 = StrMD5) Or
+      (StrTemp = TPunchString) Then
+    Exit;
+   vLastMD5 := StrMD5;
+   If (Pos(TConnecClient, vReturnValue) > 0) Then
+    Begin
+     vConnected^ := True;
+     If (vListSend.Count > 0) Then
+      Begin
+       vListSend.DeleteItem(0);
+       vLastTimer := Now;
+       vTries     := 0;
+      End;
+     Exit;
+    End;
+   If vReturnValue <> ''  Then
+    Begin
+     If (vListSend.Count > 0) Then
+      Begin
+       vListSend.DeleteItem(0);
+       vLastTimer := Now;
+       vTries     := 0;
+      End;
+     If  (Pos(TPeerInfo,   vReturnValue) > 0)  Or
+         (Pos(TPeerNoData, vReturnValue) > 0)  Then
+      Begin
        Synchronize(Procedure
                    Begin
-                    If Assigned(vOnPeerRemoteConnect) Then
-                     vOnPeerRemoteConnect(vHolePunch);
+                    If Assigned(vDataPeerInfo) Then
+                     vDataPeerInfo(vReturnValue);
                    End);
-      Exit;
-     End
-    Else If (StrTemp = TPunchString) Then
-     Exit;
-    If (Pos(TConnecClient, vReturnValue) > 0) Then
-     Begin
-      vConnected^ := True;
-      If (vListSend.Count > 0) Then
-       Begin
-        vListSend.DeleteItem(0);
-        vLastTimer := Now;
-        vTries     := 0;
-       End;
-      Exit;
-     End;
-    If vReturnValue <> '' Then
-     Begin
-      If (vListSend.Count > 0) Then
-       Begin
-        vListSend.DeleteItem(0);
-        vLastTimer := Now;
-        vTries     := 0;
-       End;
-      If  (Pos(TPeerInfo,   vReturnValue) > 0)  Or
-          (Pos(TPeerNoData, vReturnValue) > 0)  Then
-       Begin
-        Synchronize(Procedure
-                    Begin
-                     If Assigned(vDataPeerInfo) Then
-                      vDataPeerInfo(vReturnValue);
-                    End);
-       End;
-      If (Pos(TGetPeerInfo, vReturnValue) = 0)  And
-         (Pos(TPeerInfo, vReturnValue)    = 0)  And
-         (Pos(TPeerNoData, vReturnValue)  = 0)  And
-         ((Pos(TGetIp, vReturnValue)      > 0)  And
-          (Pos(TGetPort, vReturnValue)    > 0)) Then
-       Begin
-        If (Pos(TConfirmPK, vReturnValue) > 0)  Then
-         Begin
-          vMyOnLineIP^ := Copy(vReturnValue,   Pos(TConfirmPK, vReturnValue) + Length(TConfirmPK),
-                                               Pos(TGetIp, vReturnValue) - Length(TConfirmPK) - 1);
-          Delete(vReturnValue, Pos(TConfirmPK, vReturnValue),
-                               Pos(TGetIp, vReturnValue) + Length(TGetIp) - 1);
-         End
-        Else
-         Begin
-          vMyOnLineIP^ := Copy(vReturnValue,   1, Pos(TGetIp, vReturnValue) - 1);
-          Delete(vReturnValue, 1, Pos(TGetIp, vReturnValue) + Length(TGetIp) - 1);
-         End;
-        If (vReturnValue <> '') Then
-         If (Pos(TGetPort, vReturnValue) > 0) Then
-          If Copy(vReturnValue, 1, Pos(TGetPort, vReturnValue) - 1) <> '' Then
-           vMyOnlinePort^ := StrToInt(Copy(vReturnValue, 1, Pos(TGetPort, vReturnValue) - 1));
-        If (vTCPPort > 0) And (vTCPClient.Connected) And (vSendType^ = stProxy) Then
-         vMyPort^         := vTCPClient.Socket.Binding.Port
-        Else
-         vMyPort^          := vClientUDP.Binding.Port;
-        vReturnValue      := '';
-        Synchronize(Procedure
-                    Begin
-                     vConnected^ := True;
-                     If Assigned(vOnConnected) Then
-                      vOnConnected;
-                    End);
-       End;
-      If (vConnected^) Or
-         ((DataPack.HostDest = vHostIP) And (DataPack.PortDest = vHostPort)) Then
-       Begin  //XyberX
-        If DataPack.HostDest <> '0.0.0.0' Then
-         vPeersConnected.GetPeerInfo(DataPack.HostDest, DataPack.PortDest, PeerConnected)
-        Else
-         vPeersConnected.GetPeerInfo(DataPack.HostSend, DataPack.PortSend, PeerConnected);
-        If PeerConnected <> Nil Then
-         Begin
-          If vMyOnLineIP^ <> PeerConnected.RemoteIP Then
-           vPeerReturn := PeerConnected.RemoteIP
-          Else
-           vPeerReturn := PeerConnected.LocalIP;
-          If PeerConnected.Port > 0 Then
-           vPortReturn  := PeerConnected.Port
-          Else
-           vPortReturn  := PeerConnected.TCPPort;
-         End;
-        If vReturnValue <> TReplyString Then
-         Begin
-          If (vReturnValue <> '') Then
-           Begin
-            If Not((Pos(TGetIp, vReturnValue) > 0)    And
-                   (Pos(TGetPort, vReturnValue) > 0)) Then
-             Begin
-              If (DataPack.HostDest <> '0.0.0.0') And
-                 (DataPack.HostDest <> '')        Then
-               Begin
-                vPeerReturn := DataPack.HostDest;
-                vPortReturn := DataPack.PortDest;
-               End
-              Else
-               Begin
-                vPeerReturn := DataPack.HostSend;
-                vPortReturn := DataPack.PortSend;
-               End;
-              If Not(Pos(TSendPing, vReturnValue) > 0) Then
-               AddPack(vPeerReturn, vPortReturn, TReplyString + IntToStr(DataPack.PackIndex));
-             End;
-           End;
-         End;
-        If (vReturnValue <>   TReplyString)       And
-           Not((Pos(TGetIp,   vReturnValue) > 0)  And
-               (Pos(TGetPort, vReturnValue) > 0)) And
-           (vReturnValue <> '')                   Then
-         Begin
-          vBufferCapture^ := vReturnValue;
-          PeerConnectionOK^ := True;
-          Synchronize(Procedure
-                      Begin
-                        If Assigned(vOnGetData) Then
-                         vOnGetData(vReturnValue);
-                      End);
-          If ProcessDataThread = Nil Then
-           Begin
-            {$IFDEF MSWINDOWS}
-            {$IFNDEF FMX}Application.Processmessages;
-                  {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
-            {$ENDIF}
-           End;
-         End;
-       End;
-     End;
-   End;
- Finally
-  DataPack.Free;
- End;
+      End;
+     If (Pos(TGetPeerInfo, vReturnValue) = 0)  And
+        (Pos(TPeerInfo, vReturnValue)    = 0)  And
+        (Pos(TPeerNoData, vReturnValue)  = 0)  And
+        ((Pos(TGetIp, vReturnValue)      > 0)  And
+         (Pos(TGetPort, vReturnValue)    > 0)) Then
+      Begin
+       If (Pos(TConfirmPK, vReturnValue) > 0)  Then
+        Begin
+         vMyOnLineIP^ := Copy(vReturnValue,   Pos(TConfirmPK, vReturnValue) + Length(TConfirmPK),
+                                              Pos(TGetIp, vReturnValue) - Length(TConfirmPK) - 1);
+         Delete(vReturnValue, Pos(TConfirmPK, vReturnValue),
+                              Pos(TGetIp, vReturnValue) + Length(TGetIp) - 1);
+        End
+       Else
+        Begin
+         vMyOnLineIP^ := Copy(vReturnValue,   1, Pos(TGetIp, vReturnValue) - 1);
+         Delete(vReturnValue, 1, Pos(TGetIp, vReturnValue) + Length(TGetIp) - 1);
+        End;
+       If (vReturnValue <> '') Then
+        If (Pos(TGetPort, vReturnValue) > 0) Then
+         If Copy(vReturnValue, 1, Pos(TGetPort, vReturnValue) - 1) <> '' Then
+          vMyOnlinePort^ := StrToInt(Copy(vReturnValue, 1, Pos(TGetPort, vReturnValue) - 1));
+       If (vTCPPort > 0) And (vTCPClient.Connected) And (vSendType^ = stProxy) Then
+        vMyPort^         := vTCPClient.Socket.Binding.Port
+       Else
+        vMyPort^          := vClientUDP.Binding.Port;
+       vReturnValue      := '';
+       Synchronize(Procedure
+                   Begin
+                    vConnected^ := True;
+                    If Assigned(vOnConnected) Then
+                     vOnConnected;
+                   End);
+      End;
+     If (vConnected^) Or
+        ((DataPack.HostDest = vHostIP) And (DataPack.PortDest = vHostPort)) Then
+      Begin  //XyberX
+       If DataPack.HostDest <> '0.0.0.0' Then
+        vPeersConnected.GetPeerInfo(DataPack.HostDest, DataPack.PortDest, PeerConnected)
+       Else
+        vPeersConnected.GetPeerInfo(DataPack.HostSend, DataPack.PortSend, PeerConnected);
+       If PeerConnected <> Nil Then
+        Begin
+         If vMyOnLineIP^ <> PeerConnected.RemoteIP Then
+          vPeerReturn := PeerConnected.RemoteIP
+         Else
+          vPeerReturn := PeerConnected.LocalIP;
+         If PeerConnected.Port > 0 Then
+          vPortReturn  := PeerConnected.Port
+         Else
+          vPortReturn  := PeerConnected.TCPPort;
+        End;
+       If vReturnValue <> TReplyString Then
+        Begin
+         If (vReturnValue <> '') Then
+          Begin
+           If Not((Pos(TGetIp, vReturnValue) > 0)    And
+                  (Pos(TGetPort, vReturnValue) > 0)) Then
+            Begin
+             If (DataPack.HostDest <> '0.0.0.0') And
+                (DataPack.HostDest <> '')        Then
+              Begin
+               vPeerReturn := DataPack.HostDest;
+               vPortReturn := DataPack.PortDest;
+              End
+             Else
+              Begin
+               vPeerReturn := DataPack.HostSend;
+               vPortReturn := DataPack.PortSend;
+              End;
+             If Not(Pos(TSendPing, vReturnValue) > 0) Then
+              AddPack(vPeerReturn, vPortReturn, TReplyString + OldMD5);
+            End;
+          End;
+        End;
+       If (vReturnValue <>   TReplyString)       And
+          Not((Pos(TGetIp,   vReturnValue) > 0)  And
+              (Pos(TGetPort, vReturnValue) > 0)) And
+          (vReturnValue <> '')                   Then
+        Begin
+         vBufferCapture^ := vReturnValue;
+         PeerConnectionOK^ := True;
+         Synchronize(Procedure
+                     Begin
+                       If Assigned(vOnGetData) Then
+                        vOnGetData(vReturnValue);
+                     End);
+         If ProcessDataThread = Nil Then
+          Begin
+           {$IFDEF MSWINDOWS}
+           {$IFNDEF FMX}Application.Processmessages;
+                 {$ELSE}FMX.Forms.TApplication.ProcessMessages;{$ENDIF}
+           {$ENDIF}
+          End;
+        End;
+      End;
+    End;
+  End;
 End;
 
 Procedure TUDPClient.UDPReceive(Value : String);
@@ -5638,257 +5519,258 @@ Var
  End;
 Begin
  //XyberX
- DataPack     := TDataPack.Create;
- Try
-  vHolePunch   := Value;
-  If Pos(TPunchString, vHolePunch) > 0          Then
-   Begin
-    SendPunchOK(vClientUDP, vHolePunch);
-    Exit;
-   End
-  Else If Pos(TPunchOKString, vHolePunch) > 0   Then
-   Begin
-    UpdatePunch(vClientUDP, vHolePunch);
-    Exit;
-   End
-  Else If Pos(TPeerConnect, vHolePunch) > 0     Then
-   Begin
-    PeerConnect(vHolePunch);
-    Exit;
-   End
-  Else If Pos(TOpenTransaction, vHolePunch) > 0 Then
-   Begin
-    OpenTransaction(vHolePunch);
-    Exit;
-   End
-  Else If (vHolePunch = '') Then
+ vHolePunch   := Value;
+ If Pos(TPunchString, vHolePunch) > 0          Then
+  Begin
+   SendPunchOK(vClientUDP, vHolePunch);
    Exit;
-  BytesDataPack(vHolePunch, DataPack, vCodificao);
-  If (Value <> '') Then
-   Begin
-    vReturnValue    := Value;
-    vBufferCapture^ := vReturnValue;
-    Synchronize(Procedure
-                Begin
-                  If Assigned(vOnGetData)    Then
-                   vOnGetData(vReturnValue);
-                End);
+  End
+ Else If Pos(TPunchOKString, vHolePunch) > 0   Then
+  Begin
+   UpdatePunch(vClientUDP, vHolePunch);
+   Exit;
+  End
+ Else If Pos(TPeerConnect, vHolePunch) > 0     Then
+  Begin
+   PeerConnect(vHolePunch);
+   Exit;
+  End
+ Else If Pos(TOpenTransaction, vHolePunch) > 0 Then
+  Begin
+   OpenTransaction(vHolePunch);
+   Exit;
+  End
+ Else If (vHolePunch = '') Then
+  Exit;
+ DataPack     := BytesDataPack(vHolePunch, vCodificao);
+ StrMD5       := DataPack.MD5;
+ If (StrMD5 = '') And (Value <> '') Then
+  Begin
+   vReturnValue    := Value;
+   vBufferCapture^ := vReturnValue;
+   Synchronize(Procedure
+               Begin
+                 If Assigned(vOnGetData)    Then
+                  vOnGetData(vReturnValue);
+               End);
+   Exit;
+  End;
+ If (StrMD5 = OldMD5) Then
+  Exit;
+ OldMD5   := StrMD5;
+ StrTemp  := DataPack.GetValue;
+{
+ StrTemp      := StringReplace(StringReplace(DataPack.Value, TInitBuffer,  '', [rfReplaceAll]),
+                                                             TFinalBuffer, '', [rfReplaceAll]);
+}
+ If Not (TDataTypeDef(DataPack.DataType) in [dtBytes, dtBroadcastBytes, dtDataStream]) Then
+  Begin
+   If DataPack.Compression Then
+    StrTemp     := DecompressString(StrTemp);
+   If StrTemp <> Value Then
+    vReturnValue := StrTemp
+   Else
+    vReturnValue := DataPack.GetValue;
+  End
+ Else
+  vReturnValue := StrTemp;
+ If Pos(TReplyString, vReturnValue) > 0 Then
+  Begin
+   vReturnValue := StringReplace(vReturnValue, TReplyString, '', [rfReplaceAll]);
+   vListSend.DeleteItem(vReturnValue);
+//   vListSend.DeleteItem(0);
+   vLastTimer := Now;
+   vTries     := 0;
+   Exit;
+  End;
+ If (TDataTypeDef(DataPack.DataType) in [dtBytes, dtBroadcastBytes]) Then
+  Begin
+   If TDataTransactionType(DataPack.DataTransactionType) = dtt_Sync Then
+    Begin
+     If (DataPack.HostDest <> '0.0.0.0') And
+        (DataPack.HostDest <> '')        Then
+      Begin
+       vPeerReturn := DataPack.HostDest;
+       vPortReturn := DataPack.PortDest;
+      End
+     Else
+      Begin
+       vPeerReturn := DataPack.HostSend;
+       vPortReturn := DataPack.PortSend;
+      End;
+     AddPack(vPeerReturn, vPortReturn, TReplyString + OldMD5, False);
+    End;
+   vPosInit := Pos(TInitBuffer,   vReturnValue) + Length(TInitBuffer);
+   If (Pos(TInitBuffer, vReturnValue)       > 0) And
+      (Pos(TFinalBuffer, vReturnValue)      > 0) Then //Bug Aqui, Falta um Caracter, está indo o Dado de forma inapropriada, XyberX
+    vAtualStream := StringReplace(StringReplace(vReturnValue, TInitBuffer,  '', [rfReplaceAll]),
+                                                              TFinalBuffer, '', [rfReplaceAll]) //Copy(vReturnValue, vPosInit, Pos(TFinalBuffer,  vReturnValue) - vPosInit + 1)
+   Else If (Pos(TInitBuffer, vReturnValue)  > 0) Then
+    vAtualStream := Copy(vReturnValue, vPosInit,
+                                       Length(vReturnValue))
+   Else If (Pos(TFinalBuffer, vReturnValue) > 0) Then
+    Begin
+     If vAtualStream <> '' Then
+      vAtualStream := vAtualStream +   Copy(vReturnValue, 1, Pos(TFinalBuffer, vReturnValue) -1);
+    End
+   Else
+    vAtualStream   := vAtualStream +   Copy(vReturnValue, 1, Length(vReturnValue));
+   If (Pos(TFinalBuffer, vReturnValue) > 0) And
+      (vAtualStream <> '')                  Then
+    Begin
+     If StrToInt(DataPack.PackSize) = Length(vAtualStream) Then
+      Begin
+       If DataPack.Compression Then
+        vAtualStream := DecompressString(vAtualStream);
+       If vAtualStream <> '' Then
+        Begin
+         If Assigned(vOnGetLongString) Then
+          Begin
+           Synchronize(Procedure
+                       Begin
+                        vOnGetLongString(vAtualStream);
+                        vAtualStream := '';
+                       End);
+          End;
+        End;
+      End;
+    End;
+  End
+ Else
+  Begin
+   If Pos(TWelcomeMessage, vReturnValue) > 0  Then
+    Begin
+     vHolePunch := StringReplace(StrTemp, TWelcomeMessage, '', [rfReplaceAll]);
+     If GetPeerWelcome(vHolePunch) Then
+      Synchronize(Procedure
+                  Begin
+                   If Assigned(vOnPeerRemoteConnect) Then
+                    vOnPeerRemoteConnect(vHolePunch);
+                  End);
+     Exit;
+    End
+   Else If (vLastMD5 = StrMD5) Or
+      (StrTemp = TPunchString) Then
     Exit;
-   End;
-  StrTemp  := DataPack.GetValue;
- {
-  StrTemp      := StringReplace(StringReplace(DataPack.Value, TInitBuffer,  '', [rfReplaceAll]),
-                                                              TFinalBuffer, '', [rfReplaceAll]);
- }
-  If Not (TDataTypeDef(DataPack.DataType) in [dtBytes, dtBroadcastBytes, dtDataStream]) Then
-   Begin
- //   If DataPack.Compression Then
- //    StrTemp     := DecompressString(StrTemp);
-    If StrTemp <> Value Then
-     vReturnValue := StrTemp
-    Else
-     vReturnValue := DataPack.GetValue;
-   End
-  Else
-   vReturnValue := StrTemp;
-  If Pos(TReplyString, vReturnValue) > 0 Then
-   Begin
-    vReturnValue := StringReplace(vReturnValue, TReplyString, '', [rfReplaceAll]);
-    vListSend.DeleteItem(StrToInt(vReturnValue));
- //   vListSend.DeleteItem(0);
-    vLastTimer := Now;
-    vTries     := 0;
-    Exit;
-   End;
-  If (TDataTypeDef(DataPack.DataType) in [dtBytes, dtBroadcastBytes]) Then
-   Begin
-    If TDataTransactionType(DataPack.DataTransactionType) = dtt_Sync Then
-     Begin
-      If (DataPack.HostDest <> '0.0.0.0') And
-         (DataPack.HostDest <> '')        Then
-       Begin
-        vPeerReturn := DataPack.HostDest;
-        vPortReturn := DataPack.PortDest;
-       End
-      Else
-       Begin
-        vPeerReturn := DataPack.HostSend;
-        vPortReturn := DataPack.PortSend;
-       End;
-      AddPack(vPeerReturn, vPortReturn, TReplyString + IntToStr(DataPack.PackIndex), False);
-     End;
-    vPosInit := Pos(TInitBuffer,   vReturnValue) + Length(TInitBuffer);
-    If (Pos(TInitBuffer, vReturnValue)       > 0) And
-       (Pos(TFinalBuffer, vReturnValue)      > 0) Then //Bug Aqui, Falta um Caracter, está indo o Dado de forma inapropriada, XyberX
-     vAtualStream := StringReplace(StringReplace(vReturnValue, TInitBuffer,  '', [rfReplaceAll]),
-                                                               TFinalBuffer, '', [rfReplaceAll]) //Copy(vReturnValue, vPosInit, Pos(TFinalBuffer,  vReturnValue) - vPosInit + 1)
-    Else If (Pos(TInitBuffer, vReturnValue)  > 0) Then
-     vAtualStream := Copy(vReturnValue, vPosInit,
-                                        Length(vReturnValue))
-    Else If (Pos(TFinalBuffer, vReturnValue) > 0) Then
-     Begin
-      If vAtualStream <> '' Then
-       vAtualStream := vAtualStream +   Copy(vReturnValue, 1, Pos(TFinalBuffer, vReturnValue) -1);
-     End
-    Else
-     vAtualStream   := vAtualStream +   Copy(vReturnValue, 1, Length(vReturnValue));
-    If (Pos(TFinalBuffer, vReturnValue) > 0) And
-       (vAtualStream <> '')                  Then
-     Begin
-      If DataPack.PackSize = Length(vAtualStream) Then
-       Begin
- //       If DataPack.Compression Then
- //        vAtualStream := DecompressString(vAtualStream);
-        If vAtualStream <> '' Then
-         Begin
-          If Assigned(vOnGetLongString) Then
-           Begin
-            Synchronize(Procedure
-                        Begin
-                         vOnGetLongString(vAtualStream);
-                         vAtualStream := '';
-                        End);
-           End;
-         End;
-       End;
-     End;
-   End
-  Else
-   Begin
-    If Pos(TWelcomeMessage, vReturnValue) > 0  Then
-     Begin
-      vHolePunch := StringReplace(StrTemp, TWelcomeMessage, '', [rfReplaceAll]);
-      If GetPeerWelcome(vHolePunch) Then
+   vLastMD5 := StrMD5;
+   If (Pos(TConnecClient, vReturnValue) > 0) Then
+    Begin
+     vConnected^ := True;
+     If (vListSend.Count > 0) Then
+      Begin
+       vListSend.DeleteItem(vLastMD5);
+       vLastTimer := Now;
+       vTries     := 0;
+      End;
+     Exit;
+    End;
+   If vReturnValue <> ''  Then
+    Begin
+     If (vListSend.Count > 0) Then
+      Begin
+       vListSend.DeleteItem(vLastMD5);
+       vLastTimer := Now;
+       vTries     := 0;
+      End;
+     If  (Pos(TPeerInfo,   vReturnValue) > 0)  Or
+         (Pos(TPeerNoData, vReturnValue) > 0)  Then
+      Begin
        Synchronize(Procedure
                    Begin
-                    If Assigned(vOnPeerRemoteConnect) Then
-                     vOnPeerRemoteConnect(vHolePunch);
+                    If Assigned(vDataPeerInfo) Then
+                     vDataPeerInfo(vReturnValue);
                    End);
-      Exit;
-     End
-    Else If  (StrTemp = TPunchString) Then
-     Exit;
-    If (Pos(TConnecClient, vReturnValue) > 0) Then
-     Begin
-      vConnected^ := True;
-      If (vListSend.Count > 0) Then
-       Begin
-        vListSend.DeleteItem(DataPack.PackIndex);
-        vLastTimer := Now;
-        vTries     := 0;
-       End;
-      Exit;
-     End;
-    If vReturnValue <> ''  Then
-     Begin
-      If (vListSend.Count > 0) Then
-       Begin
-        vListSend.DeleteItem(DataPack.PackIndex);
-        vLastTimer := Now;
-        vTries     := 0;
-       End;
-      If  (Pos(TPeerInfo,   vReturnValue) > 0)  Or
-          (Pos(TPeerNoData, vReturnValue) > 0)  Then
-       Begin
-        Synchronize(Procedure
-                    Begin
-                     If Assigned(vDataPeerInfo) Then
-                      vDataPeerInfo(vReturnValue);
-                    End);
-       End;
-      If (Pos(TGetPeerInfo, vReturnValue) = 0)  And
-         (Pos(TPeerInfo, vReturnValue)    = 0)  And
-         (Pos(TPeerNoData, vReturnValue)  = 0)  And
-         ((Pos(TGetIp, vReturnValue)      > 0)  And
-          (Pos(TGetPort, vReturnValue)    > 0)) Then
-       Begin
-        If (Pos(TConfirmPK, vReturnValue) > 0)  Then
-         Begin
-          vMyOnLineIP^ := Copy(vReturnValue,   Pos(TConfirmPK, vReturnValue) + Length(TConfirmPK),
-                                               Pos(TGetIp, vReturnValue) - Length(TConfirmPK) - 1);
-          Delete(vReturnValue, Pos(TConfirmPK, vReturnValue),
-                               Pos(TGetIp, vReturnValue) + Length(TGetIp) - 1);
-         End
-        Else
-         Begin
-          vMyOnLineIP^ := Copy(vReturnValue,   1, Pos(TGetIp, vReturnValue) - 1);
-          Delete(vReturnValue, 1, Pos(TGetIp, vReturnValue) + Length(TGetIp) - 1);
-         End;
-        If (vReturnValue <> '') Then
-         If (Pos(TGetPort, vReturnValue) > 0) Then
-          If Copy(vReturnValue, 1, Pos(TGetPort, vReturnValue) - 1) <> '' Then
-           vMyOnlinePort^ := StrToInt(Copy(vReturnValue, 1, Pos(TGetPort, vReturnValue) - 1));
-        If (vTCPPort > 0) And (vTCPClient.Connected) And (vSendType^ = stProxy) Then
-         vMyPort^         := vTCPClient.Socket.Binding.Port
-        Else
-         vMyPort^         := vClientUDP.Binding.Port;
-        vReturnValue      := '';
-        Synchronize(Procedure
-                    Begin
-                     vConnected^ := True;
-                     If Assigned(vOnConnected) Then
-                      vOnConnected;
-                    End);
-       End;
-      If (vConnected^) Or
-         ((DataPack.HostDest = vHostIP) And (DataPack.PortDest = vHostPort)) Then
-       Begin  //XyberX
-        If DataPack.HostDest <> '0.0.0.0' Then
-         vPeersConnected.GetPeerInfo(DataPack.HostDest, DataPack.PortDest, PeerConnected)
-        Else
-         vPeersConnected.GetPeerInfo(DataPack.HostSend, DataPack.PortSend, PeerConnected);
-        If PeerConnected <> Nil Then
-         Begin
-          If vMyOnLineIP^ <> PeerConnected.RemoteIP Then
-           vPeerReturn := PeerConnected.RemoteIP
-          Else
-           vPeerReturn := PeerConnected.LocalIP;
-          If PeerConnected.Port > 0 Then
-           vPortReturn  := PeerConnected.Port
-          Else
-           vPortReturn  := PeerConnected.TCPPort;
-         End;
-        If vReturnValue <> TReplyString Then
-         Begin
-          If (vReturnValue <> '') Then
-           Begin
-            If Not((Pos(TGetIp, vReturnValue) > 0)    And
-                   (Pos(TGetPort, vReturnValue) > 0)) Then
-             Begin
-              If (DataPack.HostDest <> '0.0.0.0') And
-                 (DataPack.HostDest <> '')        Then
-               Begin
-                vPeerReturn := DataPack.HostDest;
-                vPortReturn := DataPack.PortDest;
-               End
-              Else
-               Begin
-                vPeerReturn := DataPack.HostSend;
-                vPortReturn := DataPack.PortSend;
-               End;
-              If Not(Pos(TSendPing, vReturnValue) > 0) Then
-               AddPack(vPeerReturn, vPortReturn, TReplyString + IntToStr(DataPack.PackIndex));
-             End;
-           End;
-         End;
-        If (vReturnValue <>   TReplyString)       And
-           Not((Pos(TGetIp,   vReturnValue) > 0)  And
-               (Pos(TGetPort, vReturnValue) > 0)) And
-           (vReturnValue <> '')                   Then
-         Begin
-          vBufferCapture^ := vReturnValue;
-          Synchronize(Procedure
-                      Begin
-                        If Assigned(vOnGetData) Then
-                         vOnGetData(vReturnValue);
-                      End);
-         End;
-       End;
-     End;
-   End;
- Finally
-  DataPack.Free;
- End;
+      End;
+     If (Pos(TGetPeerInfo, vReturnValue) = 0)  And
+        (Pos(TPeerInfo, vReturnValue)    = 0)  And
+        (Pos(TPeerNoData, vReturnValue)  = 0)  And
+        ((Pos(TGetIp, vReturnValue)      > 0)  And
+         (Pos(TGetPort, vReturnValue)    > 0)) Then
+      Begin
+       If (Pos(TConfirmPK, vReturnValue) > 0)  Then
+        Begin
+         vMyOnLineIP^ := Copy(vReturnValue,   Pos(TConfirmPK, vReturnValue) + Length(TConfirmPK),
+                                              Pos(TGetIp, vReturnValue) - Length(TConfirmPK) - 1);
+         Delete(vReturnValue, Pos(TConfirmPK, vReturnValue),
+                              Pos(TGetIp, vReturnValue) + Length(TGetIp) - 1);
+        End
+       Else
+        Begin
+         vMyOnLineIP^ := Copy(vReturnValue,   1, Pos(TGetIp, vReturnValue) - 1);
+         Delete(vReturnValue, 1, Pos(TGetIp, vReturnValue) + Length(TGetIp) - 1);
+        End;
+       If (vReturnValue <> '') Then
+        If (Pos(TGetPort, vReturnValue) > 0) Then
+         If Copy(vReturnValue, 1, Pos(TGetPort, vReturnValue) - 1) <> '' Then
+          vMyOnlinePort^ := StrToInt(Copy(vReturnValue, 1, Pos(TGetPort, vReturnValue) - 1));
+       If (vTCPPort > 0) And (vTCPClient.Connected) And (vSendType^ = stProxy) Then
+        vMyPort^         := vTCPClient.Socket.Binding.Port
+       Else
+        vMyPort^         := vClientUDP.Binding.Port;
+       vReturnValue      := '';
+       Synchronize(Procedure
+                   Begin
+                    vConnected^ := True;
+                    If Assigned(vOnConnected) Then
+                     vOnConnected;
+                   End);
+      End;
+     If (vConnected^) Or
+        ((DataPack.HostDest = vHostIP) And (DataPack.PortDest = vHostPort)) Then
+      Begin  //XyberX
+       If DataPack.HostDest <> '0.0.0.0' Then
+        vPeersConnected.GetPeerInfo(DataPack.HostDest, DataPack.PortDest, PeerConnected)
+       Else
+        vPeersConnected.GetPeerInfo(DataPack.HostSend, DataPack.PortSend, PeerConnected);
+       If PeerConnected <> Nil Then
+        Begin
+         If vMyOnLineIP^ <> PeerConnected.RemoteIP Then
+          vPeerReturn := PeerConnected.RemoteIP
+         Else
+          vPeerReturn := PeerConnected.LocalIP;
+         If PeerConnected.Port > 0 Then
+          vPortReturn  := PeerConnected.Port
+         Else
+          vPortReturn  := PeerConnected.TCPPort;
+        End;
+       If vReturnValue <> TReplyString Then
+        Begin
+         If (vReturnValue <> '') Then
+          Begin
+           If Not((Pos(TGetIp, vReturnValue) > 0)    And
+                  (Pos(TGetPort, vReturnValue) > 0)) Then
+            Begin
+             If (DataPack.HostDest <> '0.0.0.0') And
+                (DataPack.HostDest <> '')        Then
+              Begin
+               vPeerReturn := DataPack.HostDest;
+               vPortReturn := DataPack.PortDest;
+              End
+             Else
+              Begin
+               vPeerReturn := DataPack.HostSend;
+               vPortReturn := DataPack.PortSend;
+              End;
+             If Not(Pos(TSendPing, vReturnValue) > 0) Then
+              AddPack(vPeerReturn, vPortReturn, TReplyString + OldMD5);
+            End;
+          End;
+        End;
+       If (vReturnValue <>   TReplyString)       And
+          Not((Pos(TGetIp,   vReturnValue) > 0)  And
+              (Pos(TGetPort, vReturnValue) > 0)) And
+          (vReturnValue <> '')                   Then
+        Begin
+         vBufferCapture^ := vReturnValue;
+         Synchronize(Procedure
+                     Begin
+                       If Assigned(vOnGetData) Then
+                        vOnGetData(vReturnValue);
+                     End);
+        End;
+      End;
+    End;
+  End;
 End;
 
 Procedure TUDPClient.UDPRead(AThread     : TIdUDPListenerThread;
@@ -5938,17 +5820,22 @@ Function TUDPClient.AddPack(Peer                : String;
                             FinalBuffer         : Boolean              = False;
                             InitBufferID        : String               = '';
                             PackNum             : Integer              = 0;
-                            PartsTotal          : Integer              = 0) : Integer;
+                            PartsTotal          : Integer              = 0) : String;
 Var
  DataValue     : TDataValue;
  vBufferID     : String;
  PeerConnected : TPeerConnected;
 Begin
- Result := 0;
+ Result := '';
  If (Peer <> '') And (Port > 0) Then
   Begin
    DataValue                             := TDataValue.Create;
    vBufferID                             := GenBufferID;
+   DataValue.PackID                      := Copy(vBufferID, 1, Length(vBufferID));
+   If InitBufferID = '' Then
+    DataValue.MasterPackID               := DataValue.PackID
+   Else
+    DataValue.MasterPackID               := InitBufferID;
    DataValue.PackIndex                   := PackNum;
    DataValue.HostSend                    := Peer;
    DataValue.HostDest                    := vMyOnLineIP^;
@@ -5960,6 +5847,7 @@ Begin
    DataValue.PortDest                    := vMyOnlinePort^;
    DataValue.aValue                      := Value;
    DataValue.DataType                    := DataType;
+   DataValue.MD5                         := DataValue.PackID;
    DataValue.HostType                    := SendHost;
    If PackIndex = -1 Then
     DataValue.PackIndex                  := 0
@@ -5980,7 +5868,7 @@ Begin
     DataValue.PartsTotal := PartsTotal;
    DataValue.SendType    := vSendType^;
    vListSend.AddItem(DataValue);
-   Result                                := DataValue.PackIndex;
+   Result                                := DataValue.PackID;
   End;
 End;
 
@@ -6005,13 +5893,13 @@ End;
 Function TUDPClient.AddPack(Peer                : String;
                             Port,
                             LocalPort           : Word;
-                            Value               : String) : Integer;
+                            Value               : String) : String;
 Var
  DataValue     : TDataValue;
  vBufferID     : String;
  PeerConnected : TPeerConnected;
 Begin
- Result := 0;
+ Result := '';
  Try
   If Self <> Nil Then
    Begin
@@ -6019,6 +5907,8 @@ Begin
      Begin
       DataValue                            := TDataValue.Create;
       vBufferID                            := GenBufferID;
+      DataValue.PackID                     := Copy(vBufferID, 1, Length(vBufferID));
+      DataValue.MasterPackID               := DataValue.PackID;
       DataValue.HostSend                   := Peer;
       DataValue.HostDest                   := vMyOnLineIP^;
       vPeersConnected^.GetPeerInfo(Peer, Port, PeerConnected);
@@ -6030,8 +5920,9 @@ Begin
       DataValue.PortSend                    := Port;
       DataValue.LocalPortSend               := LocalPort;
       DataValue.PortDest                    := vMyOnlinePort^;
-      DataValue.aValue                      := tIdBytes(CompressionDecoding.GetBytes(Value));
+      DataValue.Value                       := Value;
       DataValue.DataType                    := dtString;
+      DataValue.MD5                         := DataValue.PackID;
       DataValue.HostType                    := ht_Client;
       DataValue.PackSize                    := Length(Value);
       DataValue.PackIndex                   := 0;
@@ -6046,7 +5937,7 @@ Begin
        End;
       DataValue.PartsTotal := 1;
       vListSend.AddItem(DataValue);
-      Result                                := DataValue.PackIndex;
+      Result                                := DataValue.PackID;
      End;
    End;
  Except
@@ -6063,13 +5954,13 @@ Function TUDPClient.AddPack(Peer                : String;
                             DataTransactionType : TDataTransactionType = dtt_Sync;
                             InitBufferID        : String               = '';
                             PackIndex           : Integer              = 0;
-                            PartsTotal          : Integer              = 0) : Integer;
+                            PartsTotal          : Integer              = 0) : String;
 Var
  DataValue     : TDataValue;
  vBufferID     : String;
  PeerConnected : TPeerConnected;
 Begin
- Result := 0;
+ Result := '';
  Try
   If Self <> Nil Then
    Begin
@@ -6077,6 +5968,11 @@ Begin
      Begin
       DataValue                             := TDataValue.Create;
       vBufferID                             := GenBufferID;
+      DataValue.PackID                      := Copy(vBufferID, 1, Length(vBufferID));
+      If InitBufferID = '' Then
+       DataValue.MasterPackID               := DataValue.PackID
+      Else
+       DataValue.MasterPackID               := InitBufferID;
       DataValue.HostSend                    := Peer;
       DataValue.HostDest                    := vMyOnLineIP^;
       vPeersConnected^.GetPeerInfo(Peer, Port, PeerConnected);
@@ -6084,8 +5980,9 @@ Begin
        DataValue.LocalHost                  := PeerConnected.LocalIP;
       DataValue.PortSend                    := Port;
       DataValue.PortDest                    := vMyOnlinePort^;
-      DataValue.aValue                      := tIdBytes(CompressionDecoding.GetBytes(Value));
+      DataValue.Value                       := Value;
       DataValue.DataType                    := DataType;
+      DataValue.MD5                         := DataValue.PackID;
       DataValue.HostType                    := SendHost;
       DataValue.PackSize                    := DataSize;
       If PackIndex = -1 Then
@@ -6106,7 +6003,7 @@ Begin
       Else
        DataValue.PartsTotal := PartsTotal;
       vListSend.AddItem(DataValue);
-      Result                                := DataValue.PackIndex;
+      Result                                := DataValue.PackID;
      End;
    End;
  Except
@@ -6231,8 +6128,8 @@ Begin
 End;
 
 Initialization
- CompressionEncoding         := TEncoding.ASCII;
- CompressionDecoding         := TEncoding.ASCII;
+ CompressionEncoding         := TEncoding.ANSI;
+ CompressionDecoding         := TEncoding.ANSI;
  vGeralEncode                := IndyTextEncoding_ASCII;
 End.
 

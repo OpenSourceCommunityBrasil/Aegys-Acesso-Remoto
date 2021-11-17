@@ -5,7 +5,7 @@ object frm_Main: Tfrm_Main
   BorderStyle = bsSingle
   Caption = 'Aegys'
   ClientHeight = 420
-  ClientWidth = 610
+  ClientWidth = 625
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -4155,7 +4155,7 @@ object frm_Main: Tfrm_Main
   object pnl_topo: TPanel
     Left = 0
     Top = 0
-    Width = 610
+    Width = 625
     Height = 60
     Align = alTop
     BevelOuter = bvNone
@@ -4787,7 +4787,7 @@ object frm_Main: Tfrm_Main
   object Panel2: TPanel
     Left = 0
     Top = 376
-    Width = 610
+    Width = 625
     Height = 44
     Align = alBottom
     BevelOuter = bvNone
@@ -4811,7 +4811,7 @@ object frm_Main: Tfrm_Main
   object Panel1: TPanel
     Left = 270
     Top = 60
-    Width = 340
+    Width = 355
     Height = 316
     Align = alClient
     BevelOuter = bvNone
@@ -4918,15 +4918,6 @@ object frm_Main: Tfrm_Main
       ParentBackground = False
       TabOrder = 4
     end
-    object Button1: TButton
-      Left = 56
-      Top = 256
-      Width = 105
-      Height = 33
-      Caption = 'Button1'
-      TabOrder = 5
-      OnClick = Button1Click
-    end
   end
   object Panel3: TPanel
     Left = 0
@@ -4984,7 +4975,7 @@ object frm_Main: Tfrm_Main
       Height = 40
       Caption = 'Conectar'
       TabOrder = 0
-      OnClick = Connect_BitBtnClick
+      OnClick = Button1Click
     end
     object Panel5: TPanel
       Left = 16

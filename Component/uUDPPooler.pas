@@ -7,8 +7,8 @@ uses
   IdBuffer,IdComponent,IdStackConsts,
   IdIPWatch,IdHTTP,IdContext,IdServerIOHandlerSocket,IdUDPBase,IdUDPServer,
   IdGlobal,IdSocketHandle,IdUDPClient,
-  Code64, System.Generics.Defaults,Vcl.ExtCtrls,IdHashMessageDigest,
-  uDWJSONInterface, System.Variants,
+  Code64,uLkJSON,System.Generics.Defaults,Vcl.ExtCtrls,IdHashMessageDigest,
+  System.Variants,
  {$IF CompilerVersion >= 24} //XE3 or higher
   Winapi.Windows,System.Generics.Collections,System.SyncObjs,System.ZLib,
   System.DateUtils;
@@ -502,26 +502,26 @@ End;
 
 Function GetMyAWSInfo : TAWSInfo;
 Var
- json   : TDWJSONObject;
+ json   : TlkJSONobject;
  IdHTTP : TIdHTTP;
 Begin
- Result.ip       := '0.0.0.0';
- Result.hostname := '';
- Result.city     := 'unknow';
- Result.region   := Result.city;
- Result.country  := Result.region;
- Result.loc      := Result.country;
- Result.org      := Result.loc;
- IdHTTP          := TIdHTTP.Create(Nil);
+ Result.ip        := '0.0.0.0';
+ Result.hostname  := '';
+ Result.city      := 'unknow';
+ Result.region    := Result.city;
+ Result.country   := Result.region;
+ Result.loc       := Result.country;
+ Result.org       := Result.loc;
+ IdHTTP           := TIdHTTP.Create(Nil);
  Try
-  json := TDWJSONObject.Create(IdHTTP.Get('http://ipinfo.io/json'));
-  Result.ip       := json.PairByName['ip'].Value;
-  Result.hostname := json.PairByName['hostname'].Value;
-  Result.city     := json.PairByName['city'].Value;
-  Result.region   := json.PairByName['region'].Value;
-  Result.country  := json.PairByName['country'].Value;
-  Result.loc      := json.PairByName['loc'].Value;
-  Result.org      := json.PairByName['org'].Value;
+  json            := TlkJSON.ParseText(IdHTTP.Get('http://ipinfo.io/json')) as TlkJSONobject;
+  Result.ip       := json.Field['ip'].Value;
+  Result.hostname := json.Field['hostname'].Value;
+  Result.city     := json.Field['city'].Value;
+  Result.region   := json.Field['region'].Value;
+  Result.country  := json.Field['country'].Value;
+  Result.loc      := json.Field['loc'].Value;
+  Result.org      := json.Field['org'].Value;
   json.Free;
  Except
  End;

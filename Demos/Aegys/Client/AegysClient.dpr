@@ -4,17 +4,17 @@ uses
   Vcl.Forms,
   Windows,
   System.SysUtils,
-  Form_Main in 'Form_Main.pas' {frm_Main},
-  Form_Password in 'Form_Password.pas' {frm_Password},
-  Form_RemoteScreen in 'Form_RemoteScreen.pas' {frm_RemoteScreen},
+  Form_Main in 'Form_Main.pas' {frm_Main} ,
+  Form_Password in 'Form_Password.pas' {frm_Password} ,
+  Form_RemoteScreen in 'Form_RemoteScreen.pas' {frm_RemoteScreen} ,
   Vcl.Themes,
   Vcl.Styles,
-  Form_Chat in 'Form_Chat.pas' {frm_Chat},
-  Form_ShareFiles in 'Form_ShareFiles.pas' {frm_ShareFiles},
-  Form_Config in 'Form_Config.pas' {frm_Config},
+  Form_Chat in 'Form_Chat.pas' {frm_Chat} ,
+  Form_ShareFiles in 'Form_ShareFiles.pas' {frm_ShareFiles} ,
+  Form_Config in 'Form_Config.pas' {frm_Config} ,
   uProxy in 'uProxy.pas',
   uDGCompressor in 'uDGCompressor.pas',
-  uCaptureScreen in 'uCaptureScreen.pas' {dmCaptureScreen: TDataModule},
+  uCaptureScreen in 'uCaptureScreen.pas' {dmCaptureScreen: TDataModule} ,
   vfw in 'vfw.pas',
   AwResizeImage in 'AwResizeImage.pas',
   uComboChoose in 'uComboChoose.pas',
@@ -24,8 +24,9 @@ uses
   ImageCapture in 'ImageCapture.pas',
   UVideoDriver in 'UVideoDriver.pas',
   resizeunit in 'resizeunit.pas',
-  uConnectar in 'uConnectar.pas' {fConnectar},
-  uScanlineComparer in 'uScanlineComparer.pas';
+  uScanlineComparer in 'uScanlineComparer.pas',
+  uConnectar in 'uConnectar.pas' {fConnectar} ,
+  ZLIBEX in '..\..\..\Component\ZLIBEX.pas';
 
 {$R *.res}
 

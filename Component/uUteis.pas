@@ -6,7 +6,7 @@ interface
   //Marcones Freitas - 16/10/2015 -> Algumas Constantes Novas
  const
  cGeneral            = 'General';
- cHost               = '10.101.100.111';//'144.217.189.109';
+ cHost               = '201.73.143.69';//'144.217.189.109';
  cPort               = '0';
  cGroup              = 'Group';
  cMachine            = 'Machine';

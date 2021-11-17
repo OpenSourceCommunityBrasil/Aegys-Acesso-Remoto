@@ -7,7 +7,7 @@ uses
   System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.pngimage,
   Vcl.ExtCtrls,
-  Vcl.StdCtrls, Vcl.Buttons, System.MaskUtils;
+  Vcl.StdCtrls, Vcl.Buttons, AdvGlowButton, System.MaskUtils;
 
 type
   Tfrm_Password = class(TForm)

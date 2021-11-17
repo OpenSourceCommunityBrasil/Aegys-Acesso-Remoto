@@ -12,6 +12,9 @@
         <Projects Include="..\Demos\Aegys\Client\AegysClient.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\..\..\Teste_UDP\Teste_NewUDPPooler\Teste_NewUPDPooler.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -47,14 +50,23 @@
     <Target Name="AegysClient:Make">
         <MSBuild Projects="..\Demos\Aegys\Client\AegysClient.dproj" Targets="Make"/>
     </Target>
+    <Target Name="Teste_NewUPDPooler">
+        <MSBuild Projects="..\..\..\Teste_UDP\Teste_NewUDPPooler\Teste_NewUPDPooler.dproj"/>
+    </Target>
+    <Target Name="Teste_NewUPDPooler:Clean">
+        <MSBuild Projects="..\..\..\Teste_UDP\Teste_NewUDPPooler\Teste_NewUPDPooler.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Teste_NewUPDPooler:Make">
+        <MSBuild Projects="..\..\..\Teste_UDP\Teste_NewUDPPooler\Teste_NewUPDPooler.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="UDPSuperComponents;AegysServer;AegysClient"/>
+        <CallTarget Targets="UDPSuperComponents;AegysServer;AegysClient;Teste_NewUPDPooler"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="UDPSuperComponents:Clean;AegysServer:Clean;AegysClient:Clean"/>
+        <CallTarget Targets="UDPSuperComponents:Clean;AegysServer:Clean;AegysClient:Clean;Teste_NewUPDPooler:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="UDPSuperComponents:Make;AegysServer:Make;AegysClient:Make"/>
+        <CallTarget Targets="UDPSuperComponents:Make;AegysServer:Make;AegysClient:Make;Teste_NewUPDPooler:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
