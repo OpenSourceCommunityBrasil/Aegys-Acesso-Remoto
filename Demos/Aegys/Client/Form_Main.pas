@@ -128,6 +128,7 @@ type
     Panel5: TPanel;
     TargetID_MaskEdit: TComboBox;
     cbQualidade: TComboBox;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure Reconnect_TimerTimer(Sender: TObject);
     procedure Timeout_TimerTimer(Sender: TObject);
@@ -400,12 +401,10 @@ begin
       Application.MessageBox('Você não pode conectar a si mesmo!', 'Aegys', 16)
     Else
     Begin
-      formato := StringReplace(TargetID_MaskEdit.Text, '-', '',
-        [rfReplaceAll, rfIgnoreCase]);
+      formato := StringReplace(TargetID_MaskEdit.Text, '-', '',[rfReplaceAll, rfIgnoreCase]);
       formato := Trim(formato);
       formato := MaskDoFormatText(mascara, formato, #0);
-      ipPSMain_Socket.Write('<|FINDID|>' + formato + '<|>' + '<|LASTPASSWORD|>'
-        + LastPassWord + vCommandEnd);
+      ipPSMain_Socket.Write('<|FINDID|>' + formato + '<|>' + '<|LASTPASSWORD|>'+ LastPassWord + vCommandEnd);
       TargetID_MaskEdit.Enabled := False;
       Connect_BitBtn.Enabled := False;
       Status_Image.Picture.Assign(Image1.Picture);
@@ -420,7 +419,9 @@ end;
 
 procedure Tfrm_Main.Button1Click(Sender: TObject);
 begin
-  Botao_conectar_parceiro;
+      frm_RemoteScreen := Tfrm_RemoteScreen.Create(Self);
+      Clipboard_Timer.Enabled := true;
+      frm_RemoteScreen.Show;
 end;
 
 procedure Tfrm_Main.tScreenShotTimer(Sender: TObject);
@@ -1414,7 +1415,7 @@ Procedure Tfrm_Main.LoadConfigs;
 Begin
  vMachine          := GetComputerNameFunc;
  vGroup            := 'XyberPower';
- Host              := EnDecryptString(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'host', cHost, True), 250);
+ Host              := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'host', cHost, false);
  Port              := StrToInt(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'port', cPort, False));
  vGroup            := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'group', cGroup, False);
  vMachine          := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'machine', cMachine, False);
@@ -1890,8 +1891,7 @@ begin
       Status_Label.Caption := 'Acesso garantido!';
       Viewer := True;
       ClearConnection;
-      formato := StringReplace(TargetID_MaskEdit.Text, '-', '',
-        [rfReplaceAll, rfIgnoreCase]);
+      formato := StringReplace(TargetID_MaskEdit.Text, '-', '',[rfReplaceAll, rfIgnoreCase]);
       formato := Trim(formato);
       formato := MaskDoFormatText(mascara, formato, #0);
       vComboList.AddElement(formato);
@@ -4070,7 +4070,7 @@ begin
             ipPSDeskTopClient.SendRawString
               (ipPSDeskTopClient.GetIpSend(PeerConnected), PeerConnected.Port,
               '<|GETFULLSCREENSHOT|>NEW' + vCommandEnd, False, 5);
-          // SendBuffer(ipPSDeskTopClient.GetIpSend(PeerConnected), PeerConnected.Port, '<|GETFULLSCREENSHOT|>NEW' + vCommandEnd, False, dtt_Async);
+           //SendBuffer(ipPSDeskTopClient.GetIpSend(PeerConnected), PeerConnected.Port, '<|GETFULLSCREENSHOT|>NEW' + vCommandEnd, False, dtt_Async);
           vLinhaKeys := '';
         End;
       End;

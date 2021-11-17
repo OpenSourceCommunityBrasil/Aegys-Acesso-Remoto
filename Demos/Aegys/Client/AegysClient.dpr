@@ -25,9 +25,6 @@ uses
   UVideoDriver in 'UVideoDriver.pas',
   resizeunit in 'resizeunit.pas',
   uConnectar in 'uConnectar.pas' {fConnectar},
-  ZLIBEX in '..\..\..\Component\ZLIBEX.pas',
-  uUteis in '..\..\..\Component\uUteis.pas',
-  ULanguage in '..\..\..\Component\ULanguage.pas',
   uScanlineComparer in 'uScanlineComparer.pas';
 
 {$R *.res}

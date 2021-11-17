@@ -1112,7 +1112,6 @@ Begin
     ListRequest.DisposeOf;
     frm_RemoteScreen := Nil;
     Release;
-
   end;
 
   procedure Tfrm_RemoteScreen.FormCreate(Sender: TObject);
