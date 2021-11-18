@@ -188,7 +188,7 @@ type
     Procedure OnPeerConnectedCommandsClient(PeerConnected: TPeerconnected);
     Procedure OnPeerConTimeOut(PeerIP, LocalIP: String; Port: Word);
     Procedure DataInFiles(Value: String);
-    Procedure ConnectAll; Overload;
+    Procedure ConnectAllnat; Overload;
     Procedure ConnectAll(SendType: TSendType; Active: Boolean = False);
       Overload;
     Procedure LoadComboOptions;
@@ -1479,7 +1479,7 @@ Begin
   End;
 End;
 
-Procedure Tfrm_Main.ConnectAll;
+Procedure Tfrm_Main.ConnectAllNat;
 Begin
   ipPSDeskTopClient.Active := False;
   ipPSDeskTopClient.SendType := stNAT;
