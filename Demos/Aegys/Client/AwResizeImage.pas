@@ -4,8 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Math, JPEG, GR32, Vcl.Imaging.GIFImg,
-  PNGImage,
-  GR32_Resamplers,Vcl.Imaging.pngimage;
+  GR32_Resamplers,Vcl.Imaging.PNGImage;
 
 type
   TImageType = (itUnknown, itBMP, itGIF, itJPG, itPNG);

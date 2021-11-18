@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls,
-  Vcl.Graphics, System.DateUtils, Vcl.ExtCtrls, AdvGDIPicture;
+  Vcl.Graphics, System.DateUtils, Vcl.ExtCtrls;
 
 Const
   vWidthTab = 13;

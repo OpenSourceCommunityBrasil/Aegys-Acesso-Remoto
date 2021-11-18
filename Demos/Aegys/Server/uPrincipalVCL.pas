@@ -10,7 +10,7 @@ uses
   Vcl.ExtCtrls, IdBuffer, System.SyncObjs, System.ZLib,
   IdServerIOHandlerSocket, IdServerIOHandlerStack, IdIntercept,
   IdCompressionIntercept, uIpPoolerService, IdUDPBase,
-  IdUDPServer, IdGlobal, IdSocketHandle, IdAntiFreezeBase, Vcl.IdAntiFreeze,
+  IdUDPServer, IdGlobal, IdSocketHandle, IdAntiFreezeBase,
   IdScheduler, IdSchedulerOfThread, IdSchedulerOfThreadDefault, uUDPPooler,
   uUDPSuperComponents, IdAntiFreeze;
 
