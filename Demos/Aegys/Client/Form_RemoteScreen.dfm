@@ -60,6 +60,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Top = 40
       Width = 23
       Height = 22
+      Flat = True
       Glyph.Data = {
         C60A0000424DC60A00000000000036000000280000001A0000001A0000000100
         200000000000900A000000000000000000000000000000000000FEFEFEFFFEFE
@@ -260,8 +261,6 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       OnMouseDown = DesktopViewCaptureMouseDown
       OnMouseMove = DesktopViewCaptureMouseMove
       OnMouseUp = DesktopViewCaptureMouseUp
-      ExplicitLeft = 16
-      ExplicitTop = -3
     end
     object rzpDownload: TPanel
       Left = 200
@@ -375,8 +374,6 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
         Height = 40
         Align = alClient
         TabOrder = 0
-        ExplicitLeft = 31
-        ExplicitWidth = 129
       end
     end
   end
@@ -411,6 +408,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Height = 39
       Align = alClient
       Caption = 'Arquivos'
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 8807978
       Font.Height = -11
@@ -502,6 +500,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Width = 31
       Height = 39
       Align = alRight
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -583,6 +582,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
         16E5FF2617E5FF2617E7FF2516E7FF2617E7FF2517E7FF2516E7FF2617E7FF25
         17E5FF2516E3FF2617DFFF2517C5FF261764FF26170800000000}
       ParentFont = False
+      OnClick = sbMiximizeClick
       ExplicitLeft = 311
     end
     object sbRestaure: TSpeedButton
@@ -591,6 +591,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Width = 31
       Height = 39
       Align = alRight
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -680,6 +681,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Width = 31
       Height = 39
       Align = alRight
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -770,6 +772,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Width = 31
       Height = 39
       Align = alRight
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -861,6 +864,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Height = 39
       Align = alLeft
       Caption = 'Chat'
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 8807978
       Font.Height = -11
@@ -954,6 +958,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Height = 39
       Align = alLeft
       Caption = 'Teclado'
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 8807978
       Font.Height = -11
@@ -1046,6 +1051,7 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Height = 39
       Align = alLeft
       Caption = 'Mouse'
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 8807978
       Font.Height = -11
@@ -1142,7 +1148,6 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Color = 14929574
       ParentBackground = False
       TabOrder = 0
-      ExplicitLeft = 311
     end
     object Panel10: TPanel
       Left = 0
@@ -1165,7 +1170,6 @@ object frm_RemoteScreen: Tfrm_RemoteScreen
       Color = 14929574
       ParentBackground = False
       TabOrder = 2
-      ExplicitLeft = 311
     end
     object Panel20: TPanel
       Left = 435

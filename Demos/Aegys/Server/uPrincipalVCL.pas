@@ -10,9 +10,9 @@ uses
   Vcl.ExtCtrls, IdBuffer, System.SyncObjs, System.ZLib,
   IdServerIOHandlerSocket, IdServerIOHandlerStack, IdIntercept,
   IdCompressionIntercept, uIpPoolerService, IdUDPBase,
-  IdUDPServer, IdGlobal, IdSocketHandle, IdAntiFreezeBase,
+  IdUDPServer, IdGlobal, IdSocketHandle, IdAntiFreezeBase, IdAntiFreeze,
   IdScheduler, IdSchedulerOfThread, IdSchedulerOfThreadDefault, uUDPPooler,
-  uUDPSuperComponents, IdAntiFreeze;
+  uUDPSuperComponents;
 
 Const                      //2kb    4Kb    8kb    16kb
  MaxBuffer    = 1024 * 30; //2048 //4096 //8192 //16384

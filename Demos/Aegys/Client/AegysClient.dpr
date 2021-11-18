@@ -1,4 +1,4 @@
-program AegysClient;
+program AegysClient ;
 
 uses
   Vcl.Forms,

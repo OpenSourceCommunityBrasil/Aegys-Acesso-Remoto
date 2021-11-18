@@ -3,13 +3,10 @@ unit Form_RemoteScreen;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Types,
-  System.Variants, System.Classes,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.pngimage,
-  Vcl.ExtCtrls,
-  Vcl.StdCtrls, Vcl.Imaging.jpeg, System.Generics.Collections, uUteis,
-  Vcl.Buttons, System.DateUtils,
-  Vcl.ComCtrls, TThreadTimer, IdBaseComponent, IdComponent, IdUDPBase,
+  System.Classes, Winapi.Windows, Winapi.Messages, System.SysUtils, System.Types,
+  System.Variants, Vcl.Graphics, Vcl.Controls, Vcl.Forms, system.generics.collections,
+  Vcl.Dialogs, Vcl.Imaging.pngimage, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Imaging.jpeg,
+  uUteis, Vcl.Buttons, System.DateUtils, Vcl.ComCtrls, TThreadTimer,
   uUDPSuperComponents, IdUDPServer, JDRMGraphics, Vcl.Menus;
 
 const
@@ -114,6 +111,8 @@ type
     ListRequest: TListRequest;
     MenuDirection: TTagEffect;
     // vLinhaKeys    : String;
+    vKeyboardIcon,
+    vMouseIcon_Image : Boolean;
     Procedure MoveButtons;
     Procedure Wait(Value: Integer);
     Procedure RollMenu(Value: TTagEffect = te_Open);
@@ -155,7 +154,7 @@ Begin
     Try
       If Self <> Nil Then
       Begin
-        If (Active) And (MouseIcon_Image.Down) Then
+        If (Active) And (vMouseIcon_Image) Then
         Begin
           If Not vInClose then
 
@@ -171,7 +170,7 @@ Begin
 
   procedure Tfrm_RemoteScreen.MouseIcon_ImageClick(Sender: TObject);
   begin
-    //
+    vMouseIcon_Image := Not (vMouseIcon_Image);
   end;
 
   Procedure Tfrm_RemoteScreen.MoveButtons;
@@ -423,8 +422,8 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     If frm_RemoteScreen <> Nil Then
       Close;
     btn_close.Enabled := False;
-    MouseIcon_Image.Down := False;
-    KeyboardIcon_Image.Down := MouseIcon_Image.Down;
+    vMouseIcon_Image := False;
+    vKeyboardIcon := vMouseIcon_Image;
     frm_Main.SetOffline;
     frm_Main.CloseSockets;
   end;
@@ -452,7 +451,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     // The keys programmed here, may not match the keys on your keyboard. I recommend to undertake adaptation.
     Try
       { Combo }
-      If KeyboardIcon_Image.Down Then
+      If vKeyboardIcon Then
       Begin
         // Alt
         if (VK_MENU = Key) And (TypeCommand = tck_Down) then
@@ -719,7 +718,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     // The keys programmed here, may not match the keys on your keyboard. I recommend to undertake adaptation.
     Try
       { Combo }
-      If KeyboardIcon_Image.Down Then
+      If vKeyboardIcon Then
       Begin
         // Alt
         if not(AltPressed) then
@@ -984,7 +983,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     vNewX, vNewY: Integer;
     Resquest: TResquest;
   begin
-    If (Active) And (MouseIcon_Image.Down) Then
+    If (Active) And (vMouseIcon_Image) Then
     Begin
       vNewX := frm_Main.ResolutionTargetWidth *
         Round(LastX * 100 / DesktopViewCapture.Width) div 100;
@@ -1008,7 +1007,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     vNewX, vNewY: Integer;
     Resquest: TResquest;
   begin
-    If (MouseIcon_Image.Down) Then
+    If (vMouseIcon_Image) Then
     Begin
       vNewX := frm_Main.ResolutionTargetWidth *
         Round(LastX * 100 / DesktopViewCapture.Width) div 100;
@@ -1037,7 +1036,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
   begin
     vX := X;
     vY := Y;
-    If (Active) And (MouseIcon_Image.Down) Then
+    If (Active) And (vMouseIcon_Image) Then
     Begin
       If (LastX <> vX) or (LastY <> vY) Then
       Begin
@@ -1072,7 +1071,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     vNewX, vNewY: Integer;
     Resquest: TResquest;
   Begin
-    If (Active) and (MouseIcon_Image.Down) Then
+    If (Active) and (vMouseIcon_Image) Then
     Begin
       vNewX := frm_Main.ResolutionTargetWidth *
         Round(LastX * 100 / DesktopViewCapture.Width) div 100;
@@ -1132,6 +1131,8 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
       Self.Caption := 'Aegys - Computador Remoto - P2P'
     Else
       Self.Caption := 'Aegys - Computador Remoto - NAT';
+    vMouseIcon_Image := True;
+    vKeyboardIcon    := True;
     // tShowCursor.Enabled := True;
   end;
 
@@ -1139,7 +1140,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
   Shift: TShiftState);
   begin
     // If Not (Key in [65..90, 186..193, 195..226]) Then // A..Z / a..z
-    If (Active) And (KeyboardIcon_Image.Down) And (frm_Main.InitCapture) Then
+    If (Active) And (vKeyboardIcon) And (frm_Main.InitCapture) Then
     Begin
       If Not vInClose then
         KeyStateD(Key, tck_Down);
@@ -1150,7 +1151,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
   Shift: TShiftState);
   begin
     // If Not (Key in [65..90, 186..193, 195..226]) Then // A..Z / a..z
-    If (Active) And (KeyboardIcon_Image.Down) And (frm_Main.InitCapture) Then
+    If (Active) And (vKeyboardIcon) And (frm_Main.InitCapture) Then
     Begin
       If Not vInClose then
         KeyStateD(Key, tck_Up);
@@ -1164,7 +1165,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     vNewX, vNewY: Integer;
     Resquest: TResquest;
   begin
-    If (Active) And (MouseIcon_Image.Down) And (frm_Main.InitCapture) Then
+    If (Active) And (vMouseIcon_Image) And (frm_Main.InitCapture) Then
     Begin
       vNewX := frm_Main.ResolutionTargetWidth *
         Round(LastX * 100 / iDesktopCapture.Width) div 100;
@@ -1200,7 +1201,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     vNewX, vNewY: Integer;
     Resquest: TResquest;
   begin
-    If (Active) And (MouseIcon_Image.Down) And (frm_Main.InitCapture) Then
+    If (Active) And (vMouseIcon_Image) And (frm_Main.InitCapture) Then
     Begin
       vNewX := frm_Main.ResolutionTargetWidth *
         Round(LastX * 100 / iDesktopCapture.Width) div 100;
@@ -1224,7 +1225,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     vNewX, vNewY: Integer;
     Resquest: TResquest;
   begin
-    If (MouseIcon_Image.Down) And (frm_Main.InitCapture) Then
+    If (vMouseIcon_Image) And (frm_Main.InitCapture) Then
     Begin
       vNewX := frm_Main.ResolutionTargetWidth *
         Round(LastX * 100 / iDesktopCapture.Width) div 100;
@@ -1255,7 +1256,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
   begin
     vX := X;
     vY := Y;
-    If (Active) And (MouseIcon_Image.Down) And (frm_Main.InitCapture) Then
+    If (Active) And (vMouseIcon_Image) And (frm_Main.InitCapture) Then
     Begin
       If (LastX <> vX) or (LastY <> vY) Then
       Begin
@@ -1290,7 +1291,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
     vNewX, vNewY: Integer;
     Resquest: TResquest;
   Begin
-    If (Active) and (MouseIcon_Image.Down) And (frm_Main.InitCapture) Then
+    If (Active) and (vMouseIcon_Image) And (frm_Main.InitCapture) Then
     Begin
       vNewX := frm_Main.ResolutionTargetWidth *
         Round(LastX * 100 / iDesktopCapture.Width) div 100;
@@ -1313,7 +1314,7 @@ procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
 
   procedure Tfrm_RemoteScreen.KeyboardIcon_ImageClick(Sender: TObject);
   begin
-    //
+   vKeyboardIcon := Not(vKeyboardIcon);
   end;
 
   procedure Tfrm_RemoteScreen.KeyboardRemote_CheckBoxKeyDown(Sender: TObject;

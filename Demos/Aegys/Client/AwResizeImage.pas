@@ -3,8 +3,8 @@ unit AwResizeImage;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Math, JPEG, GR32, Vcl.Imaging.GIFImg,
-  GR32_Resamplers,Vcl.Imaging.PNGImage;
+  Windows, SysUtils, Classes, Graphics, Math, JPEG, GR32,
+  GR32_Resamplers, pngimage;
 
 type
   TImageType = (itUnknown, itBMP, itGIF, itJPG, itPNG);
@@ -242,18 +242,18 @@ begin
   end;
 end;
 
-procedure GIFToBMP(const ASource: TStream; const ADest: TBitmap);
-var
-  imgSource: TGIFImage;
-begin
-  imgSource := TGIFImage.Create();
-  try
-    imgSource.LoadFromStream(ASource);
-    ADest.Assign(imgSource);
-  finally
-    FreeAndNil(imgSource);
-  end;
-end;
+//procedure GIFToBMP(const ASource: TStream; const ADest: TBitmap);
+//var
+//  imgSource: TGIFImage;
+//begin
+//  imgSource := TGIFImage.Create();
+//  try
+//    imgSource.LoadFromStream(ASource);
+//    ADest.Assign(imgSource);
+//  finally
+//    FreeAndNil(imgSource);
+//  end;
+//end;
 
 procedure JPGToBMP(const ASource: TStream; const ADest: TBitmap);
 var
@@ -339,8 +339,8 @@ begin
     case itImage of
       itBMP:
         bmpTemp.LoadFromStream(ASource);
-      itGIF:
-        GIFToBMP(ASource, bmpTemp);
+      itGIF: ;
+        //GIFToBMP(ASource, bmpTemp);
       itJPG:
         JPGToBMP(ASource, bmpTemp);
       itPNG:

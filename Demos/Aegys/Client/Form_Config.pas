@@ -6,8 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Samples.Spin,
-  Vcl.Buttons, Vcl.Imaging.pngimage, Vcl.ExtCtrls, registry, uProxy,
-  dxGDIPlusClasses;
+  Vcl.Buttons, Vcl.ExtCtrls, registry, uProxy, pngimage, acPNG;
 
 type
   Tfrm_Config = class(TForm)

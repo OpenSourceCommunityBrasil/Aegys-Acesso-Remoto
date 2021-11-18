@@ -2,6 +2,6 @@
 <BorlandProject>
 	<Transactions/>
 	<Default.Personality>
-		<Projects ActiveProject="D:\Meus Dados\Projetos\UDP SuperComponents\svn\Demos\Aegys\Server\AegysServer.dproj"/>
+		<Projects ActiveProject="D:\Meus Dados\Projetos\UDP SuperComponents\svn\Demos\Aegys\Client\AegysClient.dproj"/>
 	</Default.Personality>
 </BorlandProject>
