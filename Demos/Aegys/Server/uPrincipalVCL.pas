@@ -12,7 +12,7 @@ uses
   IdCompressionIntercept, uIpPoolerService, IdUDPBase,
   IdUDPServer, IdGlobal, IdSocketHandle, IdAntiFreezeBase, Vcl.IdAntiFreeze,
   IdScheduler, IdSchedulerOfThread, IdSchedulerOfThreadDefault, uUDPPooler,
-  uUDPSuperComponents;
+  uUDPSuperComponents, IdAntiFreeze;
 
 Const                      //2kb    4Kb    8kb    16kb
  MaxBuffer    = 1024 * 30; //2048 //4096 //8192 //16384

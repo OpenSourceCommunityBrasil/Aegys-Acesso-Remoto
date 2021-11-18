@@ -20,13 +20,11 @@ uses
   IdMultipartFormData, TThreadTimer,
   IdIOHandler, IdIOHandlerSocket, IdIOHandlerStack, IdIOHandlerStream,
   System.NetEncoding, IdIntercept, IdCompressionIntercept,
-  MaskUtils, SimpleTimer,
+  MaskUtils, SimpleTimer, uScanlineComparer,
   System.DateUtils, uComboChoose, uCaptureDeviceMode,
   IdSocketHandle, IdStack, IdUDPClient, IdUDPBase, IdUDPServer, uFilesFoldersOP,
-  uRtlCompression,
   Tlhelp32, uUDPPooler, uUDPSuperComponents, ComObj, ActiveX,
-  JDRMGraphics, ImageCapture, uScanlineComparer, System.ImageList, Vcl.ImgList,
-  AdvGDIPicture;
+  JDRMGraphics, ImageCapture, System.ImageList, Vcl.ImgList;
 
 Type
   TConnectionInfo = Packed Record
@@ -130,6 +128,7 @@ type
     Panel5: TPanel;
     TargetID_MaskEdit: TComboBox;
     cbQualidade: TComboBox;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure Reconnect_TimerTimer(Sender: TObject);
     procedure Timeout_TimerTimer(Sender: TObject);
@@ -402,12 +401,10 @@ begin
       Application.MessageBox('Você não pode conectar a si mesmo!', 'Aegys', 16)
     Else
     Begin
-      formato := StringReplace(TargetID_MaskEdit.Text, '-', '',
-        [rfReplaceAll, rfIgnoreCase]);
+      formato := StringReplace(TargetID_MaskEdit.Text, '-', '',[rfReplaceAll, rfIgnoreCase]);
       formato := Trim(formato);
       formato := MaskDoFormatText(mascara, formato, #0);
-      ipPSMain_Socket.Write('<|FINDID|>' + formato + '<|>' + '<|LASTPASSWORD|>'
-        + LastPassWord + vCommandEnd);
+      ipPSMain_Socket.Write('<|FINDID|>' + formato + '<|>' + '<|LASTPASSWORD|>'+ LastPassWord + vCommandEnd);
       TargetID_MaskEdit.Enabled := False;
       Connect_BitBtn.Enabled := False;
       Status_Image.Picture.Assign(Image1.Picture);
@@ -422,7 +419,9 @@ end;
 
 procedure Tfrm_Main.Button1Click(Sender: TObject);
 begin
-  Botao_conectar_parceiro;
+      frm_RemoteScreen := Tfrm_RemoteScreen.Create(Self);
+      Clipboard_Timer.Enabled := true;
+      frm_RemoteScreen.Show;
 end;
 
 procedure Tfrm_Main.tScreenShotTimer(Sender: TObject);
@@ -827,37 +826,42 @@ end;
 procedure Tfrm_Main.Reconnect;
 Begin
   Try
-    If Not(ipPSMain_Socket.Active) then
+   If ipPSMain_Socket <> Nil Then
     Begin
-      Try
+     If Not(ipPSMain_Socket.Active) then
+      Begin
+       Try
         ipPSMain_Socket.Active := False;
         ipPSMain_Socket.Active := True;
-      Except
-      End;
-      If Not ipPSMain_Socket.Active Then
-      Begin
-        if frm_Main <> Nil then
+       Except
+       End;
+       If Not ipPSMain_Socket.Active Then
         Begin
-          Status_Image.Picture.Assign(Image2.Picture);
-          Status_Label.Caption :=
-            'Offline, Aguardando conexão com o servidor...';
-        End;
-      End
-      Else
-      Begin
-        If ipPSDeskTopClient.SendType = stNAT Then
+         if frm_Main <> Nil then
+          Begin
+           Status_Image.Picture.Assign(Image2.Picture);
+           Status_Label.Caption := 'Offline, Aguardando conexão com o servidor...';
+          End;
+        End
+       Else
+        Begin
+         If ipPSDeskTopClient.SendType = stNAT Then
           lStatusCon.Caption := 'Status : Aguardando Comandos...'
-        Else
+         Else
           lStatusCon.Caption := 'Status : Aguardando Comandos...';
+        End;
       End;
     End;
   Except
-    If Not ipPSMain_Socket.Active Then
+   If ipPSMain_Socket <> Nil Then
     Begin
-      If frm_Main <> Nil Then
+     If Not ipPSMain_Socket.Active Then
       Begin
-        Status_Image.Picture.Assign(Image2.Picture);
-        Status_Label.Caption := 'Offline, Aguardando conexão com o servidor...';
+       If frm_Main <> Nil Then
+        Begin
+         Status_Image.Picture.Assign(Image2.Picture);
+         Status_Label.Caption := 'Offline, Aguardando conexão com o servidor...';
+        End;
       End;
     End;
   End;
@@ -865,563 +869,558 @@ End;
 
 Procedure Tfrm_Main.CloseSockets;
 Begin
-  Sleep(500);
-  vWhereNew := False;
-  vPeerNotify := False;
-  vExecuteData := False;
-  vCancelOPSendFile := False;
-  vInitCapture := False;
-  vStopSendFile := True;
-  vIConnect := False;
-  Self.Visible := True;
-  vCaptureSideClient := False;
-  vSendMyData := False;
-  vInitSection := False;
-  If vReceiveData <> Nil Then
-    vReceiveData.Active := False;
-  If dmCaptureScreen <> Nil Then
-    dmCaptureScreen.RenewCommand;
-  if Not vCloseConnection then
-    vCloseConnection := True;
-  If NewDeskCapture Then
+ Sleep(500);
+ vWhereNew := False;
+ vPeerNotify := False;
+ vExecuteData := False;
+ vCancelOPSendFile := False;
+ vInitCapture := False;
+ vStopSendFile := True;
+ vIConnect := False;
+ Self.Visible := True;
+ vCaptureSideClient := False;
+ vSendMyData := False;
+ vInitSection := False;
+ If vReceiveData <> Nil Then
+  vReceiveData.Active := False;
+ If dmCaptureScreen <> Nil Then
+  dmCaptureScreen.RenewCommand;
+ If Not vCloseConnection Then
+  vCloseConnection := True;
+ If NewDeskCapture Then
   Begin
-    If dmCaptureScreen.FastDesktop <> Nil Then
-      dmCaptureScreen.FastDesktop.Active := False;
+   If dmCaptureScreen.FastDesktop <> Nil Then
+    dmCaptureScreen.FastDesktop.Active := False;
   End
-  Else
+ Else
   Begin
-    If tScreenshot <> Nil Then
+   If tScreenshot <> Nil Then
     Begin
-      tScreenshot.Enabled := False;
-      vSendData.Active := False;
+     tScreenshot.Enabled := False;
+     vSendData.Active := False;
     End;
   End;
-  If vCloseSockets Then
-    Exit
-  Else
-    vCloseSockets := True;
-  Reconnect_Timer.Enabled := False;
-  // TerminateAllThreads;
-  ClearConnection;
-  dmCaptureScreen.StopCapture;
-  If Not InClose Then
+ If vCloseSockets Then
+  Exit
+ Else
+  vCloseSockets := True;
+ Reconnect_Timer.Enabled := False;
+ // TerminateAllThreads;
+ ClearConnection;
+ dmCaptureScreen.StopCapture;
+ If Not InClose Then
   Begin
-    // DeactiveComponents;
-    DestroyComponents;
-    CreateComponents;
-    vEnterInMainSocket := True;
-    WaitDisconnect := False;
+   // DeactiveComponents;
+   DestroyComponents;
+   CreateComponents;
+   vEnterInMainSocket := True;
+   WaitDisconnect := False;
   End
-  Else
-    DestroyComponents;
-  Viewer := False;
-  // Restore Wallpaper
-  If (Accessed) Then
+ Else
+  DestroyComponents;
+ Viewer := False;
+ // Restore Wallpaper
+ If (Accessed) Then
   Begin
-    Accessed := False;
-    ChangeWallpaper(OldWallpaper);
+   Accessed := False;
+   ChangeWallpaper(OldWallpaper);
   End;
-  // Show main form and repaint
-  If (Self <> Nil) Then
-    ShowApplication;
-  If frm_RemoteScreen <> Nil Then
-    frm_RemoteScreen.Close;
-  // Application.Restore;
-  If (Not(InClose)) Then
-    Reconnect_Timer.Enabled := True;
-  vCloseSockets := False;
-  If ipPSDeskTopClient <> Nil Then
+ // Show main form and repaint
+ If (Self <> Nil) Then
+  ShowApplication;
+ If frm_RemoteScreen <> Nil Then
+  frm_RemoteScreen.Close;
+ // Application.Restore;
+ If (Not(InClose)) Then
+  Reconnect_Timer.Enabled := True;
+ vCloseSockets := False;
+ If ipPSDeskTopClient <> Nil Then
   Begin
-    If ipPSDeskTopClient.SendType = stNAT Then
-      lStatusCon.Caption := 'Status : Desconectado'
-    Else
-      lStatusCon.Caption := 'Status : Desconectado';
+   If ipPSDeskTopClient.SendType = stNAT Then
+    lStatusCon.Caption := 'Status : Desconectado'
+   Else
+    lStatusCon.Caption := 'Status : Desconectado';
   End;
-end;
+End;
 
 Procedure SetConnected;
 Begin
-  With frm_Main Do
+ With frm_Main Do
   Begin
-    YourID_Edit.Text := 'Recebendo...';
-    YourID_Edit.Enabled := False;
-    YourPassword_Edit.Text := 'Recebendo...';
-    YourPassword_Edit.Enabled := False;
-    Connect_BitBtn.Enabled := False;
+   YourID_Edit.Text := 'Recebendo...';
+   YourID_Edit.Enabled := False;
+   YourPassword_Edit.Text := 'Recebendo...';
+   YourPassword_Edit.Enabled := False;
+   Connect_BitBtn.Enabled := False;
   End;
 End;
 
 procedure Tfrm_Main.SetOffline;
 Var
-  I: Integer;
+ I : Integer;
 Begin
-  If frm_Main <> Nil Then
+ If frm_Main <> Nil Then
   Begin
-    vWhereNew := False;
-    Timeout_Timer.Enabled := False;
-    Clipboard_Timer.Enabled := False;
-    YourID_Edit.Text := 'Offline';
-    YourID_Edit.Enabled := False;
-    If TryStrToInt(YourPassword_Edit.Text, I) Then
-      LastPassWord := YourPassword_Edit.Text;
-    YourPassword_Edit.Text := 'Offline';
-    YourPassword_Edit.Enabled := False;
-    Connect_BitBtn.Enabled := False;
+   vWhereNew := False;
+   Timeout_Timer.Enabled := False;
+   Clipboard_Timer.Enabled := False;
+   YourID_Edit.Text := 'Offline';
+   YourID_Edit.Enabled := False;
+   If TryStrToInt(YourPassword_Edit.Text, I) Then
+    LastPassWord := YourPassword_Edit.Text;
+   YourPassword_Edit.Text := 'Offline';
+   YourPassword_Edit.Enabled := False;
+   Connect_BitBtn.Enabled := False;
   End;
 End;
 
 Procedure Tfrm_Main.SetOnline;
 Var
-  formato: String;
+ formato : String;
 begin
-  formato := StringReplace(frm_Main.TargetID_MaskEdit.Text, '-', '',
-    [rfReplaceAll, rfIgnoreCase]);
-  formato := Trim(formato);
-  formato := MaskDoFormatText(mascara, formato, #0);
-  YourID_Edit.Text := MyID;
-  YourID_Edit.Enabled := True;
-  If LastPassWord = '' Then
-    LastPassWord := MyPassword;
-  YourPassword_Edit.Text := LastPassWord;
-  YourPassword_Edit.Enabled := True;
-  // TargetID_MaskEdit.Clear;
-  TargetID_MaskEdit.Enabled := True;
-  Connect_BitBtn.Enabled := True;
-  If (vParID <> '') And (vParSenha <> '') Then
+ formato := StringReplace(frm_Main.TargetID_MaskEdit.Text, '-', '', [rfReplaceAll, rfIgnoreCase]);
+ formato := Trim(formato);
+ formato := MaskDoFormatText(mascara, formato, #0);
+ YourID_Edit.Text := MyID;
+ YourID_Edit.Enabled := True;
+ If LastPassWord = '' Then
+  LastPassWord := MyPassword;
+ YourPassword_Edit.Text := LastPassWord;
+ YourPassword_Edit.Enabled := True;
+ // TargetID_MaskEdit.Clear;
+ TargetID_MaskEdit.Enabled := True;
+ Connect_BitBtn.Enabled := True;
+ If (vParID <> '') And (vParSenha <> '') Then
   Begin
-    TargetID_MaskEdit.Text := vParID;
-    ipPSMain_Socket.Write('<|CHECKIDPASSWORD|>' + formato + '<|>' + vParSenha +
-      vCommandEnd);
+   TargetID_MaskEdit.Text := vParID;
+   ipPSMain_Socket.Write('<|CHECKIDPASSWORD|>' + formato + '<|>' + vParSenha + vCommandEnd);
   End;
 End;
 
-Function FileToMemoryStream(OpenFile: AnsiString;
-  Const SrcStream: TMemoryStream): Boolean;
+Function FileToMemoryStream(OpenFile        : AnsiString;
+                            Const SrcStream : TMemoryStream): Boolean;
 Var
-  fs: TFileStream;
+ fs : TFileStream;
 Begin
-  Result := False;
-  fs := TFileStream.Create(OpenFile, fmOpenRead or fmShareDenyNone);
-  Try
-    If fs.Size > 0 Then
-    Begin
-      fs.Seek(0, soFromBeginning);
-      SrcStream.Clear;
-      SrcStream.SetSize(0);
-      SrcStream.CopyFrom(fs, fs.Size);
-      Result := True;
-    End;
-  Finally
-    fs.Free;
-  End;
+ Result := False;
+ fs := TFileStream.Create(OpenFile, fmOpenRead or fmShareDenyNone);
+ Try
+  If fs.Size > 0 Then
+   Begin
+    fs.Seek(0, soFromBeginning);
+    SrcStream.Clear;
+    SrcStream.SetSize(0);
+    SrcStream.CopyFrom(fs, fs.Size);
+    Result := True;
+   End;
+ Finally
+  fs.Free;
+ End;
 End;
 
-Function MemoryStreamToFile(Const SrcStream: TMemoryStream;
-  DestFile: AnsiString): Boolean;
+Function MemoryStreamToFile(Const SrcStream : TMemoryStream;
+                            DestFile        : AnsiString) : Boolean;
 Var
-  fs: TFileStream;
+ fs : TFileStream;
 Begin
-  Result := False;
-  fs := TFileStream.Create(DestFile, fmCreate or fmShareExclusive);
-  Try
-    DeleteFile(DestFile);
-    If SrcStream.Size > 0 Then
-    Begin
-      SrcStream.Seek(0, soFromBeginning);
-      fs.CopyFrom(SrcStream, SrcStream.Size);
-      Result := True;
-    End;
-  Finally
-    fs.Free;
-  End;
+ Result := False;
+ fs := TFileStream.Create(DestFile, fmCreate or fmShareExclusive);
+ Try
+  DeleteFile(DestFile);
+  If SrcStream.Size > 0 Then
+   Begin
+    SrcStream.Seek(0, soFromBeginning);
+    fs.CopyFrom(SrcStream, SrcStream.Size);
+    Result := True;
+   End;
+ Finally
+  fs.Free;
+ End;
 End;
 
-Function HexToString(H: String): String;
+Function HexToString(H : String) : String;
 Begin
-  SetLength(Result, Length(H) div 4);
-  HexToBin(PWideChar(H), Result[1], Length(H) div SizeOf(Char));
+ SetLength(Result, Length(H) div 4);
+ HexToBin(PWideChar(H), Result[1], Length(H) div SizeOf(Char));
 End;
 
 Procedure Tfrm_Main.OnProgress(Sender: TObject);
 Begin
-{$IFDEF MSWINDOWS}
-{$IFNDEF FMX}Application.Processmessages;
-{$ELSE}FMX.Forms.TApplication.Processmessages; {$ENDIF}
-{$ENDIF}
+ {$IFDEF MSWINDOWS}
+ {$IFNDEF FMX}Application.Processmessages;
+ {$ELSE}FMX.Forms.TApplication.Processmessages; {$ENDIF}
+ {$ENDIF}
 End;
 
-Function ZDecompressStr(const S: String; Var Value: String): Boolean;
+Function ZDecompressStr(const S   : String;
+                        Var Value : String) : Boolean;
 Var
-  zipFile: TZDecompressionStream;
-  strInput, strOutput: TStringStream;
+ zipFile   : TZDecompressionStream;
+ strInput,
+ strOutput : TStringStream;
 Begin
-  Result := False;
-  Value := '';
-  If S <> '' Then
+ Result := False;
+ Value := '';
+ If S <> '' Then
   Begin
+   Try
+    strInput  := TStringStream.Create(S,  CompressionDecoding);
+    strOutput := TStringStream.Create('', CompressionEncoding);
     Try
-      strInput := TStringStream.Create(S, CompressionDecoding);
-      strOutput := TStringStream.Create('', CompressionEncoding);
-      Try
-        strInput.Position := 0;
-        zipFile := TZDecompressionStream.Create(strInput);
-        zipFile.OnProgress := frm_Main.OnProgress;
-        zipFile.Position := 0;
-        strOutput.CopyFrom(zipFile, zipFile.Size);
-        strOutput.Position := 0;
-        Value := strOutput.DataString;
-        Result := True;
-      Except
-      End;
-      zipFile.Free;
-    Finally
-      strInput.Free;
-      strOutput.Free;
-    End;
-  End;
-End;
-
-Procedure ZDecompressStream(const S: TMemoryStream; Var Value: TMemoryStream);
-Var
-  zipFile: TZDecompressionStream;
-Begin
-  If S.Size > 0 Then
-  Begin
-    Value := TMemoryStream.Create;
-    Try
-      S.Position := 0;
-      zipFile := TZDecompressionStream.Create(S);
-      zipFile.OnProgress := frm_Main.OnProgress;
-      zipFile.Position := 0;
-      Value.CopyFrom(zipFile, zipFile.Size);
-      Value.Position := 0;
+     strInput.Position  := 0;
+     zipFile            := TZDecompressionStream.Create(strInput);
+     zipFile.OnProgress := frm_Main.OnProgress;
+     zipFile.Position   := 0;
+     strOutput.CopyFrom(zipFile, zipFile.Size);
+     strOutput.Position := 0;
+     Value              := strOutput.DataString;
+     Result             := True;
     Except
     End;
     zipFile.Free;
-  End;
-End;
-
-Function StringToHex(S: String): String;
-Begin
-  SetLength(Result, Length(S) * 4);
-  BinToHex(S[1], PWideChar(Result), Length(S) * SizeOf(Char));
-End;
-
-Function ZCompressStr(const S: String; level: TZCompressionLevel = zcMax)
-  : TIdBytes;
-Var
-  Compress: TzCompressionStream;
-  SrcStream, OutPut: TStringStream;
-Begin
-  OutPut := TStringStream.Create('', CompressionDecoding);
-  SrcStream := TStringStream.Create(S, CompressionEncoding);
-  OutPut.Position := 0;
-  Try
-    Compress := TzCompressionStream.Create(OutPut, ZCompressionLevel);
-    Compress.OnProgress := dmCaptureScreen.OnProgress;
-    Compress.CopyFrom(SrcStream, 0);
-    FreeAndNil(Compress);
-    OutPut.Position := 0;
-    If OutPut.Size > 0 Then
-      ReadTIdBytesFromStream(OutPut, Result, OutPut.Size);
-    // Result          := OutPut.DataString;
-    FreeAndNil(OutPut);
-    FreeAndNil(SrcStream);
-  Except
-    SetLength(Result, 0);
-  End;
-End;
-
-Function CompressStreamS(Const SrcS: String; Var DestS: String): Boolean;
-Var
-  zipFile: TzCompressionStream;
-  strInput, strOutput: TStringStream;
-begin
-  Result := False;
-  Try
-    strInput := TStringStream.Create(SrcS);
-    strOutput := TStringStream.Create;
-    Try
-      zipFile := TzCompressionStream.Create(strOutput, zcDefault);
-      zipFile.CopyFrom(strInput, strInput.Size);
-    Finally
-      zipFile.Free;
-    End;
-    DestS := strOutput.DataString;
-    Result := True;
-  Finally
+   Finally
     strInput.Free;
     strOutput.Free;
+   End;
   End;
+End;
+
+Procedure ZDecompressStream(const S   : TMemoryStream;
+                            Var Value : TMemoryStream);
+Var
+ zipFile : TZDecompressionStream;
+Begin
+ If S.Size > 0 Then
+  Begin
+   Value := TMemoryStream.Create;
+   Try
+    S.Position := 0;
+    zipFile := TZDecompressionStream.Create(S);
+    zipFile.OnProgress := frm_Main.OnProgress;
+    zipFile.Position := 0;
+    Value.CopyFrom(zipFile, zipFile.Size);
+    Value.Position := 0;
+   Except
+   End;
+   zipFile.Free;
+  End;
+End;
+
+Function StringToHex(S : String): String;
+Begin
+ SetLength(Result, Length(S) * 4);
+ BinToHex(S[1], PWideChar(Result), Length(S) * SizeOf(Char));
+End;
+
+Function ZCompressStr(const S : String;
+                      level   : TZCompressionLevel = zcMax) : TIdBytes;
+Var
+ Compress   : TzCompressionStream;
+ SrcStream,
+ OutPut     : TStringStream;
+Begin
+ OutPut    := TStringStream.Create('', CompressionDecoding);
+ SrcStream := TStringStream.Create(S, CompressionEncoding);
+ OutPut.Position := 0;
+ Try
+  Compress := TzCompressionStream.Create(OutPut, ZCompressionLevel);
+  Compress.OnProgress := dmCaptureScreen.OnProgress;
+  Compress.CopyFrom(SrcStream, 0);
+  FreeAndNil(Compress);
+  OutPut.Position := 0;
+  If OutPut.Size > 0 Then
+   ReadTIdBytesFromStream(OutPut, Result, OutPut.Size);
+  // Result          := OutPut.DataString;
+  FreeAndNil(OutPut);
+  FreeAndNil(SrcStream);
+ Except
+  SetLength(Result, 0);
+ End;
+End;
+
+Function CompressStreamS(Const SrcS : String;
+                         Var DestS  : String): Boolean;
+Var
+ zipFile   : TzCompressionStream;
+ strInput,
+ strOutput : TStringStream;
+Begin
+ Result := False;
+ Try
+  strInput  := TStringStream.Create(SrcS);
+  strOutput := TStringStream.Create;
+  Try
+   zipFile := TzCompressionStream.Create(strOutput, zcDefault);
+   zipFile.CopyFrom(strInput, strInput.Size);
+  Finally
+   zipFile.Free;
+  End;
+  DestS := strOutput.DataString;
+  Result := True;
+ Finally
+  strInput.Free;
+  strOutput.Free;
+ End;
 End;
 
 // Compress Stream with zLib
-Function CompressStream(Const SrcStream: TMemoryStream;
-  DestStream: TMemoryStream): Boolean;
+Function CompressStream(Const SrcStream : TMemoryStream;
+                        DestStream      : TMemoryStream) : Boolean;
 Var
-  zipFile: TzCompressionStream;
-begin
-  Result := False;
-  Try
-    zipFile := TzCompressionStream.Create(DestStream, zcDefault);
-    SrcStream.Position := 0;
-    zipFile.CopyFrom(SrcStream, SrcStream.Size);
-    Result := True;
-  Except
-  End;
-  zipFile.Free;
-End;
-
-// Decompress Stream with zLib
-Function DeCompressStream(Const SrcStream: TMemoryStream;
-  Var DestStream: TMemoryStream): Boolean;
-Var
-  zipFile: TZDecompressionStream;
+ zipFile : TzCompressionStream;
 Begin
-  Result := False;
+ Result := False;
+ Try
+  zipFile := TzCompressionStream.Create(DestStream, zcDefault);
   SrcStream.Position := 0;
-  zipFile := TZDecompressionStream.Create(SrcStream);
-  Try
-    zipFile.Position := 0;
-    DestStream.Clear;
-    DestStream.SetSize(0);
-    DestStream.CopyFrom(zipFile, zipFile.Size);
-    Result := True;
-  Except
-  End;
-  zipFile.Free;
-end;
+  zipFile.CopyFrom(SrcStream, SrcStream.Size);
+  Result := True;
+ Except
+ End;
+ zipFile.Free;
+End;
 
 // Decompress Stream with zLib
-Function DeCompressStreamS(Const SrcS: String; Var DestS: String): Boolean;
+Function DeCompressStream(Const SrcStream : TMemoryStream;
+                          Var DestStream  : TMemoryStream) : Boolean;
 Var
-  zipFile: TZDecompressionStream;
-  strInput, strOutput: TStringStream;
+ zipFile : TZDecompressionStream;
 Begin
-  Result := False;
-  If SrcS <> '' Then
+ Result := False;
+ SrcStream.Position := 0;
+ zipFile := TZDecompressionStream.Create(SrcStream);
+ Try
+  zipFile.Position := 0;
+  DestStream.Clear;
+  DestStream.SetSize(0);
+  DestStream.CopyFrom(zipFile, zipFile.Size);
+  Result := True;
+ Except
+ End;
+ zipFile.Free;
+End;
+
+// Decompress Stream with zLib
+Function DeCompressStreamS(Const SrcS : String;
+                           Var DestS  : String) : Boolean;
+Var
+ zipFile   : TZDecompressionStream;
+ strInput,
+ strOutput : TStringStream;
+Begin
+ Result := False;
+ If SrcS <> '' Then
   Begin
+   Try
+    strInput := TStringStream.Create(SrcS);
+    strOutput := TStringStream.Create;
     Try
-      strInput := TStringStream.Create(SrcS);
-      strOutput := TStringStream.Create;
-      Try
-        zipFile := TZDecompressionStream.Create(strInput);
-        zipFile.Position := 0;
-        strOutput.CopyFrom(zipFile, zipFile.Size);
-        strOutput.Position := 0;
-        DestS := strOutput.DataString;
-        Result := True;
-      Except
-      End;
-      zipFile.Free;
-    Finally
-      strInput.Free;
-      strOutput.Free;
+     zipFile := TZDecompressionStream.Create(strInput);
+     zipFile.Position := 0;
+     strOutput.CopyFrom(zipFile, zipFile.Size);
+     strOutput.Position := 0;
+     DestS := strOutput.DataString;
+     Result := True;
+    Except
     End;
+    zipFile.Free;
+   Finally
+    strInput.Free;
+    strOutput.Free;
+   End;
   End;
 End;
 
-Function MemoryStreamToString(M: TMemoryStream): String;
+Function MemoryStreamToString(M : TMemoryStream) : String;
 Var
-  _MemStr: TStringStream;
+ _MemStr : TStringStream;
 Begin
-  _MemStr := TStringStream.Create;
-  Try
-    _MemStr.LoadFromStream(M);
-  Finally
-    Result := _MemStr.DataString;
-    FreeAndNil(_MemStr);
-  End;
+ _MemStr := TStringStream.Create;
+ Try
+  _MemStr.LoadFromStream(M);
+ Finally
+  Result := _MemStr.DataString;
+  FreeAndNil(_MemStr);
+ End;
 End;
 
-Procedure StringToMemoryStream(Value: TMemoryStream; Str: String);
+Procedure StringToMemoryStream(Value : TMemoryStream;
+                               Str   : String);
 Var
-  _MemStr: TStringStream;
+ _MemStr: TStringStream;
 Begin
-  _MemStr := TStringStream.Create(Str);
-  Try
-    _MemStr.SaveToStream(Value);
-  Finally
-    FreeAndNil(_MemStr);
-  End;
-end;
+ _MemStr := TStringStream.Create(Str);
+ Try
+  _MemStr.SaveToStream(Value);
+ Finally
+  FreeAndNil(_MemStr);
+ End;
+End;
 
-Procedure Tfrm_Main.ExecMethod(Execute: TExecuteProc = Nil;
-  Sincro: Boolean = False);
+Procedure Tfrm_Main.ExecMethod(Execute : TExecuteProc = Nil;
+                               Sincro  : Boolean      = False);
 Begin
-  TThread.CreateAnonymousThread(
-    Procedure
-    Begin
-      If Sincro Then
-      Begin
-        // Se precisar interagir com a Thread da Interface
-        TThread.Synchronize(TThread.CurrentThread,
-          Procedure
-          Begin
-            If Assigned(Execute) Then
-              Execute;
-          End);
-      End
-      Else
-      Begin
-        If Assigned(Execute) Then
-          Execute;
-      End;
-    End).Start;
+ TThread.CreateAnonymousThread(Procedure
+                               Begin
+                                If Sincro Then
+                                 Begin
+                                  // Se precisar interagir com a Thread da Interface
+                                  TThread.Synchronize(TThread.CurrentThread, Procedure
+                                                                             Begin
+                                                                              If Assigned(Execute) Then
+                                                                                Execute;
+                                                                             End);
+                                 End
+                                Else
+                                 Begin
+                                  If Assigned(Execute) Then
+                                    Execute;
+                                 End;
+                               End).Start;
 End;
 
 procedure Tfrm_Main.CaptureExecute;
 Var
-  vError: Boolean;
-  I: Integer;
+ vError : Boolean;
+ I      : Integer;
 Begin
-  vError := False;
-  If Not vEnterInMainSocket Then
+ vError := False;
+ If Not vEnterInMainSocket Then
   Begin
-    vEnterInMainSocket := True;
-    If tScreenshot <> Nil Then
+   vEnterInMainSocket := True;
+   If tScreenshot <> Nil Then
     Begin
-      tScreenshot.Enabled := False;
+     tScreenshot.Enabled := False;
+     vSendData.Active := False;
+    End;
+   Try
+    vError := Not(SendStreamQueue(ipPSDeskTopClient, vNewFrameClient, False, ImageViewQ));
+    OnSend := False;
+   Except
+   End;
+   If inTimerCollect Then
+    Begin
+     If (Not(InClose)) And (Not(vCloseConnection))  And
+        (Not(vError))  And ipPSDeskTopClient.Active Then
+      If (tScreenshot <> Nil) Then
+       tScreenshot.Enabled := Not(InClose) And inTimerCollect;
+     If Not tScreenshot.Enabled Then
       vSendData.Active := False;
     End;
-    Try
-      vError := Not(SendStreamQueue(ipPSDeskTopClient, vNewFrameClient, False,
-        ImageViewQ));
-      OnSend := False;
-    Except
-
-    End;
-    If inTimerCollect Then
-    Begin
-      If (Not(InClose)) And (Not(vCloseConnection)) And (Not(vError)) And
-        ipPSDeskTopClient.Active Then
-        If (tScreenshot <> Nil) Then
-          tScreenshot.Enabled := Not(InClose) And inTimerCollect;
-      If Not tScreenshot.Enabled Then
-        vSendData.Active := False;
-    End;
-    vEnterInMainSocket := False;
+   vEnterInMainSocket := False;
   End;
 End;
 
 Procedure Tfrm_Main.AddLog(Value: String);
 Begin
-  If (HabLogs) And (Value <> '') Then
-    vLogsList.Add(Value);
+ If (HabLogs)     And
+    (Value <> '') Then
+  vLogsList.Add(Value);
 End;
 
-Function KillTask(ExeFileName: String): Integer;
+Function KillTask(ExeFileName : String) : Integer;
 Const
-  PROCESS_TERMINATE = $0001;
+ PROCESS_TERMINATE = $0001;
 Var
-  ContinueLoop: Bool;
-  FSnapshotHandle: THandle;
-  FProcessEntry32: TProcessEntry32;
+ ContinueLoop    : Bool;
+ FSnapshotHandle : THandle;
+ FProcessEntry32 : TProcessEntry32;
 Begin
-  Result := 0;
-  FSnapshotHandle := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-  FProcessEntry32.dwSize := SizeOf(FProcessEntry32);
-  ContinueLoop := Process32First(FSnapshotHandle, FProcessEntry32);
-  While Integer(ContinueLoop) <> 0 Do
+ Result := 0;
+ FSnapshotHandle := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+ FProcessEntry32.dwSize := SizeOf(FProcessEntry32);
+ ContinueLoop := Process32First(FSnapshotHandle, FProcessEntry32);
+ While Integer(ContinueLoop) <> 0 Do
   Begin
-    If ((UpperCase(ExtractFileName(FProcessEntry32.szExeFile))
-      = UpperCase(ExeFileName)) Or (UpperCase(FProcessEntry32.szExeFile)
-      = UpperCase(ExeFileName))) Then
-      Result := Integer(TerminateProcess(OpenProcess(PROCESS_TERMINATE, Bool(0),
-        FProcessEntry32.th32ProcessID), 0));
-    ContinueLoop := Process32Next(FSnapshotHandle, FProcessEntry32);
+   If ((UpperCase(ExtractFileName(FProcessEntry32.szExeFile)) = UpperCase(ExeFileName))  Or
+       (UpperCase(FProcessEntry32.szExeFile)                  = UpperCase(ExeFileName))) Then
+    Result := Integer(TerminateProcess(OpenProcess(PROCESS_TERMINATE, Bool(0), FProcessEntry32.th32ProcessID), 0));
+   ContinueLoop := Process32Next(FSnapshotHandle, FProcessEntry32);
   End;
-  CloseHandle(FSnapshotHandle);
+ CloseHandle(FSnapshotHandle);
 End;
 
 procedure Tfrm_Main.FormClose(Sender: TObject; var Action: TCloseAction);
 Begin
-  Timeout_Timer.Enabled := False;
-  Time_Update.Enabled := False;
-  Clipboard_Timer.Enabled := False;
-  Reconnect_Timer.Enabled := False;
-  CloseSockets;
-  If ippMain_Socket <> Nil Then
-    FreeAndNil(ippMain_Socket);
-  {
-    If ippDesktopClient <> Nil Then
-    FreeAndNil(ippDesktopClient);
-    If ippPSFilesClient <> Nil Then
-    FreeAndNil(ippPSFilesClient);
-  }
-  If vReceiveData <> Nil Then
+ Timeout_Timer.Enabled := False;
+ Time_Update.Enabled := False;
+ Clipboard_Timer.Enabled := False;
+ Reconnect_Timer.Enabled := False;
+ CloseSockets;
+ If ippMain_Socket <> Nil Then
+  FreeAndNil(ippMain_Socket);
+ If vReceiveData <> Nil Then
   Begin
-    vReceiveData.Active := False;
-    vReceiveData.Free;
+   vReceiveData.Active := False;
+   vReceiveData.Free;
   End;
-  If ipPSDeskTopClient <> Nil Then
-    FreeAndNil(ipPSDeskTopClient);
-  If ipCommandsClient <> Nil Then
-    FreeAndNil(ipCommandsClient);
-  If ipPSFilesClient <> Nil Then
-    FreeAndNil(ipPSFilesClient);
-  If ipPSMain_Socket <> Nil Then
-    FreeAndNil(ipPSMain_Socket);
-  FreeAndNil(vCaptureScreens);
-  FreeAndNil(dmCaptureScreen);
-  FreeAndNil(vComboList);
-  If HabLogs Then
+ If ipPSDeskTopClient <> Nil Then
+  FreeAndNil(ipPSDeskTopClient);
+ If ipCommandsClient <> Nil Then
+  FreeAndNil(ipCommandsClient);
+ If ipPSFilesClient <> Nil Then
+  FreeAndNil(ipPSFilesClient);
+ If ipPSMain_Socket <> Nil Then
+  FreeAndNil(ipPSMain_Socket);
+ FreeAndNil(vCaptureScreens);
+ FreeAndNil(dmCaptureScreen);
+ FreeAndNil(vComboList);
+ If HabLogs Then
   Begin
-    vLogsList.SaveToFile(ExtractFilePath(Application.ExeName) + 'logExec.txt');
-    FreeAndNil(vLogsList);
+   vLogsList.SaveToFile(ExtractFilePath(Application.ExeName) + 'logExec.txt');
+   FreeAndNil(vLogsList);
   End;
-  frm_Main := Nil;
-  Action := caFree;
-  KillTask(ExtractFileName(Application.ExeName));
+ frm_Main := Nil;
+ Action := caFree;
+ KillTask(ExtractFileName(Application.ExeName));
 End;
 
 procedure Tfrm_Main.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  // Restore Wallpaper
-  InClose := True;
-  If NewDeskCapture Then
+ // Restore Wallpaper
+ InClose := True;
+ If NewDeskCapture Then
   Begin
-    If dmCaptureScreen.FastDesktop <> Nil Then
-      dmCaptureScreen.FastDesktop.Active := False;
+   If dmCaptureScreen.FastDesktop <> Nil Then
+    dmCaptureScreen.FastDesktop.Active := False;
   End
-  Else
+ Else
   Begin
-    If tScreenshot <> Nil Then
+   If tScreenshot <> Nil Then
     Begin
-      tScreenshot.Enabled := False;
-      vSendData.Active := False;
+     tScreenshot.Enabled := False;
+     vSendData.Active := False;
     End;
   End;
-  If frm_ShareFiles <> Nil Then
-    frm_ShareFiles.Close;
-  If vComboList <> Nil Then
-    FreeAndNil(vComboList);
-  vNotClose := False;
-  Reconnect_Timer.Enabled := False;
-  If (Accessed) Then
+ If frm_ShareFiles <> Nil Then
+  frm_ShareFiles.Close;
+ If vComboList <> Nil Then
+  FreeAndNil(vComboList);
+ vNotClose := False;
+ Reconnect_Timer.Enabled := False;
+ If (Accessed) Then
   Begin
-    Accessed := False;
-    ChangeWallpaper(OldWallpaper);
+   Accessed := False;
+   ChangeWallpaper(OldWallpaper);
   End;
-  If vInitImageCapture <> Nil Then
-    FreeAndNil(vInitImageCapture);
-  CloseSockets;
-  DestroyComponents;
-  FreeAndNil(CritialSection);
-  // Compressor.DisposeOf;
-end;
+ If vInitImageCapture <> Nil Then
+  FreeAndNil(vInitImageCapture);
+ CloseSockets;
+ DestroyComponents;
+ FreeAndNil(CritialSection);
+ //Compressor.DisposeOf;
+End;
 
 Procedure Tfrm_Main.LoadConfigs;
 Begin
-  vMachine := GetComputerNameFunc;
-  vGroup := 'XyberPower';
-
-  Host := EnDecryptString(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'host', cHost, True), 250);
-  Port := StrToInt(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'port', cPort, False));
-  vGroup := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'group', cGroup, True);
-  vMachine := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'machine', cMachine, True);
-  ConnectionTimeout := StrToInt(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'connecttimeout', cConnectTimeOut, False));
-  Proxy := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'proxy', cProxy, False) = '1';
+ vMachine          := GetComputerNameFunc;
+ vGroup            := 'XyberPower';
+ Host              := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'host', cHost, false);
+ Port              := StrToInt(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'port', cPort, False));
+ vGroup            := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'group', cGroup, False);
+ vMachine          := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'machine', cMachine, False);
+ ConnectionTimeout := StrToInt(GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'connecttimeout', cConnectTimeOut, False));
+ Proxy             := GetIni(ExtractFilePath(Application.ExeName) + 'Aegys.ini', cGeneral, 'proxy', cProxy, False) = '1';
 End;
 
 Procedure Tfrm_Main.Main_SocketDisconnected(StatusCode: Integer;
@@ -1492,20 +1491,11 @@ End;
 Procedure Tfrm_Main.ConnectAll;
 Begin
   ipPSDeskTopClient.Active := False;
-  If Not(vWhereNew) Then
-    ipPSDeskTopClient.SendType := stNAT
-  Else
-    ipPSDeskTopClient.SendType := stProxy;
+  ipPSDeskTopClient.SendType := stNAT;
   ipCommandsClient.Active := False;
-  If Not(vWhereNew) Then
-    ipCommandsClient.SendType := stNAT
-  Else
-    ipCommandsClient.SendType := stProxy;
+  ipCommandsClient.SendType := stNAT;
   ipPSFilesClient.Active := False;
-  If Not(vWhereNew) Then
-    ipPSFilesClient.SendType := stNAT
-  Else
-    ipPSFilesClient.SendType := stProxy;
+  ipPSFilesClient.SendType := stNAT;
   vLinhaSend := '';
   Try
     ipPSDeskTopClient.Welcome := MyID;
@@ -1606,10 +1596,7 @@ Begin
   If (vTries <= 2) Then
   Begin
     vWhereNew := True;
-    If vSendType = stProxy then
-     vSendType := stNAT
-    Else
-     vSendType := stProxy;
+    vSendType := stNAT;
     If ipPSDeskTopClient.SendType = stNAT Then
       lStatusCon.Caption :=
         'Status : Falha na conexão P2P, Tentando uma nova conexão.'
@@ -1904,8 +1891,7 @@ begin
       Status_Label.Caption := 'Acesso garantido!';
       Viewer := True;
       ClearConnection;
-      formato := StringReplace(TargetID_MaskEdit.Text, '-', '',
-        [rfReplaceAll, rfIgnoreCase]);
+      formato := StringReplace(TargetID_MaskEdit.Text, '-', '',[rfReplaceAll, rfIgnoreCase]);
       formato := Trim(formato);
       formato := MaskDoFormatText(mascara, formato, #0);
       vComboList.AddElement(formato);
@@ -1939,13 +1925,11 @@ begin
       vTries := 0;
       // Starta as Conexões
       vWhereNew := DefaultAction = stProxy;
-      If Not vWhereNew Then
-      Begin
-        ConnectAll(DefaultAction, True);
-        vWhereNew := True;
-      End
-      Else
-        ConnectAll(stProxy, True);
+      ConnectAll(DefaultAction, True);
+//      vWhereNew := True;
+//      End
+//      Else
+//        ConnectAll(stProxy, True);
       If ipPSDeskTopClient.SendType = stNAT Then
         lStatusCon.Caption := 'Status : Tentando conexão P2P'
       Else
@@ -3879,7 +3863,7 @@ begin
   Caption := Caption + ' - ' + GetAppVersionStr;
 
   // salva a versão do aplicativo no ini
-  SaveIni(cVersion, Caption, ExtractFilePath(Application.ExeName) + 'Aegys.ini',
+  SaveIni('version', Caption, ExtractFilePath(Application.ExeName) + 'Aegys.ini',
     cGeneral, False);
 
   If (ParamCount > 0) Then
@@ -4086,7 +4070,7 @@ begin
             ipPSDeskTopClient.SendRawString
               (ipPSDeskTopClient.GetIpSend(PeerConnected), PeerConnected.Port,
               '<|GETFULLSCREENSHOT|>NEW' + vCommandEnd, False, 5);
-          // SendBuffer(ipPSDeskTopClient.GetIpSend(PeerConnected), PeerConnected.Port, '<|GETFULLSCREENSHOT|>NEW' + vCommandEnd, False, dtt_Async);
+           //SendBuffer(ipPSDeskTopClient.GetIpSend(PeerConnected), PeerConnected.Port, '<|GETFULLSCREENSHOT|>NEW' + vCommandEnd, False, dtt_Async);
           vLinhaKeys := '';
         End;
       End;
@@ -4640,8 +4624,8 @@ Var
   vDecompressOK, vNewFrame, vNoDiff: Boolean;
   vScreenWidth, vScreenHeight, vLeft, vTop, vWidth, vHeight, vFRResult: Integer;
   PeerConnected: TPeerconnected;
-  Procedure StringToStream(Const S: String; Imagem: TAdvGDIPPicture;
-  NoDiff: Boolean; ImageState: String);
+  Procedure StringToStream(Const S: String; Imagem: TImage;
+                           NoDiff: Boolean; ImageState: String);
   Var
     vDados: TStringStream;
     Bitmap2: TBitmap;
@@ -4660,18 +4644,17 @@ Var
       vDados.Position := 0;
       If Not NewDeskCapture Then
       Begin
-        Imagem.Picture.Transparent := False;
         If Not(NoDiff) Then
         Begin
-          // Bitmap2 := TBitmap.Create;
+          Bitmap2 := TBitmap.Create;
           Try
-            // Bitmap2.LoadFromStream(vDados);
-            Imagem.Picture.LoadFromStream(vDados);
+            Bitmap2.LoadFromStream(vDados);
+            Imagem.Picture.Assign(Bitmap2);
           Except
 
           End;
-          // Bitmap2.FreeImage;
-          // Bitmap2.Free;
+           Bitmap2.FreeImage;
+           Bitmap2.Free;
         End
         Else
         Begin
@@ -4681,7 +4664,7 @@ Var
           If (Pos('FULL', ImageState) > 0) Then
           Begin
             frm_Main.vInitImageCapture.ImageBase := Bitmap2;
-            Imagem.Picture.LoadFromStream(vDados); // Assign(Bitmap);
+            Imagem.Picture.Assign(Bitmap2);
           End
           Else
           Begin
@@ -4899,7 +4882,7 @@ Var
   vNewFrame, vNoDiff: Boolean;
   vScreenWidth, vScreenHeight, vLeft, vTop, vWidth, vHeight, vFRResult: Integer;
   PeerConnected: TPeerconnected;
-  Procedure StringToStream(Const S: String; Imagem: TAdvGDIPPicture;
+  Procedure StringToStream(Const S: String; Imagem: TImage;
   NoDiff: Boolean; ImageState: String);
   Var
     vDados: TStringStream;
@@ -4915,7 +4898,13 @@ Var
       If Not NewDeskCapture Then
       Begin
         If Not(NoDiff) Then
-          Imagem.Picture.LoadFromStream(vDados)
+         Begin
+          Bitmap := TBitmap.Create;
+          Bitmap.LoadFromStream(vDados);
+          Imagem.Picture.Assign(Bitmap); // .LoadFromStream(vDados);
+          Bitmap.FreeImage;
+          FreeAndNil(Bitmap);
+         End
         Else
         Begin
           Bitmap := TBitmap.Create;
@@ -5110,7 +5099,7 @@ Var
   vNewFrame, vNoDiff: Boolean;
   PeerConnected: TPeerconnected;
   vFRResult: Integer;
-  Procedure StringToStream(Const S: TMemoryStream; Imagem: TAdvGDIPPicture);
+  Procedure StringToStream(Const S: TMemoryStream; Imagem: TImage);
   Var
     Bitmap: TBitmap;
   Begin

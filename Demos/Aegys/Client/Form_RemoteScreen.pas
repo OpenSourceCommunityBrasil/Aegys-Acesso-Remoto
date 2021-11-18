@@ -8,9 +8,9 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.pngimage,
   Vcl.ExtCtrls,
   Vcl.StdCtrls, Vcl.Imaging.jpeg, System.Generics.Collections, uUteis,
-  Vcl.Buttons, AdvGlowButton, AdvGDIPicture, System.DateUtils,
+  Vcl.Buttons, System.DateUtils,
   Vcl.ComCtrls, TThreadTimer, IdBaseComponent, IdComponent, IdUDPBase,
-  uUDPSuperComponents, IdUDPServer, JDRMGraphics;
+  uUDPSuperComponents, IdUDPServer, JDRMGraphics, Vcl.Menus;
 
 const
   SC_MAXIMIZE2 = 61490;
@@ -45,26 +45,27 @@ Type
 type
   Tfrm_RemoteScreen = class(TForm)
     ScrollBox1: TScrollBox;
-    iDesktopCapture: TAdvGDIPPicture;
-    btn_ac: TAdvGlowButton;
-    btn_aclose: TAdvGlowButton;
     DesktopViewCapture: TJDRMDesktopView;
     Menu_Panel: TPanel;
     Panel15: TPanel;
     Panel10: TPanel;
     Panel12: TPanel;
     Panel20: TPanel;
-    MouseIcon_Image: TAdvGlowButton;
-    KeyboardIcon_Image: TAdvGlowButton;
-    Chat_Image: TAdvGlowButton;
-    FileShared_Image: TAdvGlowButton;
-    sbMinimize: TAdvGlowButton;
-    sbRestaure: TAdvGlowButton;
-    sbMiximize: TAdvGlowButton;
-    btn_close: TAdvGlowButton;
     rzpDownload: TPanel;
-    advCancel: TAdvGlowButton;
     pbDados: TProgressBar;
+    PopupMenu1: TPopupMenu;
+    FileShared_Image: TSpeedButton;
+    sbMaximize: TSpeedButton;
+    sbRestaure: TSpeedButton;
+    btn_close: TSpeedButton;
+    sbMinimize: TSpeedButton;
+    Chat_Image: TSpeedButton;
+    KeyboardIcon_Image: TSpeedButton;
+    MouseIcon_Image: TSpeedButton;
+    btn_ac: TSpeedButton;
+    btn_aclose: TSpeedButton;
+    advCancel: TSpeedButton;
+    iDesktopCapture: TImage;
     procedure Resize_CheckBoxKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure KeyboardRemote_CheckBoxKeyDown(Sender: TObject; var Key: Word;
@@ -93,12 +94,9 @@ type
       X, Y: Integer);
     procedure iDesktopCaptureMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure btn_acClick(Sender: TObject);
-    procedure btn_acloseClick(Sender: TObject);
     procedure iDesktopCaptureMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure advCancelClick(Sender: TObject);
     procedure DesktopViewCaptureDblClick(Sender: TObject);
     procedure DesktopViewCaptureMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -108,6 +106,9 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure KeyboardIcon_ImageClick(Sender: TObject);
     procedure MouseIcon_ImageClick(Sender: TObject);
+    procedure btn_acClick(Sender: TObject);
+    procedure btnExpandirMenuClick(Sender: TObject);
+    procedure btn_acloseClick(Sender: TObject);
   private
     { Private declarations }
     ListRequest: TListRequest;
@@ -402,25 +403,19 @@ Begin
     FileShared_Image.OnClick(FileShared_Image);
   End;
 
-  procedure Tfrm_RemoteScreen.advCancelClick(Sender: TObject);
-  begin
-    If (Active) Then
-      StopTransfer;
-  end;
+  procedure Tfrm_RemoteScreen.btnExpandirMenuClick(Sender: TObject);
+begin
+MenuDirection := te_Open;
+RollMenu(MenuDirection);
+end;
 
-  procedure Tfrm_RemoteScreen.btn_acClick(Sender: TObject);
-  begin
-    MenuDirection := te_Open;
-    RollMenu(MenuDirection);
-  end;
-
-  procedure Tfrm_RemoteScreen.btn_acloseClick(Sender: TObject);
-  begin
+procedure Tfrm_RemoteScreen.btn_acClick(Sender: TObject);
+begin
     MenuDirection := te_Close;
     RollMenu(MenuDirection);
-  end;
+end;
 
-  procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
+procedure Tfrm_RemoteScreen.btn_closeClick(Sender: TObject);
   begin
     vInClose := True;
     If (frm_Main <> Nil) Then
@@ -1132,7 +1127,7 @@ Begin
     vSendMouse := Now;
     vSendEvents := Now;
     OnSendComands := False;
-    iDesktopCapture.DoubleBuffered := True;
+    //iDesktopCapture.DoubleBuffered := True;
     If frm_Main.SendType = stNAT Then
       Self.Caption := 'Aegys - Computador Remoto - P2P'
     Else
@@ -1411,5 +1406,11 @@ Begin
       End;
     End;
   End;
+
+procedure Tfrm_RemoteScreen.btn_acloseClick(Sender: TObject);
+begin
+  If (Active) Then
+      StopTransfer;
+end;
 
 End.

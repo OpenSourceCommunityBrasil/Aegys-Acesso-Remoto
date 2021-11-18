@@ -1,12 +1,13 @@
 unit Form_Config;
-
+
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Samples.Spin,
-  Vcl.Buttons, Vcl.Imaging.pngimage, Vcl.ExtCtrls, registry, uProxy;
+  Vcl.Buttons, Vcl.Imaging.pngimage, Vcl.ExtCtrls, registry, uProxy,
+  dxGDIPlusClasses;
 
 type
   Tfrm_Config = class(TForm)
@@ -105,8 +106,8 @@ var
 begin
   arq_ini := ExtractFilePath(Application.ExeName) + 'Aegys.ini';
 
-  edtHost.Text := GetIni(arq_ini, cGeneral, 'host', cHost, True);
-  sePort.Text := GetIni(arq_ini, cGeneral, 'port', cPort, True);
+  edtHost.Text := GetIni(arq_ini, cGeneral, 'host', cHost, false);
+  sePort.Text := GetIni(arq_ini, cGeneral, 'port', cPort, false);
 
   if sePort.Value = 0 then
     sePort.Value := 9078;
@@ -116,21 +117,21 @@ begin
   edtMachineName.Text := GetIni(ExtractFilePath(Application.ExeName) +
     Application.Title + '.ini', cGeneral, cMachine, True);    }
 
-  seTimeOut.Text := GetIni(arq_ini, cGeneral, 'connectiontimeout', cConnectTimeOut, True);
-  S := GetIni(arq_ini, cGeneral, 'StarterWithWindows', cStarterWithWindows, True);
-  cbxLanguage.ItemIndex := StrToInt(GetIni(arq_ini, cGeneral, 'language', cLanguage, True));
+  seTimeOut.Text := GetIni(arq_ini, cGeneral, 'connectiontimeout', cConnectTimeOut, false);
+  S := GetIni(arq_ini, cGeneral, 'StarterWithWindows', cStarterWithWindows, false);
+  cbxLanguage.ItemIndex :=  StrToInt(GetIni(arq_ini, cGeneral, 'language', cLanguage, false));
 
   if S = cYes then
     chkStarter.Checked := True
   else
     chkStarter.Checked := false;
 
-  chkEnableProxy.Checked := GetIni(arq_ini, cGeneral, 'proxy', cProxy, True) = cYes;
+  chkEnableProxy.Checked := GetIni(arq_ini, cGeneral, 'proxy', cProxy, false) = cYes;
 
   if chkEnableProxy.Checked then
   begin
-    edtHostProxy.Text := GetIni(arq_ini, cGeneral, 'hostproxy', cHostProxy, True);
-    sePortProxy.Text := GetIni(arq_ini, cGeneral, 'portproxy', cPortProxy, True);
+    edtHostProxy.Text := GetIni(arq_ini, cGeneral, 'hostproxy', cHostProxy, false);
+    sePortProxy.Text := GetIni(arq_ini, cGeneral, 'portproxy', cPortProxy, false);
   end
   else
   begin
@@ -143,14 +144,12 @@ end;
 procedure Tfrm_Config.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  // Marcones Freitas - 16/10/2015 -> Disable Alt + F4
   if (Key = VK_F4) or (Key = VK_ESCAPE) then
     Key := 0;
 end;
 
 procedure Tfrm_Config.FormKeyPress(Sender: TObject; var Key: Char);
 begin
-  // Marcones Freitas - 16/10/2015 -> Pula para o proximo campo com o ENTER
   IF Key = #13 THEN
   BEGIN
     Key := #0;
@@ -178,34 +177,33 @@ begin
   if chkStarter.Checked then
   begin
     Reg.WriteString(Caption, S);
-    SaveIni(cStarterWithWindows, cYes, arq_ini, cGeneral, True);
+    SaveIni('StarterWithWindows', cYes, arq_ini, cGeneral, false);
   end
   else
   begin
     Reg.DeleteValue(Caption);
-    SaveIni(cStarterWithWindows, cNO, arq_ini, cGeneral, True);
+    SaveIni('StarterWithWindows', cNO, arq_ini, cGeneral, false);
   end;
 
   // salva as configurações no ini
-  SaveIni(cHost, edtHost.Text, arq_ini, cGeneral, True);
-  SaveIni(cPort, sePort.Text,arq_ini, cGeneral, True);
+  SaveIni('host', edtHost.Text, arq_ini, cGeneral, false);
+  SaveIni('port', sePort.Text,arq_ini, cGeneral, false);
 
 {  SaveIni(cMachine, edtMachineName.Text, ExtractFilePath(Application.ExeName) +
     Application.Title + '.ini', cGeneral, True);
   SaveIni(cGroup, edtGroup.Text, ExtractFilePath(Application.ExeName) +
     Application.Title + '.ini', cGeneral, True);      }
 
-  SaveIni(cConnectTimeOut, seTimeOut.Text, arq_ini, cGeneral, True);
+  SaveIni('connectiontimeout', seTimeOut.Text, arq_ini, cGeneral, false);
 
-  SaveIni(cLanguage, IntToStr(cbxLanguage.ItemIndex),
-    arq_ini, cGeneral, True);
+  SaveIni('language', IntToStr(cbxLanguage.ItemIndex), arq_ini, cGeneral, false);
 
   if chkEnableProxy.Checked then
-    SaveIni(cProxy, cYes,arq_ini, cGeneral, True)
+    SaveIni('proxy', cYes,arq_ini, cGeneral, false)
   else
-    SaveIni(cProxy, cNO, arq_ini, cGeneral, True);
+    SaveIni('proxy', cNO, arq_ini, cGeneral, false);
 
-  SaveIni(cUrlUpdates, edtUrlUpdates.Text, arq_ini, cGeneral, false);
+  SaveIni('UrlUpdates', edtUrlUpdates.Text, arq_ini, cGeneral, false);
 
   Host := edtHost.Text;
   Port := sePort.Value;
@@ -235,7 +233,6 @@ end;
 
 procedure Tfrm_Config.tmrCheckTimer(Sender: TObject);
 begin
-  // Marcones Freitas - 16/10/2015 -> Somente Libera o Botão Salvar se os campos estiverem preenchidos
   if (edtHost.Text = '') //or (edtGroup.Text = '') or (edtMachineName.Text = '')
     or (seTimeOut.Value = 0) or (sePort.Value = 0) then
     sbSave.Enabled := false
@@ -244,3 +241,4 @@ begin
 end;
 
 end.
+
