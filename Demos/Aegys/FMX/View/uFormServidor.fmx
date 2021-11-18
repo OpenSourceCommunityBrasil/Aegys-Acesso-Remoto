@@ -1,0 +1,69 @@
+object FormServidor: TFormServidor
+  Left = 0
+  Top = 0
+  Caption = 'Suporte Remoto Redsis - Servidor'
+  ClientHeight = 614
+  ClientWidth = 900
+  Fill.Color = claWhitesmoke
+  Fill.Kind = Solid
+  Position = ScreenCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object lstConexoes: TListBox
+    Align = Client
+    Margins.Top = 5.000000000000000000
+    Margins.Bottom = 5.000000000000000000
+    Size.Width = 900.000000000000000000
+    Size.Height = 490.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'transparentlistboxstyle'
+    TabOrder = 0
+    DisableFocusEffect = True
+    DefaultItemStyles.ItemStyle = ''
+    DefaultItemStyles.GroupHeaderStyle = ''
+    DefaultItemStyles.GroupFooterStyle = ''
+    Viewport.Width = 900.000000000000000000
+    Viewport.Height = 490.000000000000000000
+  end
+  object memLog: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'Log de exce'#231#227'o:'
+      '')
+    ShowSizeGrip = True
+    StyledSettings = [Style]
+    TextSettings.Font.Family = 'Quicksand'
+    TextSettings.Font.Size = 15.000000000000000000
+    TextSettings.FontColor = xFF424242
+    Align = Bottom
+    Margins.Left = 5.000000000000000000
+    Margins.Top = 5.000000000000000000
+    Margins.Right = 5.000000000000000000
+    Margins.Bottom = 5.000000000000000000
+    Position.X = 5.000000000000000000
+    Position.Y = 512.000000000000000000
+    Size.Width = 890.000000000000000000
+    Size.Height = 97.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Viewport.Width = 886.000000000000000000
+    Viewport.Height = 93.000000000000000000
+  end
+  object spSplitter: TSplitter
+    Align = Bottom
+    Cursor = crVSplit
+    MinSize = 150.000000000000000000
+    Position.Y = 500.000000000000000000
+    Size.Width = 900.000000000000000000
+    Size.Height = 7.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object tLatencia: TTimer
+    Interval = 5000
+    Left = 800
+    Top = 48
+  end
+end
