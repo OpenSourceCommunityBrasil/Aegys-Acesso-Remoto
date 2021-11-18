@@ -128,7 +128,6 @@ type
     Panel5: TPanel;
     TargetID_MaskEdit: TComboBox;
     cbQualidade: TComboBox;
-    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure Reconnect_TimerTimer(Sender: TObject);
     procedure Timeout_TimerTimer(Sender: TObject);
@@ -150,7 +149,6 @@ type
     procedure lblstatusconexaoClick(Sender: TObject);
     procedure Connect_BitBtnClick(Sender: TObject);
     procedure TargetID_MaskEditKeyPress(Sender: TObject; var Key: Char);
-    procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
     vCloseConnection, vMouseCapture, vNewFrameClient, vInitCapture,
@@ -415,13 +413,6 @@ begin
   End
   Else
     Application.MessageBox('O ID Digitado é inválido!', 'Aegys', 16);
-end;
-
-procedure Tfrm_Main.Button1Click(Sender: TObject);
-begin
-      frm_RemoteScreen := Tfrm_RemoteScreen.Create(Self);
-      Clipboard_Timer.Enabled := true;
-      frm_RemoteScreen.Show;
 end;
 
 procedure Tfrm_Main.tScreenShotTimer(Sender: TObject);
