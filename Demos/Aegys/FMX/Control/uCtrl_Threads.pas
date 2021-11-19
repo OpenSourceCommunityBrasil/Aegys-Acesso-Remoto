@@ -528,12 +528,12 @@ var
   Position: Integer;
   Buffer: string;
   TempBuffer: string;
-  MyFirstBmp: TMemoryStream;
+  MyFirstBmp: TStream;
   PackStream: TMemoryStream;
   MyTempStream: TMemoryStream;
   UnPackStream: TMemoryStream;
-  MyCompareBmp: TMemoryStream;
-  MySecondBmp: TMemoryStream;
+  MyCompareBmp: TStream;
+  MySecondBmp: TStream;
   hDesktop: HDESK;
 begin
   inherited;
@@ -564,17 +564,17 @@ begin
         Delete(Buffer, 1, Position + 20);
         Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' + IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height)) + '<|END|>');
 
-        MyFirstBmp.Clear;
+        TMemoryStream(MyFirstBmp).Clear;
         UnPackStream.Clear;
         MyTempStream.Clear;
-        MySecondBmp.Clear;
-        MyCompareBmp.Clear;
+        TMemoryStream(MySecondBmp).Clear;
+        TMemoryStream(MyCompareBmp).Clear;
         PackStream.Clear;
 
         Synchronize(
           procedure
           begin
-            GetScreenToMemoryStream(Conexao.MostrarMouse, MyFirstBmp);
+            GetScreenToMemoryStream(Conexao.MostrarMouse, TMemoryStream(MyFirstBmp));
           end);
 
         MyFirstBmp.Position := 0;
@@ -601,13 +601,13 @@ begin
 
           // Workaround to run on change from secure desktop to default.
           try
-            GetScreenToMemoryStream(Conexao.MostrarMouse, MySecondBmp);
+            GetScreenToMemoryStream(Conexao.MostrarMouse, TMemoryStream(MySecondBmp));
             MySecondBmp.Position := 0;
           except
             Synchronize(
               procedure
               begin
-                GetScreenToMemoryStream(Conexao.MostrarMouse, MySecondBmp);
+                GetScreenToMemoryStream(Conexao.MostrarMouse, TMemoryStream(MySecondBmp));
                 MySecondBmp.Position := 0;
               end);
           end;
@@ -616,7 +616,7 @@ begin
           if MyFirstBmp.Size <> MySecondBmp.Size then
             Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' + IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height)) + '<|END|>');
 
-          CompareStream(MyFirstBmp, MySecondBmp, MyCompareBmp);
+          CompareStream(TMemoryStream(MyFirstBmp), TMemoryStream(MySecondBmp), TMemoryStream(MyCompareBmp));
           MyCompareBmp.Position := 0;
           PackStream.LoadFromStream(MyCompareBmp);
           TRDLib.CompressStreamWithZLib(PackStream);
@@ -644,7 +644,7 @@ begin
 
         if (MyFirstBmp.Size = 0) then
         begin
-          MyFirstBmp.LoadFromStream(UnPackStream);
+          TMemoryStream(MyFirstBmp).LoadFromStream(UnPackStream);
           MyFirstBmp.Position := 0;
 
           Synchronize(
@@ -656,23 +656,30 @@ begin
         end
         else
         begin
-          MyCompareBmp.Clear;
-          MySecondBmp.Clear;
-          MyCompareBmp.LoadFromStream(UnPackStream);
-          ResumeStream(MyFirstBmp, MySecondBmp, MyCompareBmp);
+          TMemoryStream(MyCompareBmp).Clear;
+          TMemoryStream(MySecondBmp).Clear;
+          TMemoryStream(MyCompareBmp).LoadFromStream(UnPackStream);
+          ResumeStream(TMemoryStream(MyFirstBmp), TMemoryStream(MySecondBmp), TMemoryStream(MyCompareBmp));
 
           Synchronize(
             procedure
             begin
-              FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MySecondBmp);
-              FormTelaRemota.Caption := 'Suporte Remoto (Latência: ' + IntToStr(Conexao.Latencia) + ' ms)';
+             Try
+               FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MySecondBmp);
+               FormTelaRemota.Caption := 'Suporte Remoto (Latência: ' + IntToStr(Conexao.Latencia) + ' ms)';
+             Except
+              On e : Exception Do
+               Begin
+               // Raise Exception.Create(E.Message);
+               End;
+             End;
             end);
         end;
 
         UnPackStream.Clear;
         MyTempStream.Clear;
-        MySecondBmp.Clear;
-        MyCompareBmp.Clear;
+        TMemoryStream(MySecondBmp).Clear;
+        TMemoryStream(MyCompareBmp).Clear;
         PackStream.Clear;
       end;
     end;

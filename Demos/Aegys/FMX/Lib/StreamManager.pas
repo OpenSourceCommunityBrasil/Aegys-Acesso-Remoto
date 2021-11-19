@@ -1,4 +1,4 @@
-unit StreamManager;
+﻿unit StreamManager;
 
 
 interface
@@ -11,9 +11,16 @@ procedure GetScreenToMemoryStream(DrawCur: Boolean; TargetMemoryStream: TMemoryS
 
 procedure CompareStream(MyFirstStream, MySecondStream, MyCompareStream: TMemoryStream);
 
-procedure ResumeStream(MyFirstStream, MySecondStream, MyCompareStream: TMemoryStream);
+procedure ResumeStream(MyFirstStream      : TMemoryStream;
+                       Var MySecondStream,
+                       MyCompareStream    : TMemoryStream);
 
 procedure ResizeBmp(AImage: TImage; AStream: TMemoryStream; AWidth, AHeight: Single);
+
+Var
+ pdst     : Pointer;
+ ASMSize,
+ muASM    : Integer;
 
 implementation
 
@@ -103,7 +110,7 @@ begin
     MyCursor.ReleaseHandle;
     MyCursor.Free;
   end;
-  Mybmp.PixelFormat := pf8bit;
+  Mybmp.PixelFormat := pf15bit;
   TargetMemoryStream.Clear;
   Mybmp.SaveToStream(TargetMemoryStream);
   Mybmp.Free;
@@ -149,45 +156,138 @@ begin
   MyFirstStream.LoadFromStream(MySecondStream);
 end;
 
-// Modifies Streams to set the Pixels of Bitmap
-procedure ResumeStream(MyFirstStream, MySecondStream, MyCompareStream: TMemoryStream);
-var
-  I: Integer;
-  P1: ^AnsiChar;
-  P2: ^AnsiChar;
-  P3: ^AnsiChar;
-begin
+Function ResumeStreamASM(Const S, d: Pointer; Var c: Pointer): Integer;
+  Assembler;
+Var
+  src: ^Char;
+  dest: ^Char;
+  n1, n2: Cardinal;
+Begin
+  Asm
+    mov muASM, 0
+    mov pdst, ECX              // Move resolutado pra PDST
+    mov src, EAX               // Move S pra src
+    mov dest, EDX              // Move D pra dest
+    call System.@LStrLen       // Tamanho de string S
+    mov n1, EAX                // Move tamanho do S para n1
+    mov EAX, dest              // Move dest para EAX
+    call System.@LStrLen       // Tamanho do dst/D
+    mov n2, EAX                // Move Tamanho D para n2
+    mov EDX, EAX               // Move tamanho D para EDX segundo parametro setlenght
+    mov EAX, pdst              // Move Result/pdst para EAX primeiro parametro strlenght
+    call System.@LStrSetLength // Seta parametro pdst para tamanho n2
+    mov ECX, ASMSize           // Mov n2 para ECX para controlar loopings
+    test ECX, ECX              // Testa ECX
+    jz @@end                   // Se EXX = 0 Termina
+    push ESI                   // Guarda ESI na pilha
+    push EDI
+    mov EAX, pdst              // EAX := pdst; //Endereço da string de resultado
+    mov ESI, src               // ESI := src; //String de origem
+    mov EDI, dest
+    mov EDX, [EAX]             // EDX := pdst^; //String de resultado
+  @@cycle:
+    mov AL, [EDI]             // Move um caracter do primeiro stream para AL
+    cmp AL, '0'               // Copara se o caracter é 0 no segundo stream
+    jne @@diferente           // Se for Diferente pula para igual
+    mov AL, [ESI]             // Se defente copia Caracter do Segund stream para AL
+    mov [EDX], AL             // Coloca caracter no terceiro stream
+    mov muASM, 1
+    cmp AL, AL                // Apenas para gerra um Je
+    je @@incremento           // Incrementa caracter
+  @@diferente:
+    mov AL, [EDI]             // Se for <> Coloca '0' em AL
+    mov [EDX], AL             // Move o caracter correto para terceiro Stream
+  @@incremento:
+    inc ESI
+    inc EDI
+    inc EDX
+    dec ECX
+    cmp ECX, 0
+    ja @@cycle
+    pop EDI
+    pop ESI                   // Recupera ESI na pilha
+  @@end:
+  End;
+  Result := muASM;
+End;
 
-  // Check if the resolution has been changed
-  if MyFirstStream.Size <> MyCompareStream.Size then
-  begin
-    MyFirstStream.LoadFromStream(MyCompareStream);
-    MySecondStream.LoadFromStream(MyCompareStream);
-    Exit;
-  end;
-
-  P1 := MyFirstStream.Memory;
-  MySecondStream.SetSize(MyFirstStream.Size);
-  P2 := MySecondStream.Memory;
-  P3 := MyCompareStream.Memory;
-
-  for I := 0 to MyFirstStream.Size - 1 do
-  begin
-
-    if P3^ = '0' then
-      P2^ := P1^
-    else
-      P2^ := P3^;
-
-    Inc(P1);
-    Inc(P2);
-    Inc(P3);
-
-  end;
-
-  MyFirstStream.LoadFromStream(MySecondStream);
+Procedure ResumeStream(MyFirstStream      : TMemoryStream;
+                       Var MySecondStream,
+                       MyCompareStream    : TMemoryStream);
+Var
+ P1,
+ P2,
+ P3  : Pointer;
+Begin
+ Try
+  If MyFirstStream.Size <> MyCompareStream.Size Then
+   MyFirstStream.SetSize(MyCompareStream.Size);
+  MyFirstStream.Position := 0;
+  If MySecondStream.Size <> MyCompareStream.Size Then
+   MySecondStream.SetSize(MyCompareStream.Size);
   MySecondStream.Position := 0;
-end;
+  P1 := MyFirstStream.Memory;
+  P2 := MyCompareStream.Memory;
+  P3 := MySecondStream.Memory;
+  muASM := 0;
+  ASMSize := MyCompareStream.Size;
+  If ResumeStreamASM(P1, P2, P3) <> 0 Then
+   Begin
+    MySecondStream.Clear;
+    MySecondStream.Write(P3^, MyCompareStream.Size);
+    MySecondStream.Position := 0;
+    MyFirstStream.Clear;
+    MyFirstStream.CopyFrom(MySecondStream, 0);
+    MyFirstStream.Position := 0;
+   End;
+ Finally
+ End;
+ Asm
+  mov EDX, 0                 // Move tamanho D para EDX segundo parametro setlenght
+  mov EAX, pdst              // Move Result/pdst para EAX primeiro para metro strlenght
+  call System.@LStrSetLength // Seta parametro pdst para tamanho n2
+ End;
+End;
+
+//// Modifies Streams to set the Pixels of Bitmap
+//procedure ResumeStream(MyFirstStream, MySecondStream, MyCompareStream: TMemoryStream);
+//var
+//  I: Integer;
+//  P1: ^AnsiChar;
+//  P2: ^AnsiChar;
+//  P3: ^AnsiChar;
+//begin
+//
+//  // Check if the resolution has been changed
+//  if MyFirstStream.Size <> MyCompareStream.Size then
+//  begin
+//    MyFirstStream.LoadFromStream(MyCompareStream);
+//    MySecondStream.LoadFromStream(MyCompareStream);
+//    Exit;
+//  end;
+//
+//  P1 := MyFirstStream.Memory;
+//  MySecondStream.SetSize(MyFirstStream.Size);
+//  P2 := MySecondStream.Memory;
+//  P3 := MyCompareStream.Memory;
+//
+//  for I := 0 to MyFirstStream.Size - 1 do
+//  begin
+//
+//    if P3^ = '0' then
+//      P2^ := P1^
+//    else
+//      P2^ := P3^;
+//
+//    Inc(P1);
+//    Inc(P2);
+//    Inc(P3);
+//
+//  end;
+//
+//  MyFirstStream.LoadFromStream(MySecondStream);
+//  MySecondStream.Position := 0;
+//end;
 
 end.
 
