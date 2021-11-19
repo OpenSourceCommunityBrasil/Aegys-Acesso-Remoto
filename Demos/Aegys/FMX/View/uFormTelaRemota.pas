@@ -10,12 +10,11 @@ uses
 
 type
   TFormTelaRemota = class(TForm)
-    Layout1: TLayout;
     imgTelaRemota: TImage;
-    SpeedButton1: TSpeedButton;
+    sbChat: TSpeedButton;
     Path1: TPath;
     Label1: TLabel;
-    SpeedButton2: TSpeedButton;
+    sbArquivos: TSpeedButton;
     Path2: TPath;
     Label2: TLabel;
     Line1: TLine;
@@ -32,6 +31,7 @@ type
     Path3: TPath;
     Label3: TLabel;
     PROC_MOUSE: TAction;
+    pControles: TPanel;
     procedure PROC_ARQUIVOSExecute(Sender: TObject);
     procedure PROC_CHATExecute(Sender: TObject);
     procedure imgTelaRemotaMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
@@ -409,6 +409,7 @@ procedure TFormTelaRemota.PROC_REDIMENSIONARExecute(Sender: TObject);
 begin
   imgTelaRemota.Align := TAlignLayout.Client;
   imgTelaRemota.WrapMode := TImageWrapMode.Fit;
+  pControles.Position.X  := (Self.Width / 2) - (pControles.Width / 2);
   RetornaMargem;
 end;
 

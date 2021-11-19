@@ -133,19 +133,19 @@ object FormConexao: TFormConexao
                 WrapMode = Fit
               end
               object Layout2: TLayout
-                Align = Client
                 Margins.Left = 10.000000000000000000
                 Margins.Top = 15.000000000000000000
                 Margins.Right = 10.000000000000000000
                 Margins.Bottom = 10.000000000000000000
+                Position.X = 110.000000000000000000
                 Size.Width = 194.000000000000000000
-                Size.Height = 75.000000000000000000
+                Size.Height = 90.000000000000000000
                 Size.PlatformDefault = False
                 TabOrder = 1
                 object Label1: TLabel
                   Align = Bottom
                   StyledSettings = [Style]
-                  Position.Y = 35.000000000000000000
+                  Position.Y = 44.000000000000000000
                   Size.Width = 194.000000000000000000
                   Size.Height = 25.000000000000000000
                   Size.PlatformDefault = False
@@ -158,7 +158,7 @@ object FormConexao: TFormConexao
                   Align = Client
                   StyledSettings = []
                   Size.Width = 194.000000000000000000
-                  Size.Height = 35.000000000000000000
+                  Size.Height = 44.000000000000000000
                   Size.PlatformDefault = False
                   TextSettings.Font.Family = 'Quicksand'
                   TextSettings.Font.Size = 30.000000000000000000
@@ -168,9 +168,9 @@ object FormConexao: TFormConexao
                 object lblVersao: TLabel
                   Align = Bottom
                   StyledSettings = [Style]
-                  Position.Y = 60.000000000000000000
+                  Position.Y = 69.000000000000000000
                   Size.Width = 194.000000000000000000
-                  Size.Height = 15.000000000000000000
+                  Size.Height = 21.000000000000000000
                   Size.PlatformDefault = False
                   TextSettings.Font.Family = 'Quicksand'
                   TextSettings.Font.Size = 13.000000000000000000

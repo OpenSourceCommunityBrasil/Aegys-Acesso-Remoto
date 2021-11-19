@@ -173,6 +173,10 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <VerInfo_Release>1</VerInfo_Release>
+        <VerInfo_MajorVer>2</VerInfo_MajorVer>
+        <VerInfo_Keys>CompanyName=XyberPower Desenvolvimento;FileDescription=$(MSBuildProjectName);FileVersion=2.0.1.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.aegys.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=2.0.1.0;Comments=</VerInfo_Keys>
+        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -191,6 +195,10 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <VerInfo_Release>1</VerInfo_Release>
+        <VerInfo_MajorVer>2</VerInfo_MajorVer>
+        <VerInfo_Keys>CompanyName=XyberPower Desenvolvimento;FileDescription=$(MSBuildProjectName);FileVersion=2.0.1.0;InternalName=Aegys Support Controle;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.aegys.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=2.0.1;Comments=</VerInfo_Keys>
+        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <AppExecutionLevel>requireAdministrator</AppExecutionLevel>
@@ -269,15 +277,7 @@
                 <Source>
                     <Source Name="MainSource">AegysSuporteCliente.dpr</Source>
                 </Source>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k280.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp280.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastCube 2 VCL Professional\LibD28\dclfcxd28.bpl">FastCube 2</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastCube 2 VCL Professional\LibD28\dclfcxcd28.bpl">FastCube 2 Charting</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastCube 2 VCL Professional\LibD28\dclfcxed28.bpl">FastCube 2 Exports</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastCube 2 VCL Professional\LibD28\dclfcxpd28.bpl">FastCube 2 FastReport integration</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastCube 2 VCL Professional\LibD28\dclfcxpTeed28.bpl">FastCube 2 FastReport integration TeeChart</Excluded_Packages>
-                </Excluded_Packages>
+                <Excluded_Packages/>
             </Delphi.Personality>
             <Deployment Version="3">
                 <DeployFile LocalName="Win64\Release\AegysSuporteCliente.exe" Configuration="Release" Class="ProjectOutput">
@@ -1067,6 +1067,12 @@
                         <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
+                <DeployClass Name="AndroidServiceOutput_Android32">
+                    <Platform Name="Android64">
+                        <RemoteDir>library\lib\armeabi-v7a</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
                 <DeployClass Name="iPad_Setting58">
                     <Platform Name="iOSDevice64">
                         <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\AppIcon.appiconset</RemoteDir>
@@ -1084,12 +1090,6 @@
                     </Platform>
                     <Platform Name="iOSSimulator">
                         <RemoteDir>..\$(PROJECTNAME).launchscreen\Assets\LaunchScreenImage.imageset</RemoteDir>
-                        <Operation>1</Operation>
-                    </Platform>
-                </DeployClass>
-                <DeployClass Name="AndroidServiceOutput_Android32">
-                    <Platform Name="Android64">
-                        <RemoteDir>library\lib\armeabi-v7a</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
