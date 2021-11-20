@@ -361,7 +361,7 @@ begin
     if xBuffer.Contains('<|STOPACCESS|>') then
     begin
       LimparAcessos;
-      //erro aqui, quando eu envio o disconnect para quem fechou o acesso, quem ainda está acessando perde as imagens e não volta mais
+      //wendel: erro aqui, quando eu envio o disconnect para quem fechou o acesso, quem ainda está acessando perde as imagens e não volta mais
 //      scClient.SendText('<|DISCONNECTED|>');
     end;
 
