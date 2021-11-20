@@ -10,7 +10,6 @@ type
   TConexao = class
   private
     FID: string;
-    FIDParceiro: string;
     FLatencia: string;
     FProtocolo: string;
     FSenha: string;
@@ -21,7 +20,6 @@ type
     FPingInicial: Int64;
     FPingFinal: Int64;
     procedure SetID(const Value: string);
-    procedure SetIDParceiro(const Value: string);
     procedure SetLatencia(const Value: string);
     procedure SetProtocolo(const Value: string);
     procedure SetSenha(const Value: string);
@@ -38,7 +36,6 @@ type
     procedure CriarThread(AThread: IDThreadType; ASocket: TCustomWinSocket);
     procedure LimparThread(AThread: IDThreadType);
     property ID: string read FID write SetID;
-    property IDParceiro: string read FIDParceiro write SetIDParceiro;
     property Latencia: string read FLatencia write SetLatencia;
     property PingFinal: Int64 read FPingFinal write SetPingFinal;
     property PingInicial: Int64 read FPingInicial write SetPingInicial;
@@ -58,13 +55,12 @@ type
     destructor Destroy; override;
     function GerarID: string;
     function GerarSenha: string;
-    function RetornaIDParceiroPorID(AID: string): string;
     function RetornaItemPorConexao(AConexao: string): TConexao;
+    function RetornaItemPorHandle(AHandle: Integer): TConexao;
     function RetornaItemPorID(AID: string): TConexao;
     function VerificaID(AID: string): Boolean;
     function VerificaIDSenha(AID, ASenha: string): Boolean;
     procedure AdicionarConexao(AProtocolo: string);
-    procedure InserirIDAcesso(AConexao, AID: string);
     procedure RemoverConexao(AProtocolo: string);
     property ListaConexoes: TObjectList<TConexao> read FListaConexoes;
   end;
@@ -208,11 +204,6 @@ begin
   FID := Value;
 end;
 
-procedure TConexao.SetIDParceiro(const Value: string);
-begin
-  FIDParceiro := Value;
-end;
-
 procedure TConexao.SetLatencia(const Value: string);
 begin
   FLatencia := Value;
@@ -298,21 +289,6 @@ begin
   Result := IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9));
 end;
 
-procedure TConexoes.InserirIDAcesso(AConexao, AID: string);
-var
-  Conexao, Conexao2: TConexao;
-begin
-  Conexao := RetornaItemPorConexao(AConexao);
-
-  if Assigned(Conexao) then
-  begin
-    Conexao.IDParceiro := AID;
-
-    Conexao2 := RetornaItemPorID(AID);
-    Conexao2.IDParceiro := Conexao.ID;
-  end;
-end;
-
 procedure TConexoes.RemoverConexao(AProtocolo: string);
 var
   Conexao: TConexao;
@@ -329,16 +305,6 @@ begin
   end;
 end;
 
-function TConexoes.RetornaIDParceiroPorID(AID: string): string;
-var
-  Conexao: TConexao;
-begin
-  Result := '';
-  Conexao := RetornaItemPorID(AID);
-  if Assigned(Conexao) then
-    Result := Conexao.IDParceiro;
-end;
-
 function TConexoes.RetornaItemPorConexao(AConexao: string): TConexao;
 var
   Conexao: TConexao;
@@ -349,6 +315,23 @@ begin
   for Conexao in FListaConexoes do
   begin
     if Conexao.Protocolo = AConexao then
+    begin
+      Result := Conexao;
+      Break;
+    end;
+  end;
+end;
+
+function TConexoes.RetornaItemPorHandle(AHandle: Integer): TConexao;
+var
+  Conexao: TConexao;
+begin
+  Result := nil;
+  if AHandle = 0 then
+    Exit;
+  for Conexao in FListaConexoes do
+  begin
+    if Conexao.ThreadPrincipal.scClient.Handle = AHandle then
     begin
       Result := Conexao;
       Break;

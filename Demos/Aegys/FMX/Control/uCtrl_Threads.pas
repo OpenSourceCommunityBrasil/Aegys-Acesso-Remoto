@@ -209,7 +209,7 @@ begin
           Conexao.ReconectarSocketsSecundarios;
           FormConexao.Show;
           FormConexao.SetOnline;
-          FormConexao.MudarStatusConexao(2, 'Conexão perdida!');
+          FormConexao.MudarStatusConexao(2, 'Conexão encerrada!');
           FlashWindow(FmxHandleToHWND(FormConexao.Handle), True);
         end);
     end;
@@ -535,6 +535,7 @@ var
   MyCompareBmp: TStream;
   MySecondBmp: TStream;
   hDesktop: HDESK;
+  bFirst: Boolean;
 begin
   inherited;
 
@@ -545,6 +546,7 @@ begin
     MySecondBmp := TMemoryStream.Create;
     MyCompareBmp := TMemoryStream.Create;
     PackStream := TMemoryStream.Create;
+    bFirst := True;
 
     while True do
     begin
@@ -553,10 +555,11 @@ begin
       if (Socket = nil) or not(Socket.Connected) or (Terminated) then
         Break;
 
-      if Socket.ReceiveLength < 1 then
+      if (Socket.ReceiveLength < 1) and (Pos('<|GETFULLSCREENSHOT|>', Buffer) <= 0) then
         Continue;
 
-      Buffer := Buffer + Socket.ReceiveText; // Accommodates in memory all images that are being received and not processed. This helps in smoothing and mapping so that changes in the wrong places do not occur.
+      Buffer := Buffer + Socket.ReceiveText;
+      // Accommodates in memory all images that are being received and not processed. This helps in smoothing and mapping so that changes in the wrong places do not occur.
 
       Position := Pos('<|GETFULLSCREENSHOT|>', Buffer);
       if Position > 0 then
@@ -581,14 +584,24 @@ begin
         PackStream.LoadFromStream(MyFirstBmp);
         TRDLib.CompressStreamWithZLib(PackStream);
         PackStream.Position := 0;
-        Socket.SendText('<|IMAGE|>' + TRDLib.MemoryStreamToString(PackStream) + '<|END|>');
+        Socket.SendText('<|FIRSTIMAGE|>' + TRDLib.MemoryStreamToString(PackStream) + '<|END|>');
 
         while True do
         begin
-          Sleep(16);
+          Sleep(FOLGAPROCESSAMENTO);
 
           if (Socket = nil) or not(Socket.Connected) or (Terminated) then
             Break;
+
+          if Socket.ReceiveLength >= 1 then
+          begin
+            Buffer := Buffer + Socket.ReceiveText;
+
+            Position := Pos('<|GETFULLSCREENSHOT|>', Buffer);
+
+            if Position > 0 then
+              Break;
+          end;
 
           // EUREKA: This is the responsable to interact with UAC. But we need run
           // the software on SYSTEM account to work.
@@ -633,7 +646,18 @@ begin
       // Processes all Buffer that is in memory.
       while Buffer.Contains('<|END|>') do
       begin
-        Delete(Buffer, 1, Pos('<|IMAGE|>', Buffer) + 8);
+        Position := Pos('<|FIRSTIMAGE|>', Buffer);
+        if Position > 0 then
+        begin
+          Delete(Buffer, 1, Pos('<|FIRSTIMAGE|>', Buffer) + 13);
+          bFirst := True;
+        end
+        else
+        begin
+          Delete(Buffer, 1, Pos('<|IMAGE|>', Buffer) + 8);
+          bFirst := False;
+        end;
+
         Position := Pos('<|END|>', Buffer);
         TempBuffer := Copy(Buffer, 1, Position - 1);
         MyTempStream.Write(AnsiString(TempBuffer)[1], Length(TempBuffer));
@@ -642,16 +666,24 @@ begin
         UnPackStream.LoadFromStream(MyTempStream);
         TRDLib.DeCompressStreamWithZLib(UnPackStream);
 
-        if (MyFirstBmp.Size = 0) then
+        if (bFirst) and (MyFirstBmp.Size = 0) then
         begin
           TMemoryStream(MyFirstBmp).LoadFromStream(UnPackStream);
           MyFirstBmp.Position := 0;
+          bFirst := False;
 
           Synchronize(
             procedure
             begin
-              FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MyFirstBmp);
-              FormTelaRemota.Caption := 'Suporte Remoto (Latência: ' + IntToStr(Conexao.Latencia) + ' ms)';
+              try
+                FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MyFirstBmp);
+                FormTelaRemota.Caption := 'Suporte Remoto (Latência: ' + IntToStr(Conexao.Latencia) + ' ms)';
+              except
+                on e: exception do
+                begin
+
+                end;
+              end;
             end);
         end
         else
@@ -664,15 +696,15 @@ begin
           Synchronize(
             procedure
             begin
-             Try
-               FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MySecondBmp);
-               FormTelaRemota.Caption := 'Suporte Remoto (Latência: ' + IntToStr(Conexao.Latencia) + ' ms)';
-             Except
-              On e : Exception Do
-               Begin
-               // Raise Exception.Create(E.Message);
-               End;
-             End;
+              Try
+                FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MySecondBmp);
+                FormTelaRemota.Caption := 'Suporte Remoto (Latência: ' + IntToStr(Conexao.Latencia) + ' ms)';
+              Except
+                on e: exception do
+                begin
+
+                end;
+              End;
             end);
         end;
 

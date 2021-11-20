@@ -9,7 +9,6 @@ object FormServidor: TFormServidor
   Font.Height = -13
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OldCreateOrder = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
@@ -39,13 +38,6 @@ object FormServidor: TFormServidor
       item
         Expanded = False
         FieldName = 'ID'
-        Width = 100
-        Visible = True
-      end
-      item
-        Expanded = False
-        FieldName = 'IDPARCEIRO'
-        Title.Caption = 'ID Conex'#227'o'
         Width = 100
         Visible = True
       end
@@ -83,11 +75,6 @@ object FormServidor: TFormServidor
         Size = 11
       end
       item
-        Name = 'IDPARCEIRO'
-        DataType = ftString
-        Size = 11
-      end
-      item
         Name = 'SENHA'
         DataType = ftString
         Size = 4
@@ -114,10 +101,6 @@ object FormServidor: TFormServidor
     end
     object QryConexoesID: TStringField
       FieldName = 'ID'
-      Size = 11
-    end
-    object QryConexoesIDPARCEIRO: TStringField
-      FieldName = 'IDPARCEIRO'
       Size = 11
     end
     object QryConexoesSENHA: TStringField

@@ -17,7 +17,6 @@ type
     tReload: TTimer;
     QryConexoesPROTOCOLO: TStringField;
     QryConexoesID: TStringField;
-    QryConexoesIDPARCEIRO: TStringField;
     QryConexoesSENHA: TStringField;
     QryConexoesLATENCIA: TStringField;
     procedure tReloadTimer(Sender: TObject);
@@ -62,7 +61,6 @@ begin
     QryConexoesPROTOCOLO.Value := Conexao.Protocolo;
     QryConexoesID.Value := Conexao.ID;
     QryConexoesSENHA.Value := Conexao.Senha;
-    QryConexoesIDPARCEIRO.Value := Conexao.IDParceiro;
     QryConexoesLATENCIA.Value := Conexao.Latencia;
     QryConexoes.Post;
   end;

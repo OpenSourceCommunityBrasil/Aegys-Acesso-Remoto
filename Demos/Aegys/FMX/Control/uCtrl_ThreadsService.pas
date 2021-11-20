@@ -3,9 +3,25 @@ unit uCtrl_ThreadsService;
 interface
 
 uses
-  System.Classes, System.Win.ScktComp;
+  System.Classes, System.Win.ScktComp, uConstants;
 
 type
+  TThreadBase = class(TThread)
+  private
+    FTipo: IDThreadType;
+    arrAcessos: array of TCustomWinSocket;
+    FProtocolo: string;
+  public
+    scClient: TCustomWinSocket;
+    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); overload; virtual;
+    function GetAcesso(AHandle: Integer): TCustomWinSocket;
+    function LengthAcessos: Integer;
+    procedure Execute; override;
+    procedure RemoverAcesso(AHandle: Integer);
+    procedure SetAcesso(ASocket: TCustomWinSocket);
+    procedure ThreadTerminate(ASender: TObject); virtual;
+  end;
+
   TThreadConexaoDefinidor = class(TThread)
   private
     scClient: TCustomWinSocket;
@@ -14,52 +30,34 @@ type
     procedure Execute; override;
   end;
 
-  TThreadConexaoPrincipal = class(TThread)
-  private
-    scAcesso: TCustomWinSocket;
-    FProtocolo: string;
+  TThreadConexaoPrincipal = class(TThreadBase)
   public
-    scClient: TCustomWinSocket;
-    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); overload;
+    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); override;
     procedure Execute; override;
-    procedure ThreadTerminate(ASender: TObject);
+    procedure LimparAcessos;
+    procedure ThreadTerminate(ASender: TObject); override;
   end;
 
-  TThreadConexaoAreaRemota = class(TThread)
-  private
-    scClient, scAcesso: TCustomWinSocket;
-    FProtocolo: string;
+  TThreadConexaoAreaRemota = class(TThreadBase)
   public
-    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); overload;
-    procedure Execute; override;
-    procedure ThreadTerminate(ASender: TObject);
+    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); override;
   end;
 
-  TThreadConexaoTeclado = class(TThread)
-  private
-    scClient, scAcesso: TCustomWinSocket;
-    FProtocolo: string;
+  TThreadConexaoTeclado = class(TThreadBase)
   public
-    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); overload;
-    procedure Execute; override;
-    procedure ThreadTerminate(ASender: TObject);
+    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); override;
   end;
 
-  TThreadConexaoArquivos = class(TThread)
-  private
-    scClient, scAcesso: TCustomWinSocket;
-    FProtocolo: string;
+  TThreadConexaoArquivos = class(TThreadBase)
   public
-    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); overload;
-    procedure Execute; override;
-    procedure ThreadTerminate(ASender: TObject);
+    constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); override;
   end;
 
 implementation
 
 { TThreadConexaoDefinidor }
 
-uses System.SysUtils, uConstants, uCtrl_Conexoes, uDMServer, Vcl.Dialogs;
+uses System.SysUtils, uCtrl_Conexoes, uDMServer, Vcl.Dialogs;
 
 { TThreadConexaoDefinidor }
 
@@ -132,9 +130,29 @@ begin
   end;
 end;
 
-{ TThreadConexaoPrincipal }
+{ TThreadBase }
 
-constructor TThreadConexaoPrincipal.Create(ASocket: TCustomWinSocket; AProtocolo: string);
+function TThreadBase.LengthAcessos: Integer;
+begin
+  Result := Length(arrAcessos);
+end;
+
+procedure TThreadBase.RemoverAcesso(AHandle: Integer);
+var
+  i: Integer;
+begin
+  for i := Low(arrAcessos) to High(arrAcessos) do
+  begin
+    if (Assigned(arrAcessos[i])) and (AHandle = arrAcessos[i].Handle) then
+    begin
+      if LengthAcessos = 1 then
+        scClient.SendText('<|DISCONNECTED|>');
+      arrAcessos[i] := nil;
+    end;
+  end;
+end;
+
+constructor TThreadBase.Create(ASocket: TCustomWinSocket; AProtocolo: string);
 begin
   inherited Create(True);
   FProtocolo := AProtocolo;
@@ -144,13 +162,96 @@ begin
   Resume;
 end;
 
+procedure TThreadBase.Execute;
+var
+  xBuffer: string;
+  i: Integer;
+begin
+  inherited;
+
+  while True do
+  begin
+    Sleep(FOLGAPROCESSAMENTO);
+
+    if (scClient = nil)
+      or not(scClient.Connected)
+      or (Terminated)
+      or not(Assigned(DMServer)) then
+      Break;
+
+    if scClient.ReceiveLength < 1 then
+      Continue;
+
+    xBuffer := scClient.ReceiveText;
+
+    for i := Low(arrAcessos) to High(arrAcessos) do
+    begin
+      if (Assigned(arrAcessos[i])) and (arrAcessos[i].Connected) then
+      begin
+        while arrAcessos[i].SendText(xBuffer) < 0 do
+          Sleep(FOLGAPROCESSAMENTO);
+      end;
+    end;
+  end;
+end;
+
+function TThreadBase.GetAcesso(AHandle: Integer): TCustomWinSocket;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := Low(arrAcessos) to High(arrAcessos) do
+  begin
+    if (Assigned(arrAcessos[i])) and (AHandle = arrAcessos[i].Handle) then
+    begin
+      Result := arrAcessos[i];
+      Break;
+    end;
+  end;
+end;
+
+procedure TThreadBase.SetAcesso(ASocket: TCustomWinSocket);
+var
+  i: Integer;
+  bAchou: Boolean;
+begin
+  bAchou := False;
+
+  for i := Low(arrAcessos) to High(arrAcessos) do
+  begin
+    if (Assigned(arrAcessos[i])) and (arrAcessos[i].Handle = ASocket.Handle) then
+      bAchou := True;
+  end;
+
+  if not bAchou then
+  begin
+    i := Length(arrAcessos) + 1;
+    SetLength(arrAcessos, i);
+    arrAcessos[High(arrAcessos)] := ASocket;
+  end;
+end;
+
+procedure TThreadBase.ThreadTerminate(ASender: TObject);
+begin
+  if (Assigned(DMServer)) and (not Terminated) then
+    DMServer.Conexoes.RetornaItemPorConexao(FProtocolo).LimparThread(FTipo);
+end;
+
+{ TThreadConexaoPrincipal }
+
+constructor TThreadConexaoPrincipal.Create(ASocket: TCustomWinSocket; AProtocolo: string);
+begin
+  FTipo := ttPrincipal;
+  inherited;
+end;
+
 procedure TThreadConexaoPrincipal.Execute;
 var
   xBuffer, xBufferTemp, xID, xIDAcesso, xSenhaAcesso: string;
   iPosition: Integer;
   FConexao, FConexaoAcesso: TConexao;
+  i: Integer;
 begin
-  inherited;
   FConexao := DMServer.Conexoes.RetornaItemPorConexao(FProtocolo);
 
   while scClient.SendText('<|ID|>' + FConexao.ID + '<|>' + FConexao.Senha + '<|END|>') < 0 do
@@ -180,17 +281,8 @@ begin
 
       if DMServer.Conexoes.VerificaID(xIDAcesso) then
       begin
-//        if DMServer.Conexoes.RetornaIDParceiroPorID(xIDAcesso) = '' then
-//        begin
-          while scClient.SendText('<|IDEXISTS!REQUESTPASSWORD|>') < 0 do
-            Sleep(FOLGAPROCESSAMENTO);
-//        end
-//        else
-//        begin
-          // impede futura terceira conexao
-//          while scClient.SendText('<|ACCESSBUSY|>') < 0 do
-//            Sleep(FOLGAPROCESSAMENTO);
-//        end
+        while scClient.SendText('<|IDEXISTS!REQUESTPASSWORD|>') < 0 do
+          Sleep(FOLGAPROCESSAMENTO);
       end
       else
       begin
@@ -249,33 +341,28 @@ begin
 
       // RECONNECT SOCKET CLIENT
 
-      DMServer.Conexoes.InserirIDAcesso(IntToStr(scClient.Handle), xIDAcesso);
+      FConexao.ThreadPrincipal.SetAcesso(FConexaoAcesso.ThreadPrincipal.scClient);
+      FConexaoAcesso.ThreadPrincipal.SetAcesso(FConexao.ThreadPrincipal.scClient);
 
-      FConexao.ThreadPrincipal.scAcesso := FConexaoAcesso.ThreadPrincipal.scClient;
-      FConexaoAcesso.ThreadPrincipal.scAcesso := FConexao.ThreadPrincipal.scClient;
+      FConexao.ThreadAreaRemota.SetAcesso(FConexaoAcesso.ThreadAreaRemota.scClient);
+      FConexaoAcesso.ThreadAreaRemota.SetAcesso(FConexao.ThreadAreaRemota.scClient);
 
-      FConexao.ThreadAreaRemota.scAcesso := FConexaoAcesso.ThreadAreaRemota.scClient;
-      FConexaoAcesso.ThreadAreaRemota.scAcesso := FConexao.ThreadAreaRemota.scClient;
+      FConexao.ThreadTeclado.SetAcesso(FConexaoAcesso.ThreadTeclado.scClient);
 
-      FConexao.ThreadTeclado.scAcesso := FConexaoAcesso.ThreadTeclado.scClient;
+      FConexao.ThreadArquivos.SetAcesso(FConexaoAcesso.ThreadArquivos.scClient);
+      FConexaoAcesso.ThreadArquivos.SetAcesso(FConexao.ThreadArquivos.scClient);
 
-      FConexao.ThreadArquivos.scAcesso := FConexaoAcesso.ThreadArquivos.scClient;
-      FConexaoAcesso.ThreadArquivos.scAcesso := FConexao.ThreadArquivos.scClient;
+      FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|ACCESSING|>');
 
-      FConexao.ThreadPrincipal.scAcesso.SendText('<|ACCESSING|>');
-
-      FConexao.ThreadAreaRemota.scAcesso.SendText('<|GETFULLSCREENSHOT|>');
+      FConexaoAcesso.ThreadAreaRemota.scClient.SendText('<|GETFULLSCREENSHOT|>');
     end;
 
     // Stop relations
     if xBuffer.Contains('<|STOPACCESS|>') then
     begin
-      scClient.SendText('<|DISCONNECTED|>');
-      scAcesso.SendText('<|DISCONNECTED|>');
-      scAcesso := nil;
-      TThreadConexaoPrincipal(FConexaoAcesso.ThreadPrincipal).scAcesso := nil;
-      FConexao.IDParceiro := '';
-      FConexaoAcesso.IDParceiro := '';
+      LimparAcessos;
+      //erro aqui, quando eu envio o disconnect para quem fechou o acesso, quem ainda está acessando perde as imagens e não volta mais
+//      scClient.SendText('<|DISCONNECTED|>');
     end;
 
     // Redirect commands
@@ -311,38 +398,53 @@ begin
         end;
       end;
 
-      if (scAcesso <> nil) and (scAcesso.Connected) then
+      for i := Low(arrAcessos) to High(arrAcessos) do
       begin
-        while scAcesso.SendText(xBufferTemp) < 0 do
-          Sleep(FOLGAPROCESSAMENTO);
+        if (Assigned(arrAcessos[i])) and (arrAcessos[i].Connected) then
+        begin
+          while arrAcessos[i].SendText(xBuffer) < 0 do
+            Sleep(FOLGAPROCESSAMENTO);
+        end;
       end;
     end;
   end;
 end;
 
+procedure TThreadConexaoPrincipal.LimparAcessos;
+var
+  i: Integer;
+  Conexao: TConexao;
+begin
+  for i := Low(arrAcessos) to High(arrAcessos) do
+  begin
+    if Assigned(arrAcessos[i]) then
+    begin
+      Conexao := DMServer.Conexoes.RetornaItemPorHandle(arrAcessos[i].Handle);
+      if Assigned(Conexao) then
+      begin
+        Conexao.ThreadPrincipal.RemoverAcesso(scClient.Handle);
+        arrAcessos[i] := nil;
+      end;
+    end;
+  end;
+  SetLength(arrAcessos, 0);
+end;
+
 procedure TThreadConexaoPrincipal.ThreadTerminate(ASender: TObject);
 var
-  FConexao, FConexaoAcesso: TConexao;
+  Conexao: TConexao;
+  i: Integer;
 begin
   if Assigned(DMServer) then
   begin
-    if (scAcesso <> nil) and (scAcesso.Connected) then
-    begin
-      while scAcesso.SendText('<|DISCONNECTED|>') < 0 do
-        Sleep(FOLGAPROCESSAMENTO);
-    end;
+    LimparAcessos;
 
-    FConexao := DMServer.Conexoes.RetornaItemPorConexao(FProtocolo);
-
-    FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(FConexao.IDParceiro);
-
-    if Assigned(FConexaoAcesso) then
-      FConexaoAcesso.IDParceiro := '';
+    Conexao := DMServer.Conexoes.RetornaItemPorConexao(FProtocolo);
 
     if not Terminated then
-      DMServer.Conexoes.RetornaItemPorConexao(FProtocolo).LimparThread(ttPrincipal);
+      Conexao.LimparThread(ttPrincipal);
 
-    DMServer.Conexoes.RemoverConexao(FConexao.Protocolo);
+    DMServer.Conexoes.RemoverConexao(Conexao.Protocolo);
   end;
 end;
 
@@ -350,141 +452,24 @@ end;
 
 constructor TThreadConexaoAreaRemota.Create(ASocket: TCustomWinSocket; AProtocolo: string);
 begin
-  inherited Create(True);
-  FProtocolo := AProtocolo;
-  scClient := ASocket;
-  FreeOnTerminate := True;
-  OnTerminate := ThreadTerminate;
-  Resume;
-end;
-
-procedure TThreadConexaoAreaRemota.Execute;
-var
-  xBuffer: string;
-begin
+  FTipo := ttAreaRemota;
   inherited;
-
-  while True do
-  begin
-    Sleep(FOLGAPROCESSAMENTO);
-
-    if (scClient = nil)
-      or not(scClient.Connected)
-      or (Terminated)
-      or not(Assigned(DMServer)) then
-      Break;
-
-    if scClient.ReceiveLength < 1 then
-      Continue;
-
-    xBuffer := scClient.ReceiveText;
-
-    if (scAcesso <> nil) and (scAcesso.Connected) then
-    begin
-      while scAcesso.SendText(xBuffer) < 0 do
-        Sleep(FOLGAPROCESSAMENTO);
-    end;
-  end;
-end;
-
-procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
-begin
-  if (Assigned(DMServer)) and (not Terminated) then
-    DMServer.Conexoes.RetornaItemPorConexao(FProtocolo).LimparThread(ttAreaRemota);
 end;
 
 { TThreadConexaoTeclado }
 
 constructor TThreadConexaoTeclado.Create(ASocket: TCustomWinSocket; AProtocolo: string);
 begin
-  inherited Create(True);
-  FProtocolo := AProtocolo;
-  scClient := ASocket;
-  FreeOnTerminate := True;
-  OnTerminate := ThreadTerminate;
-  Resume;
-end;
-
-procedure TThreadConexaoTeclado.Execute;
-var
-  xBuffer: string;
-begin
+  FTipo := ttTeclado;
   inherited;
-
-  while True do
-  begin
-    Sleep(FOLGAPROCESSAMENTO);
-
-    if (scClient = nil)
-      or not(scClient.Connected)
-      or (Terminated)
-      or not(Assigned(DMServer)) then
-      Break;
-
-    if scClient.ReceiveLength < 1 then
-      Continue;
-
-    xBuffer := scClient.ReceiveText;
-
-    if (scAcesso <> nil) and (scAcesso.Connected) then
-    begin
-      while scAcesso.SendText(xBuffer) < 0 do
-        Sleep(FOLGAPROCESSAMENTO);
-    end;
-  end;
-end;
-
-procedure TThreadConexaoTeclado.ThreadTerminate(ASender: TObject);
-begin
-  if (Assigned(DMServer)) and (not Terminated) then
-    DMServer.Conexoes.RetornaItemPorConexao(FProtocolo).LimparThread(ttTeclado);
 end;
 
 { TThreadConexaoArquivos }
 
 constructor TThreadConexaoArquivos.Create(ASocket: TCustomWinSocket; AProtocolo: string);
 begin
-  inherited Create(True);
-  FProtocolo := AProtocolo;
-  scClient := ASocket;
-  FreeOnTerminate := True;
-  OnTerminate := ThreadTerminate;
-  Resume;
-end;
-
-procedure TThreadConexaoArquivos.Execute;
-var
-  xBuffer: string;
-begin
+  FTipo := ttArquivos;
   inherited;
-
-  while True do
-  begin
-    Sleep(FOLGAPROCESSAMENTO);
-
-    if (scClient = nil)
-      or not(scClient.Connected)
-      or (Terminated)
-      or not(Assigned(DMServer)) then
-      Break;
-
-    if scClient.ReceiveLength < 1 then
-      Continue;
-
-    xBuffer := scClient.ReceiveText;
-
-    if (scAcesso <> nil) and (scAcesso.Connected) then
-    begin
-      while scAcesso.SendText(xBuffer) < 0 do
-        Sleep(FOLGAPROCESSAMENTO);
-    end;
-  end;
-end;
-
-procedure TThreadConexaoArquivos.ThreadTerminate(ASender: TObject);
-begin
-  if (Assigned(DMServer)) and (not Terminated) then
-    DMServer.Conexoes.RetornaItemPorConexao(FProtocolo).LimparThread(ttArquivos);
 end;
 
 end.
