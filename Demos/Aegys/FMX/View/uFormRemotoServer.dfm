@@ -1,4 +1,5 @@
 object FormRemotoServer: TFormRemotoServer
+  OldCreateOrder = True
   OnCreate = ServiceCreate
   DisplayName = 'Servidor RedRemoto'
   BeforeInstall = ServiceBeforeInstall
@@ -8,5 +9,4 @@ object FormRemotoServer: TFormRemotoServer
   OnStop = ServiceStop
   Height = 240
   Width = 408
-  PixelsPerInch = 96
 end

@@ -23,7 +23,7 @@ type
 const
   PORTA = 3898;
   FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '192.168.1.2';
+  SERVIDOR = '201.73.143.69';
   INTERVALOCONEXAO = 60;
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
 

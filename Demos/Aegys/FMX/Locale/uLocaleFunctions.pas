@@ -17,6 +17,8 @@
 
 interface
 
+Uses System.SysUtils, System.Types, System.Classes, uLocaloPadrao;
+
 type
   TLocale = class
   private
@@ -31,28 +33,40 @@ var
 implementation
 
 uses
-  IniFiles, SysUtils;
+  IniFiles;
 
 { TLocale }
 
-function TLocale.GetLocale(section, variable: string): string;
-var
-  Locale: TIniFile;
-begin
-{$IFDEF Debug}
-  Locale := TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'locale.ini');
-{$ELSE}
-  Locale := TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'locale.dat');
-{$IFEND}
-  try
-    Result := Locale.ReadString(section, variable, '');
-    Result := StringReplace(Result, '|n', #13#10, [rfReplaceAll]);
-  finally
-    Locale.DisposeOf;
-  end;
-end;
+Function TLocale.GetLocale(section, variable: string): string;
+Var
+ Locale      : TIniFile;
+ vLocaleName : String;
+ vStringStream : TStringStream;
+Begin
+ {$IFDEF Debug}
+  vLocaleName := ExtractFilePath(ParamStr(0)) + 'locale.ini';
+ {$ELSE}
+  vLocaleName := ExtractFilePath(ParamStr(0)) + 'locale.dat';
+ {$IFEND}
+ If Not FileExists(vLocaleName) Then
+  Begin
+   vStringStream := TStringStream.Create(TDefaultLocale);
+   Try
+    vStringStream.SaveToFile(vLocaleName);
+   Finally
+    FreeAndNil(vStringStream);
+   End;
+  End;
+ Locale := TIniFile.Create(vLocaleName);
+ Try
+  Result := Locale.ReadString(section, variable, '');
+  Result := StringReplace(Result, '|n', sLineBreak, [rfReplaceAll]);
+ Finally
+  Locale.DisposeOf;
+ End;
+End;
 
-function TLocale.GetLocaleDlg(section, variable: string): PWideChar;
+function TLocale.GetLocaleDlg(section, variable: string) : PWideChar;
 begin
   Result := PWideChar(GetLocale(section, variable));
 end;
