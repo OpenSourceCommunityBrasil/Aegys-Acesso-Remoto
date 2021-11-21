@@ -106,7 +106,7 @@ object FormSenha: TFormSenha
           TextSettings.Font.Size = 20.000000000000000000
           TextSettings.FontColor = claWhite
           TextSettings.HorzAlign = Center
-          TabOrder = 0
+          Visible = True
         end
         object aniBtnLogin: TFloatAnimation
           Duration = 0.500000000000000000
@@ -144,7 +144,6 @@ object FormSenha: TFormSenha
           TextSettings.FontColor = xFF424242
           TextSettings.HorzAlign = Center
           Text = 'Senha do acesso remoto'
-          TabOrder = 0
         end
       end
       object Layout10: TLayout
@@ -184,6 +183,7 @@ object FormSenha: TFormSenha
           Size.Width = 36.000000000000000000
           Size.Height = 36.000000000000000000
           Size.PlatformDefault = False
+          Visible = True
           object Path5: TPath
             Align = Client
             Data.Path = {

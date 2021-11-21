@@ -237,6 +237,7 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
+                  Visible = True
                   object Path2: TPath
                     Align = Client
                     Data.Path = {
@@ -324,6 +325,7 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
+                  Visible = True
                   object Path3: TPath
                     Align = Client
                     Data.Path = {
@@ -420,6 +422,7 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
+                  Visible = True
                   object Path5: TPath
                     Align = Client
                     Data.Path = {
@@ -475,6 +478,7 @@ object FormConexao: TFormConexao
                   TextSettings.Font.Size = 20.000000000000000000
                   TextSettings.FontColor = claWhite
                   TextSettings.HorzAlign = Center
+                  Visible = True
                 end
                 object aniBtnLogin: TFloatAnimation
                   Duration = 0.500000000000000000
@@ -594,8 +598,6 @@ object FormConexao: TFormConexao
     end
   end
   object RDQuery: TRESTDWClientSQL
-    Active = False
-    Filtered = False
     FieldDefs = <>
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]
@@ -617,6 +619,7 @@ object FormConexao: TFormConexao
     CacheUpdateRecords = True
     AutoCommitData = False
     AutoRefreshAfterCommit = False
+    ThreadRequest = False
     RaiseErrors = True
     ActionCursor = crSQLWait
     ReflectChanges = False
@@ -644,6 +647,7 @@ object FormConexao: TFormConexao
     StateConnection.AutoCheck = False
     StateConnection.InTime = 1000
     RequestTimeOut = 3000
+    ConnectTimeOut = 3000
     EncodeStrings = True
     Encoding = esUtf8
     Context = 'redsisdw'

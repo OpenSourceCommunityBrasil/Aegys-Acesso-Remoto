@@ -57,7 +57,6 @@ object FormArquivos: TFormArquivos
         TextSettings.Font.Size = 15.000000000000000000
         TextSettings.FontColor = xFF424242
         Text = 'Pasta:'
-        TabOrder = 0
       end
       object Rectangle3: TRectangle
         Align = Client
@@ -123,6 +122,7 @@ object FormArquivos: TFormArquivos
             TextSettings.Font.Family = 'Quicksand'
             TextSettings.Font.Size = 15.000000000000000000
             TextSettings.FontColor = claWhite
+            Visible = True
           end
         end
       end
@@ -153,6 +153,7 @@ object FormArquivos: TFormArquivos
             TextSettings.Font.Family = 'Quicksand'
             TextSettings.Font.Size = 15.000000000000000000
             TextSettings.FontColor = claWhite
+            Visible = True
           end
         end
       end
@@ -188,7 +189,6 @@ object FormArquivos: TFormArquivos
             TextSettings.Font.Size = 15.000000000000000000
             TextSettings.FontColor = xFF424242
             Text = 'Progresso do download:'
-            TabOrder = 0
           end
         end
         object lblTamanhoDownload: TLabel
@@ -203,7 +203,6 @@ object FormArquivos: TFormArquivos
           TextSettings.FontColor = xFF424242
           TextSettings.HorzAlign = Center
           Text = 'Tamanho: 0 B / 0 B'
-          TabOrder = 0
         end
         object pgbDownload: TProgressBar
           Align = Client
@@ -236,7 +235,6 @@ object FormArquivos: TFormArquivos
             TextSettings.Font.Size = 15.000000000000000000
             TextSettings.FontColor = xFF424242
             Text = 'Progresso do upload:'
-            TabOrder = 0
           end
         end
         object lblTamanhoUpload: TLabel
@@ -251,7 +249,6 @@ object FormArquivos: TFormArquivos
           TextSettings.FontColor = xFF424242
           TextSettings.HorzAlign = Center
           Text = 'Tamanho: 0 B / 0 B'
-          TabOrder = 0
         end
         object pgbUpload: TProgressBar
           Align = Client
