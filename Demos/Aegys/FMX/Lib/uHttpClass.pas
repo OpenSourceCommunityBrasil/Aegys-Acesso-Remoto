@@ -1,25 +1,13 @@
 unit uHttpClass;
 
-{
- Projeto Aegys.
-
-  Criado por Gilberto Rocha da Silva em 05/04/2017 baseado no projeto Allakore, tem por objetivo promover acesso remoto e outros
- de forma gratuita a todos que necessitarem, hoje mantido por uma bela comunidade listando aqui nossos colaboradores de grande estima.
-
-  Gilberto Rocha da Silva(XyberX) (Creator of Aegys Project/Main Desenveloper/Admin).
-  Wendel Rodrigues Fassarella(wendelfassarella) (Creator of Aegys FMX/CORE Desenveloper).
-  Rai Duarte Jales(Raí Duarte) (Aegys Server Desenveloper).
-  Roniery Santos Cardoso (Aegys Desenveloper).
-  Alexandre Carlos Silva Abade (Aegys Desenveloper).
-}
-
 interface
 
 uses
   System.Net.URLClient, System.Net.HTTPClient;
 
 type
-  TRDHttpProgress = procedure(AStartPosition, AEndPosition, AReadCount: Int64) of object;
+  TRDHttpProgress = procedure(AStartPosition, AEndPosition, AReadCount: Int64)
+    of object;
 
   TRDHttp = class
   private
@@ -29,11 +17,15 @@ type
     FOnProgress: TRDHttpProgress;
     FStartPosition: Int64;
   private
-    procedure OnReceiveDataEvent(const Sender: TObject; AContentLength: Int64; AReadCount: Int64; var Abort: Boolean);
-    procedure HTTPClientValidateServerCertificate(const Sender: TObject; const ARequest: TURLRequest; const Certificate: TCertificate; var Accepted: Boolean);
+    procedure OnReceiveDataEvent(const Sender: TObject; AContentLength: Int64;
+      AReadCount: Int64; var Abort: Boolean);
+    procedure HTTPClientValidateServerCertificate(const Sender: TObject;
+      const ARequest: TURLRequest; const Certificate: TCertificate;
+      var Accepted: Boolean);
   public
     class function DataArquivo(AUrl: string): TDateTime;
-    class function Download(AFile, AUrl: string; AProgressEvent: TRDHttpProgress): Boolean; overload;
+    class function Download(AFile, AUrl: string;
+      AProgressEvent: TRDHttpProgress): Boolean; overload;
     constructor Create;
     destructor Destroy; override;
     function Download(AFile, AUrl: string): Boolean; overload;
@@ -46,21 +38,23 @@ type
 implementation
 
 uses
-  System.Classes, System.SysUtils, Winapi.Windows, IdGlobalProtocols;
+  System.Classes, System.SysUtils, Winapi.Windows, IdGlobalProtocols,
+  uLocaleFunctions, uConstants;
 
 constructor TRDHttp.Create;
 begin
   inherited Create;
 
   FHTTPClient := THTTPClient.Create;
-  FHTTPClient.OnValidateServerCertificate := HTTPClientValidateServerCertificate;
-//  FHTTPClient.SecureProtocols := [
-//    THTTPSecureProtocol.SSL2,
-//    THTTPSecureProtocol.SSL3,
-//    THTTPSecureProtocol.TLS1,
-//    THTTPSecureProtocol.TLS11,
-//    THTTPSecureProtocol.TLS12,
-//    THTTPSecureProtocol.TLS13];
+  FHTTPClient.OnValidateServerCertificate :=
+    HTTPClientValidateServerCertificate;
+  // FHTTPClient.SecureProtocols := [
+  // THTTPSecureProtocol.SSL2,
+  // THTTPSecureProtocol.SSL3,
+  // THTTPSecureProtocol.TLS1,
+  // THTTPSecureProtocol.TLS11,
+  // THTTPSecureProtocol.TLS12,
+  // THTTPSecureProtocol.TLS13];
   FHTTPClient.OnReceiveData := OnReceiveDataEvent;
 
   FHTTPClient.ConnectionTimeout := 5000;
@@ -87,9 +81,10 @@ begin
 
     httpResponse := hClient.Head(AUrl);
     if (httpResponse.StatusCode < 200) or (httpResponse.StatusCode > 299) then
-      raise Exception.Create(Format('Erro no servidor %d: %s', [httpResponse.StatusCode, httpResponse.StatusText]));
+      raise Exception.Create(Format(Locale.GetLocale(MSGS, 'ServerError'),
+        [httpResponse.StatusCode, httpResponse.StatusText]));
 
-     Result := GMTToLocalDateTime(httpResponse.LastModified);
+    Result := GMTToLocalDateTime(httpResponse.LastModified);
   finally
     httpResponse := nil;
     if Assigned(hClient) then
@@ -104,7 +99,8 @@ begin
   inherited Destroy;
 end;
 
-class function TRDHttp.Download(AFile, AUrl: string; AProgressEvent: TRDHttpProgress): Boolean;
+class function TRDHttp.Download(AFile, AUrl: string;
+  AProgressEvent: TRDHttpProgress): Boolean;
 var
   FHttp: TRDHttp;
 begin
@@ -118,7 +114,8 @@ begin
   end;
 end;
 
-procedure TRDHttp.OnReceiveDataEvent(const Sender: TObject; AContentLength: Int64; AReadCount: Int64; var Abort: Boolean);
+procedure TRDHttp.OnReceiveDataEvent(const Sender: TObject;
+  AContentLength: Int64; AReadCount: Int64; var Abort: Boolean);
 begin
   Abort := Cancelar;
 
@@ -142,7 +139,8 @@ begin
 
       httpResponse := FHTTPClient.Head(AUrl);
       if (httpResponse.StatusCode < 200) or (httpResponse.StatusCode > 299) then
-        raise Exception.Create(Format('Erro no servidor %d: %s', [httpResponse.StatusCode, httpResponse.StatusText]));
+        raise Exception.Create(Format(Locale.GetLocale(MSGS, 'ServerError'),
+          [httpResponse.StatusCode, httpResponse.StatusText]));
 
       fsFile := TFileStream.Create(AFile, fmCreate);
       fsFile.Seek(0, TSeekOrigin.soBeginning);
@@ -152,7 +150,8 @@ begin
 
       httpResponse := FHTTPClient.Get(AUrl, fsFile);
       if (httpResponse.StatusCode < 200) or (httpResponse.StatusCode > 299) then
-        raise Exception.Create(Format('Erro no servidor %d: %s', [httpResponse.StatusCode, httpResponse.StatusText]));
+        raise Exception.Create(Format(Locale.GetLocale(MSGS, 'ServerError'),
+          [httpResponse.StatusCode, httpResponse.StatusText]));
     except
       Result := False;
     end;
@@ -163,9 +162,9 @@ begin
   end;
 end;
 
-procedure TRDHttp.HTTPClientValidateServerCertificate(
-  const Sender: TObject; const ARequest: TURLRequest;
-  const Certificate: TCertificate; var Accepted: Boolean);
+procedure TRDHttp.HTTPClientValidateServerCertificate(const Sender: TObject;
+  const ARequest: TURLRequest; const Certificate: TCertificate;
+  var Accepted: Boolean);
 begin
   Accepted := True;
 end;

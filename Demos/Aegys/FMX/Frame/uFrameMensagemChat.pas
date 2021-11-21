@@ -1,18 +1,5 @@
 unit uFrameMensagemChat;
 
-{
- Projeto Aegys.
-
-  Criado por Gilberto Rocha da Silva em 05/04/2017 baseado no projeto Allakore, tem por objetivo promover acesso remoto e outros
- de forma gratuita a todos que necessitarem, hoje mantido por uma bela comunidade listando aqui nossos colaboradores de grande estima.
-
-  Gilberto Rocha da Silva(XyberX) (Creator of Aegys Project/Main Desenveloper/Admin).
-  Wendel Rodrigues Fassarella(wendelfassarella) (Creator of Aegys FMX/CORE Desenveloper).
-  Rai Duarte Jales(Raí Duarte) (Aegys Server Desenveloper).
-  Roniery Santos Cardoso (Aegys Desenveloper).
-  Alexandre Carlos Silva Abade (Aegys Desenveloper).
-}
-
 interface
 
 uses
@@ -45,6 +32,8 @@ type
   end;
 
 implementation
+uses
+  uLocaleFunctions, uConstants;
 
 {$R *.fmx}
 
@@ -67,12 +56,12 @@ procedure TFrameMensagemChat.SetMensagem(const Value: TMensagemRec);
 begin
   if Value.Atendente then
   begin
-    lblTitulo.Text := 'Atendente disse: ';
+    lblTitulo.Text := Locale.GetLocale(CHAT, 'They');
     lblTitulo.TextSettings.FontColor := $FFED3237;
   end
   else
   begin
-    lblTitulo.Text := 'Você disse: ';
+    lblTitulo.Text := Locale.GetLocale(CHAT, 'You');
     lblTitulo.TextSettings.FontColor := TAlphaColorRec.Teal;
   end;
   lblTexto.Text := Value.Texto;

@@ -80,8 +80,8 @@ object FormChat: TFormChat
         StyleLookup = 'memTransparente'
         TabOrder = 0
         OnKeyDown = txtMensagemKeyDown
-        Viewport.Width = 267.000000000000000000
-        Viewport.Height = 50.000000000000000000
+        Viewport.Width = 271.000000000000000000
+        Viewport.Height = 54.000000000000000000
       end
     end
     object Splitter1: TSplitter

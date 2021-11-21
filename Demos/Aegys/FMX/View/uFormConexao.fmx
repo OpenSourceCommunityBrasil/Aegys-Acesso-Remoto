@@ -58,7 +58,7 @@ object FormConexao: TFormConexao
       Text = 'tabAcesso'
       ExplicitSize.cx = 74.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
-      object Rectangle5: TRectangle
+      object RMainBackground: TRectangle
         Align = Client
         Fill.Color = claWhitesmoke
         Size.Width = 354.000000000000000000
@@ -79,7 +79,7 @@ object FormConexao: TFormConexao
             Size.Height = 547.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 0
-            object layLogo: TLayout
+            object lyHeader: TLayout
               Align = Top
               Margins.Top = 10.000000000000000000
               Position.Y = 10.000000000000000000
@@ -87,7 +87,7 @@ object FormConexao: TFormConexao
               Size.Height = 100.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 0
-              object Path1: TPath
+              object PhLogo: TPath
                 Align = Left
                 Data.Path = {
                   5D000000000000008FC29541F6286C41020000005C8F98415C8F5E4102000000
@@ -142,7 +142,7 @@ object FormConexao: TFormConexao
                 Size.Height = 90.000000000000000000
                 Size.PlatformDefault = False
                 TabOrder = 1
-                object Label1: TLabel
+                object LSubTitle: TLabel
                   Align = Bottom
                   StyledSettings = [Style]
                   Position.Y = 44.000000000000000000
@@ -154,7 +154,7 @@ object FormConexao: TFormConexao
                   TextSettings.FontColor = xFF424242
                   Text = 'Suporte remoto'
                 end
-                object Label2: TLabel
+                object LTitle: TLabel
                   Align = Client
                   StyledSettings = []
                   Size.Width = 194.000000000000000000
@@ -165,7 +165,7 @@ object FormConexao: TFormConexao
                   TextSettings.FontColor = xFF424242
                   Text = 'Aegys'
                 end
-                object lblVersao: TLabel
+                object LVersion: TLabel
                   Align = Bottom
                   StyledSettings = [Style]
                   Position.Y = 69.000000000000000000
@@ -179,7 +179,7 @@ object FormConexao: TFormConexao
                 end
               end
             end
-            object layID: TLayout
+            object lyMachineID: TLayout
               Align = Top
               Margins.Top = 40.000000000000000000
               Position.Y = 150.000000000000000000
@@ -187,7 +187,7 @@ object FormConexao: TFormConexao
               Size.Height = 56.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 3
-              object Rectangle1: TRectangle
+              object RMachineID: TRectangle
                 Align = Top
                 Size.Width = 314.000000000000000000
                 Size.Height = 20.000000000000000000
@@ -195,7 +195,7 @@ object FormConexao: TFormConexao
                 Stroke.Kind = None
                 XRadius = 10.000000000000000000
                 YRadius = 10.000000000000000000
-                object Label3: TLabel
+                object LlyMachineIDCaption: TLabel
                   Align = Client
                   StyledSettings = [Style]
                   Size.Width = 314.000000000000000000
@@ -214,7 +214,7 @@ object FormConexao: TFormConexao
                 Size.Height = 36.000000000000000000
                 Size.PlatformDefault = False
                 TabOrder = 1
-                object txtIDPC: TLabel
+                object LMachineID: TLabel
                   Align = Client
                   StyledSettings = [Style]
                   Margins.Left = 46.000000000000000000
@@ -227,8 +227,8 @@ object FormConexao: TFormConexao
                   TextSettings.HorzAlign = Center
                   Text = 'transparentedit'
                 end
-                object SpeedButton1: TSpeedButton
-                  Action = PROC_COPIAR_ID
+                object sbMachineIDCopy: TSpeedButton
+                  Action = actCopyID
                   Align = Right
                   Enabled = True
                   ImageIndex = -1
@@ -237,8 +237,7 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
-                  Visible = True
-                  object Path2: TPath
+                  object PhMachineIDCopy: TPath
                     Align = Client
                     Data.Path = {
                       2000000000000000000098410000A84101000000000000410000A84101000000
@@ -267,7 +266,7 @@ object FormConexao: TFormConexao
                 end
               end
             end
-            object laySenha: TLayout
+            object lyPassword: TLayout
               Align = Top
               Margins.Top = 20.000000000000000000
               Position.Y = 226.000000000000000000
@@ -275,7 +274,7 @@ object FormConexao: TFormConexao
               Size.Height = 56.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 2
-              object Rectangle3: TRectangle
+              object RPassword: TRectangle
                 Align = Top
                 Size.Width = 314.000000000000000000
                 Size.Height = 20.000000000000000000
@@ -283,7 +282,7 @@ object FormConexao: TFormConexao
                 Stroke.Kind = None
                 XRadius = 10.000000000000000000
                 YRadius = 10.000000000000000000
-                object Label5: TLabel
+                object LlyPasswordCaption: TLabel
                   Align = Client
                   StyledSettings = [Style]
                   Size.Width = 314.000000000000000000
@@ -302,7 +301,7 @@ object FormConexao: TFormConexao
                 Size.Height = 36.000000000000000000
                 Size.PlatformDefault = False
                 TabOrder = 1
-                object txtSenhaPC: TLabel
+                object LPassword: TLabel
                   Align = Client
                   StyledSettings = [Style]
                   Margins.Left = 46.000000000000000000
@@ -315,8 +314,8 @@ object FormConexao: TFormConexao
                   TextSettings.HorzAlign = Center
                   Text = 'transparentedit'
                 end
-                object SpeedButton2: TSpeedButton
-                  Action = PROC_COPIAR_SENHA
+                object sbPasswordCopy: TSpeedButton
+                  Action = actCopyPassword
                   Align = Right
                   Enabled = True
                   ImageIndex = -1
@@ -325,8 +324,7 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
-                  Visible = True
-                  object Path3: TPath
+                  object PhPasswordCopy: TPath
                     Align = Client
                     Data.Path = {
                       2000000000000000000098410000A84101000000000000410000A84101000000
@@ -355,7 +353,7 @@ object FormConexao: TFormConexao
                 end
               end
             end
-            object layAcesso: TLayout
+            object lyGuestID: TLayout
               Align = Top
               Margins.Top = 40.000000000000000000
               Position.Y = 353.000000000000000000
@@ -363,7 +361,7 @@ object FormConexao: TFormConexao
               Size.Height = 56.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 1
-              object Rectangle4: TRectangle
+              object RGuestID: TRectangle
                 Align = Top
                 Size.Width = 314.000000000000000000
                 Size.Height = 20.000000000000000000
@@ -371,7 +369,7 @@ object FormConexao: TFormConexao
                 Stroke.Kind = None
                 XRadius = 10.000000000000000000
                 YRadius = 10.000000000000000000
-                object Label7: TLabel
+                object LlyGuestIDCaption: TLabel
                   Align = Client
                   StyledSettings = [Style]
                   Size.Width = 314.000000000000000000
@@ -390,7 +388,7 @@ object FormConexao: TFormConexao
                 Size.Height = 36.000000000000000000
                 Size.PlatformDefault = False
                 TabOrder = 1
-                object txtIDParceiro: TEdit
+                object EGuestID: TEdit
                   Touch.InteractiveGestures = [LongTap, DoubleTap]
                   Align = Client
                   StyleLookup = 'transparentedit'
@@ -409,11 +407,11 @@ object FormConexao: TFormConexao
                   Size.PlatformDefault = False
                   TextPrompt = '___-___-___'
                   StyledSettings = [Style]
-                  OnTyping = txtIDParceiroTyping
-                  OnKeyDown = txtIDParceiroKeyDown
+                  OnTyping = EGuestIDTyping
+                  OnKeyDown = EGuestIDKeyDown
                 end
-                object SpeedButton3: TSpeedButton
-                  Action = PROC_COLAR_ID
+                object sbPasteID: TSpeedButton
+                  Action = actPasteID
                   Align = Right
                   Enabled = True
                   ImageIndex = -1
@@ -422,8 +420,7 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
-                  Visible = True
-                  object Path5: TPath
+                  object PhPasteID: TPath
                     Align = Client
                     Data.Path = {
                       1B00000000000000C3F560410000104101000000000070413D0A1F4101000000
@@ -450,7 +447,7 @@ object FormConexao: TFormConexao
                 end
               end
             end
-            object layConectar: TLayout
+            object lyConnect: TLayout
               Align = Top
               Margins.Top = 40.000000000000000000
               Position.Y = 449.000000000000000000
@@ -465,8 +462,8 @@ object FormConexao: TFormConexao
                 Size.Height = 48.000000000000000000
                 Size.PlatformDefault = False
                 Stroke.Kind = None
-                object Label23: TLabel
-                  Action = PROC_CONECTAR
+                object LbtnConectar: TLabel
+                  Action = actConnect
                   Align = Client
                   Enabled = True
                   StyledSettings = [Style]
@@ -478,7 +475,6 @@ object FormConexao: TFormConexao
                   TextSettings.Font.Size = 20.000000000000000000
                   TextSettings.FontColor = claWhite
                   TextSettings.HorzAlign = Center
-                  Visible = True
                 end
                 object aniBtnLogin: TFloatAnimation
                   Duration = 0.500000000000000000
@@ -489,7 +485,7 @@ object FormConexao: TFormConexao
                 end
               end
             end
-            object lnDivisao: TLine
+            object Divider: TLine
               Align = Top
               LineType = Diagonal
               Margins.Top = 30.000000000000000000
@@ -500,7 +496,7 @@ object FormConexao: TFormConexao
               Stroke.Color = claLightgray
               Stroke.Cap = Round
             end
-            object layStatus: TLayout
+            object lyStatus: TLayout
               Align = Bottom
               Margins.Bottom = 5.000000000000000000
               Position.Y = 512.000000000000000000
@@ -508,7 +504,7 @@ object FormConexao: TFormConexao
               Size.Height = 30.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 34
-              object imgStatus: TPath
+              object PhStatus: TPath
                 Align = Left
                 Data.Path = {
                   2800000000000000000040410000A0400200000085EB7D410000A04002000000
@@ -537,7 +533,7 @@ object FormConexao: TFormConexao
                 Stroke.Kind = None
                 WrapMode = Fit
               end
-              object lblStatus: TLabel
+              object LStatus: TLabel
                 Align = Client
                 StyledSettings = [Style]
                 Size.Width = 284.000000000000000000
@@ -580,24 +576,27 @@ object FormConexao: TFormConexao
   object ActionList1: TActionList
     Left = 256
     Top = 112
-    object PROC_CONECTAR: TAction
+    object actConnect: TAction
       Text = 'Conectar'
-      OnExecute = PROC_CONECTARExecute
+      ShortCut = 13
+      OnExecute = actConnectExecute
     end
-    object PROC_COPIAR_ID: TAction
-      OnExecute = PROC_COPIAR_IDExecute
+    object actCopyID: TAction
+      OnExecute = actCopyIDExecute
     end
-    object PROC_COPIAR_SENHA: TAction
-      OnExecute = PROC_COPIAR_SENHAExecute
+    object actCopyPassword: TAction
+      OnExecute = actCopyPasswordExecute
     end
-    object actMudarTab: TChangeTabAction
+    object actTabChange: TChangeTabAction
       Category = 'Tab'
     end
-    object PROC_COLAR_ID: TAction
-      OnExecute = PROC_COLAR_IDExecute
+    object actPasteID: TAction
+      OnExecute = actPasteIDExecute
     end
   end
   object RDQuery: TRESTDWClientSQL
+    Active = False
+    Filtered = False
     FieldDefs = <>
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]
@@ -619,7 +618,6 @@ object FormConexao: TFormConexao
     CacheUpdateRecords = True
     AutoCommitData = False
     AutoRefreshAfterCommit = False
-    ThreadRequest = False
     RaiseErrors = True
     ActionCursor = crSQLWait
     ReflectChanges = False

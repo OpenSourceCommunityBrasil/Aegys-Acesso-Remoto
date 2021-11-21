@@ -1,22 +1,10 @@
 unit uFormTelaRemota;
 
-{
- Projeto Aegys.
-
-  Criado por Gilberto Rocha da Silva em 05/04/2017 baseado no projeto Allakore, tem por objetivo promover acesso remoto e outros
- de forma gratuita a todos que necessitarem, hoje mantido por uma bela comunidade listando aqui nossos colaboradores de grande estima.
-
-  Gilberto Rocha da Silva(XyberX) (Creator of Aegys Project/Main Desenveloper/Admin).
-  Wendel Rodrigues Fassarella(wendelfassarella) (Creator of Aegys FMX/CORE Desenveloper).
-  Rai Duarte Jales(Raí Duarte) (Aegys Server Desenveloper).
-  Roniery Santos Cardoso (Aegys Desenveloper).
-  Alexandre Carlos Silva Abade (Aegys Desenveloper).
-}
-
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  System.SysUtils, System.Types, System.UITypes, System.Classes,
+  System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, System.Actions,
   FMX.ActnList, Winapi.Messages, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo;
@@ -26,10 +14,10 @@ type
     imgTelaRemota: TImage;
     sbChat: TSpeedButton;
     Path1: TPath;
-    Label1: TLabel;
+    LChat: TLabel;
     sbArquivos: TSpeedButton;
     Path2: TPath;
-    Label2: TLabel;
+    LFiles: TLabel;
     Line1: TLine;
     Layout2: TLayout;
     Rectangle1: TRectangle;
@@ -42,27 +30,34 @@ type
     PROC_LOG: TAction;
     btnMouse: TSpeedButton;
     Path3: TPath;
-    Label3: TLabel;
+    LMouse: TLabel;
     PROC_MOUSE: TAction;
     pControles: TPanel;
     procedure PROC_ARQUIVOSExecute(Sender: TObject);
     procedure PROC_CHATExecute(Sender: TObject);
-    procedure imgTelaRemotaMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
-    procedure imgTelaRemotaMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
-    procedure imgTelaRemotaMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    procedure imgTelaRemotaMouseMove(Sender: TObject; Shift: TShiftState;
+      X, Y: Single);
+    procedure imgTelaRemotaMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single);
+    procedure imgTelaRemotaMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single);
     procedure tCapturarComandosTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
-    procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
+    procedure FormMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; var Handled: Boolean);
     procedure FormShow(Sender: TObject);
     procedure PROC_REDIMENSIONARExecute(Sender: TObject);
     procedure FormResize(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
     procedure PROC_MOUSEExecute(Sender: TObject);
   private
     procedure RetornaMargem;
     procedure SendSocketKeys(AKeys: string);
-    procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
+    procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
+      message WM_GETMINMAXINFO;
+    procedure Translate;
   public
     CtrlPressed, ShiftPressed, AltPressed, IgnoreKey: Boolean;
   end;
@@ -74,9 +69,8 @@ implementation
 
 {$R *.fmx}
 
-
 uses uFormArquivos, uFormChat, uFormConexao, Winapi.Windows, uDM_Styles,
-  FMX.Platform.Win;
+  FMX.Platform.Win, uLocaleFunctions, uConstants;
 
 procedure TFormTelaRemota.tCapturarComandosTimer(Sender: TObject);
 var
@@ -355,6 +349,13 @@ begin
   end;
 end;
 
+procedure TFormTelaRemota.Translate;
+begin
+  LMouse.Text := Locale.GetLocale(FRMS, 'RemoteMouse');
+  LFiles.Text := Locale.GetLocale(FRMS, 'RemoteFile');
+  LChat.Text := Locale.GetLocale(FRMS, 'RemoteChat');
+end;
+
 procedure TFormTelaRemota.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   FormArquivos.Hide;
@@ -384,7 +385,8 @@ begin
   if not Active then
     Exit;
 
-  Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|WHEELMOUSE|>' + IntToStr(WheelDelta) + '<|END|>');
+  Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|WHEELMOUSE|>' +
+    IntToStr(WheelDelta) + '<|END|>');
 end;
 
 procedure TFormTelaRemota.FormResize(Sender: TObject);
@@ -422,7 +424,7 @@ procedure TFormTelaRemota.PROC_REDIMENSIONARExecute(Sender: TObject);
 begin
   imgTelaRemota.Align := TAlignLayout.Client;
   imgTelaRemota.WrapMode := TImageWrapMode.Fit;
-  pControles.Position.X  := (Self.Width / 2) - (pControles.Width / 2);
+  pControles.Position.X := (Self.Width / 2) - (pControles.Width / 2);
   RetornaMargem;
 end;
 
@@ -463,7 +465,8 @@ begin
   imgTelaRemota.Margins.Bottom := iMarginH;
 end;
 
-procedure TFormTelaRemota.imgTelaRemotaMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+procedure TFormTelaRemota.imgTelaRemotaMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
 begin
@@ -475,19 +478,25 @@ begin
 
   if (Button = TMouseButton.mbLeft) then
   begin
-    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSELEFTCLICKDOWN|>' + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+    Conexao.SocketPrincipal.Socket.SendText
+      ('<|REDIRECT|><|SETMOUSELEFTCLICKDOWN|>' + IntToStr(iX) + '<|>' +
+      IntToStr(iY) + '<|END|>');
   end
   else if (Button = TMouseButton.mbRight) then
   begin
-    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSERIGHTCLICKDOWN|>' + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+    Conexao.SocketPrincipal.Socket.SendText
+      ('<|REDIRECT|><|SETMOUSERIGHTCLICKDOWN|>' + IntToStr(iX) + '<|>' +
+      IntToStr(iY) + '<|END|>');
   end
   else
   begin
-    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEDOWN|>' + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEDOWN|>'
+      + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
   end;
 end;
 
-procedure TFormTelaRemota.imgTelaRemotaMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
+procedure TFormTelaRemota.imgTelaRemotaMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
 begin
@@ -497,10 +506,12 @@ begin
   iX := Trunc(X * Conexao.ResolucaoLargura) div Trunc(imgTelaRemota.Width);
   iY := Trunc(Y * Conexao.ResolucaoAltura) div Trunc(imgTelaRemota.Height);
 
-  Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEPOS|>' + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+  Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEPOS|>' +
+    IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
 end;
 
-procedure TFormTelaRemota.imgTelaRemotaMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+procedure TFormTelaRemota.imgTelaRemotaMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
 begin
@@ -511,15 +522,20 @@ begin
   iY := Trunc(Y * Conexao.ResolucaoAltura) div Trunc(imgTelaRemota.Height);
   if (Button = TMouseButton.mbLeft) then
   begin
-    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSELEFTCLICKUP|>' + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+    Conexao.SocketPrincipal.Socket.SendText
+      ('<|REDIRECT|><|SETMOUSELEFTCLICKUP|>' + IntToStr(iX) + '<|>' +
+      IntToStr(iY) + '<|END|>');
   end
   else if (Button = TMouseButton.mbRight) then
   begin
-    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSERIGHTCLICKUP|>' + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+    Conexao.SocketPrincipal.Socket.SendText
+      ('<|REDIRECT|><|SETMOUSERIGHTCLICKUP|>' + IntToStr(iX) + '<|>' +
+      IntToStr(iY) + '<|END|>');
   end
   else
   begin
-    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEUP|>' + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEUP|>' +
+      IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
   end;
 end;
 

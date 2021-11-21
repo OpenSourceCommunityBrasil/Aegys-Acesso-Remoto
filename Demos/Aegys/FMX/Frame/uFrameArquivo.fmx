@@ -32,6 +32,7 @@ object FrameArquivo: TFrameArquivo
         TextSettings.FontColor = xFF424242
         TextSettings.WordWrap = False
         Text = 'lblArquivo'
+        TabOrder = 6
       end
       object imgArquivo: TImage
         MultiResBitmap = <
@@ -51,7 +52,6 @@ object FrameArquivo: TFrameArquivo
   object ImageList1: TImageList
     Source = <
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -118,7 +118,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_mp'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Width = 37
@@ -192,7 +191,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_png'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -252,7 +250,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_zip'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -325,7 +322,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_doc'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -392,7 +388,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_txt'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -459,7 +454,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_rar'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -533,7 +527,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_html'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -593,7 +586,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_dll'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -674,7 +666,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_bat'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Width = 51
@@ -742,7 +733,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_sql'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -811,7 +801,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_exe'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -878,7 +867,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_pdf'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -953,7 +941,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_jpeg'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -1018,7 +1005,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_xls'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Width = 48
@@ -1049,7 +1035,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'Folder'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -1120,7 +1105,6 @@ object FrameArquivo: TFrameArquivo
         Name = 'icon_xml'
       end
       item
-        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 3.000000000000000000
@@ -1177,6 +1161,7 @@ object FrameArquivo: TFrameArquivo
       item
         MultiResBitmap.Height = 48
         MultiResBitmap.Width = 48
+        MultiResBitmap.LoadSize = 0
         MultiResBitmap = <
           item
             Width = 48

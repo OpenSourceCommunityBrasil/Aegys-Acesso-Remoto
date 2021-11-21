@@ -1,18 +1,5 @@
 unit uCtrl_Threads;
 
-{
- Projeto Aegys.
-
-  Criado por Gilberto Rocha da Silva em 05/04/2017 baseado no projeto Allakore, tem por objetivo promover acesso remoto e outros
- de forma gratuita a todos que necessitarem, hoje mantido por uma bela comunidade listando aqui nossos colaboradores de grande estima.
-
-  Gilberto Rocha da Silva(XyberX) (Creator of Aegys Project/Main Desenveloper/Admin).
-  Wendel Rodrigues Fassarella(wendelfassarella) (Creator of Aegys FMX/CORE Desenveloper).
-  Rai Duarte Jales(Raí Duarte) (Aegys Server Desenveloper).
-  Roniery Santos Cardoso (Aegys Desenveloper).
-  Alexandre Carlos Silva Abade (Aegys Desenveloper).
-}
-
 interface
 
 uses
@@ -51,10 +38,12 @@ implementation
 
 { TConexaoPrincipal }
 
-uses uFormArquivos, Winapi.Windows, uFormChat, uFormConexao, uFormTelaRemota, FMX.Forms,
-  FMX.ListView.Types, System.SysUtils, uLibClass, uFormSenha, FMX.Platform.Win, uSendKeyClass,
+uses uFormArquivos, Winapi.Windows, uFormChat, uFormConexao, uFormTelaRemota,
+  FMX.Forms,
+  FMX.ListView.Types, System.SysUtils, uLibClass, uFormSenha, FMX.Platform.Win,
+  uSendKeyClass,
   System.Rtti, FMX.Platform, FMX.Surfaces, StreamManager, FMX.Graphics,
-  uConstants;
+  uConstants, uLocaleFunctions;
 
 constructor TThreadConexaoPrincipal.Create(ASocket: TCustomWinSocket);
 begin
@@ -151,7 +140,8 @@ begin
         procedure
         begin
           FormConexao.btnConectar.Enabled := False;
-          FormConexao.MudarStatusConexao(3, 'Suporte remoto conectado!');
+          FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS,
+            'RemoteConnected'));
         end);
       Conexao.Acessando := True;
     end;
@@ -161,7 +151,8 @@ begin
       Synchronize(
         procedure
         begin
-          FormConexao.MudarStatusConexao(0, 'Aguardando autenticação...');
+          FormConexao.MudarStatusConexao(0, Locale.GetLocale(MSGS,
+            'AwaitingAuth'));
           FormSenha.ShowModal;
         end);
     end;
@@ -171,7 +162,8 @@ begin
       Synchronize(
         procedure
         begin
-          FormConexao.MudarStatusConexao(2, 'ID não existe.');
+          FormConexao.MudarStatusConexao(2, Locale.GetLocale(MSGS,
+            'IDNoExist'));
           FormConexao.btnConectar.Enabled := True;
         end);
     end;
@@ -181,7 +173,8 @@ begin
       Synchronize(
         procedure
         begin
-          FormConexao.MudarStatusConexao(2, 'Senha errada!');
+          FormConexao.MudarStatusConexao(2, Locale.GetLocale(MSGS,
+            'WrongPassword'));
           FormConexao.btnConectar.Enabled := True;
         end);
     end;
@@ -191,7 +184,8 @@ begin
       Synchronize(
         procedure
         begin
-          FormConexao.MudarStatusConexao(2, 'Computador ocupado!');
+          FormConexao.MudarStatusConexao(2, Locale.GetLocale(MSGS,
+            'BusyGuest'));
           FormConexao.btnConectar.Enabled := True;
         end);
     end;
@@ -201,13 +195,14 @@ begin
       Synchronize(
         procedure
         begin
-          FormConexao.MudarStatusConexao(3, 'Acesso garantido!');
+          FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Granted'));
           Conexao.Visualizador := True;
           FormConexao.tmrClipboard.Enabled := True;
           FormConexao.LimparConexao;
           FormTelaRemota.Show;
           FormConexao.Hide;
-          Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' + FormConexao.txtIDParceiro.Text + '<|END|>');
+          Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' +
+            FormConexao.EGuestID.Text + '<|END|>');
         end);
     end;
 
@@ -222,7 +217,8 @@ begin
           Conexao.ReconectarSocketsSecundarios;
           FormConexao.Show;
           FormConexao.SetOnline;
-          FormConexao.MudarStatusConexao(2, 'Conexão encerrada!');
+          FormConexao.MudarStatusConexao(2, Locale.GetLocale(MSGS,
+            'LostConnection'));
           FlashWindow(FmxHandleToHWND(FormConexao.Handle), True);
         end);
     end;
@@ -244,7 +240,8 @@ begin
       Position := Pos('<|>', BufferTemp);
       Conexao.ResolucaoLargura := StrToInt(Copy(BufferTemp, 1, Position - 1));
       Delete(BufferTemp, 1, Position + 2);
-      Conexao.ResolucaoAltura := StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+      Conexao.ResolucaoAltura :=
+        StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
       FormTelaRemota.PROC_REDIMENSIONARExecute(nil);
     end;
 
@@ -256,7 +253,8 @@ begin
       Position := Pos('<|>', BufferTemp);
       MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
       Delete(BufferTemp, 1, Position + 2);
-      MousePosY := StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+      MousePosY := StrToInt(Copy(BufferTemp, 1,
+        Pos('<|END|>', BufferTemp) - 1));
       SetCursorPos(MousePosX, MousePosY);
     end;
 
@@ -268,7 +266,8 @@ begin
       Position := Pos('<|>', BufferTemp);
       MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
       Delete(BufferTemp, 1, Position + 2);
-      MousePosY := StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+      MousePosY := StrToInt(Copy(BufferTemp, 1,
+        Pos('<|END|>', BufferTemp) - 1));
       SetCursorPos(MousePosX, MousePosY);
       Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
     end;
@@ -281,7 +280,8 @@ begin
       Position := Pos('<|>', BufferTemp);
       MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
       Delete(BufferTemp, 1, Position + 2);
-      MousePosY := StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+      MousePosY := StrToInt(Copy(BufferTemp, 1,
+        Pos('<|END|>', BufferTemp) - 1));
       SetCursorPos(MousePosX, MousePosY);
       Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     end;
@@ -294,7 +294,8 @@ begin
       Position := Pos('<|>', BufferTemp);
       MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
       Delete(BufferTemp, 1, Position + 2);
-      MousePosY := StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+      MousePosY := StrToInt(Copy(BufferTemp, 1,
+        Pos('<|END|>', BufferTemp) - 1));
       SetCursorPos(MousePosX, MousePosY);
       Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
     end;
@@ -307,7 +308,8 @@ begin
       Position := Pos('<|>', BufferTemp);
       MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
       Delete(BufferTemp, 1, Position + 2);
-      MousePosY := StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+      MousePosY := StrToInt(Copy(BufferTemp, 1,
+        Pos('<|END|>', BufferTemp) - 1));
       SetCursorPos(MousePosX, MousePosY);
       Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
     end;
@@ -320,7 +322,8 @@ begin
       Position := Pos('<|>', BufferTemp);
       MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
       Delete(BufferTemp, 1, Position + 2);
-      MousePosY := StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+      MousePosY := StrToInt(Copy(BufferTemp, 1,
+        Pos('<|END|>', BufferTemp) - 1));
       SetCursorPos(MousePosX, MousePosY);
       Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
     end;
@@ -333,7 +336,8 @@ begin
       Position := Pos('<|>', BufferTemp);
       MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
       Delete(BufferTemp, 1, Position + 2);
-      MousePosY := StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+      MousePosY := StrToInt(Copy(BufferTemp, 1,
+        Pos('<|END|>', BufferTemp) - 1));
       SetCursorPos(MousePosX, MousePosY);
       Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
     end;
@@ -354,7 +358,8 @@ begin
       BufferTemp := Buffer;
       Delete(BufferTemp, 1, Position + 12);
       BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
-      if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, Svc) then
+      if TPlatformServices.Current.SupportsPlatformService
+        (IFMXClipboardService, Svc) then
         Svc.SetClipboard(BufferTemp);
     end;
 
@@ -394,7 +399,8 @@ begin
       BufferTemp := Buffer;
       Delete(BufferTemp, 1, Position + 13);
       BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
-      Socket.SendText('<|REDIRECT|><|FOLDERLIST|>' + TRDLib.ListFolders(BufferTemp) + '<|ENDFOLDERLIST|>');
+      Socket.SendText('<|REDIRECT|><|FOLDERLIST|>' +
+        TRDLib.ListFolders(BufferTemp) + '<|ENDFOLDERLIST|>');
     end;
 
     // Request Files List
@@ -404,7 +410,8 @@ begin
       BufferTemp := Buffer;
       Delete(BufferTemp, 1, Position + 11);
       BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
-      Socket.SendText('<|REDIRECT|><|FILESLIST|>' + TRDLib.ListFiles(BufferTemp, '*.*') + '<|ENDFILESLIST|>');
+      Socket.SendText('<|REDIRECT|><|FILESLIST|>' + TRDLib.ListFiles(BufferTemp,
+        '*.*') + '<|ENDFILESLIST|>');
     end;
 
     // Receive Folder List
@@ -425,18 +432,21 @@ begin
       BufferTemp := Buffer;
       Delete(BufferTemp, 1, Position + 13);
       FoldersAndFiles := TStringList.Create;
-      FoldersAndFiles.Text := Copy(BufferTemp, 1, Pos('<|ENDFOLDERLIST|>', BufferTemp) - 1);
+      FoldersAndFiles.Text := Copy(BufferTemp, 1,
+        Pos('<|ENDFOLDERLIST|>', BufferTemp) - 1);
       FoldersAndFiles.Sort;
 
       Synchronize(
         procedure
         begin
           FormArquivos.CarregarListaPastas(FoldersAndFiles.Text);
-          FormArquivos.Caption := 'Compartilhamento de arquivos - ' + IntToStr(FormArquivos.lstArquivos.Items.Count) + ' Itens encontrados';
+          FormArquivos.Caption := Format(Locale.GetLocale(FRMS, 'FileTitle'),
+            [FormArquivos.lstArquivos.Items.Count]);
         end);
 
       FreeAndNil(FoldersAndFiles);
-      Socket.SendText('<|REDIRECT|><|GETFILES|>' + FormArquivos.txtPasta.Text + '<|END|>');
+      Socket.SendText('<|REDIRECT|><|GETFILES|>' + FormArquivos.EFolder.Text +
+        '<|END|>');
     end;
 
     // Receive Files List
@@ -457,15 +467,17 @@ begin
       BufferTemp := Buffer;
       Delete(BufferTemp, 1, Position + 12);
       FoldersAndFiles := TStringList.Create;
-      FoldersAndFiles.Text := Copy(BufferTemp, 1, Pos('<|ENDFILESLIST|>', BufferTemp) - 1);
+      FoldersAndFiles.Text := Copy(BufferTemp, 1,
+        Pos('<|ENDFILESLIST|>', BufferTemp) - 1);
       FoldersAndFiles.Sort;
 
       Synchronize(
         procedure
         begin
           FormArquivos.CarregarListaArquivos(FoldersAndFiles.Text);
-          FormArquivos.txtPasta.Enabled := True;
-          FormArquivos.Caption := 'Compartilhamento de arquivos - ' + IntToStr(FormArquivos.lstArquivos.Items.Count) + ' Itens encontrados';
+          FormArquivos.EFolder.Enabled := True;
+          FormArquivos.Caption := Format(Locale.GetLocale(FRMS, 'FileTitle'),
+            [FormArquivos.lstArquivos.Items.Count]);
         end);
 
       FreeAndNil(FoldersAndFiles);
@@ -482,7 +494,9 @@ begin
         procedure
         begin
           FormArquivos.pgbUpload.Value := StrToInt(BufferTemp);
-          FormArquivos.lblTamanhoUpload.Text := 'Tamanho: ' + TRDLib.GetSize(FormArquivos.pgbUpload.Value) + ' / ' + TRDLib.GetSize(FormArquivos.pgbUpload.Max);
+          FormArquivos.LUploadSize.Text := Format(Locale.GetLocale(APP, 'Size'),
+            [TRDLib.GetSize(FormArquivos.pgbUpload.Value),
+            TRDLib.GetSize(FormArquivos.pgbUpload.Max)])
         end);
     end;
 
@@ -493,16 +507,20 @@ begin
         begin
           FormArquivos.pgbUpload.Value := 0;
           FormArquivos.btnUpload.Enabled := True;
-          FormArquivos.txtPasta.Enabled := False;
-          FormArquivos.lblTamanhoUpload.Text := 'Tamanho: 0 B / 0 B';
+          FormArquivos.EFolder.Enabled := False;
+          FormArquivos.LUploadSize.Text := Format(Locale.GetLocale(APP, 'Size'),
+            ['0 B', '0 B']);
         end);
 
-      Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' + FormArquivos.txtPasta.Text + '<|END|>');
+      Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' +
+        FormArquivos.EFolder.Text + '<|END|>');
 
       Synchronize(
         procedure
         begin
-          MessageBox(0, 'Arquivo enviado com sucesso.', 'Suporte Remoto - Arquivos', MB_ICONASTERISK + MB_TOPMOST);
+          MessageBox(0, Locale.GetLocaleDlg(MSGS, 'SendSuccess'),
+            Locale.GetLocaleDlg(FRMS, 'FileSubTitle'),
+            MB_ICONASTERISK + MB_TOPMOST);
         end);
     end;
 
@@ -513,7 +531,8 @@ begin
       Delete(BufferTemp, 1, Position + 15);
       BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
       FileToUpload := TFileStream.Create(BufferTemp, fmOpenRead);
-      Conexao.SocketArquivos.Socket.SendText('<|SIZE|>' + IntToStr(FileToUpload.Size) + '<|END|>');
+      Conexao.SocketArquivos.Socket.SendText
+        ('<|SIZE|>' + IntToStr(FileToUpload.Size) + '<|END|>');
       Conexao.SocketArquivos.Socket.SendStream(FileToUpload);
     end;
   end;
@@ -578,7 +597,9 @@ begin
       if Position > 0 then
       begin
         Delete(Buffer, 1, Position + 20);
-        Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' + IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height)) + '<|END|>');
+        Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' +
+          IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height))
+          + '<|END|>');
 
         TMemoryStream(MyFirstBmp).Clear;
         UnPackStream.Clear;
@@ -590,7 +611,8 @@ begin
         Synchronize(
           procedure
           begin
-            GetScreenToMemoryStream(Conexao.MostrarMouse, TMemoryStream(MyFirstBmp));
+            GetScreenToMemoryStream(Conexao.MostrarMouse,
+              TMemoryStream(MyFirstBmp));
           end);
 
         MyFirstBmp.Position := 0;
@@ -627,22 +649,27 @@ begin
 
           // Workaround to run on change from secure desktop to default.
           try
-            GetScreenToMemoryStream(Conexao.MostrarMouse, TMemoryStream(MySecondBmp));
+            GetScreenToMemoryStream(Conexao.MostrarMouse,
+              TMemoryStream(MySecondBmp));
             MySecondBmp.Position := 0;
           except
             Synchronize(
               procedure
               begin
-                GetScreenToMemoryStream(Conexao.MostrarMouse, TMemoryStream(MySecondBmp));
+                GetScreenToMemoryStream(Conexao.MostrarMouse,
+                  TMemoryStream(MySecondBmp));
                 MySecondBmp.Position := 0;
               end);
           end;
 
           // Check if the resolution has been changed
           if MyFirstBmp.Size <> MySecondBmp.Size then
-            Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' + IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height)) + '<|END|>');
+            Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>'
+              + IntToStr(Trunc(Screen.Width)) + '<|>' +
+              IntToStr(Trunc(Screen.Height)) + '<|END|>');
 
-          CompareStream(TMemoryStream(MyFirstBmp), TMemoryStream(MySecondBmp), TMemoryStream(MyCompareBmp));
+          CompareStream(TMemoryStream(MyFirstBmp), TMemoryStream(MySecondBmp),
+            TMemoryStream(MyCompareBmp));
           MyCompareBmp.Position := 0;
           PackStream.LoadFromStream(MyCompareBmp);
           TRDLib.CompressStreamWithZLib(PackStream);
@@ -650,7 +677,8 @@ begin
 
           if (Socket <> nil) and (Socket.Connected) then
           begin
-            while Socket.SendText('<|IMAGE|>' + TRDLib.MemoryStreamToString(PackStream) + '<|END|>') < 0 do
+            while Socket.SendText('<|IMAGE|>' + TRDLib.MemoryStreamToString
+              (PackStream) + '<|END|>') < 0 do
               Sleep(FOLGAPROCESSAMENTO);
           end;
         end;
@@ -667,14 +695,15 @@ begin
         end
         else
         begin
-          Delete(Buffer, 1, Pos('<|IMAGE|>', Buffer) + 8);
+        Delete(Buffer, 1, Pos('<|IMAGE|>', Buffer) + 8);
           bFirst := False;
         end;
 
         Position := Pos('<|END|>', Buffer);
         TempBuffer := Copy(Buffer, 1, Position - 1);
         MyTempStream.Write(AnsiString(TempBuffer)[1], Length(TempBuffer));
-        Delete(Buffer, 1, Position + 6); // Clears the memory of the image that was processed.
+        Delete(Buffer, 1, Position + 6);
+        // Clears the memory of the image that was processed.
         MyTempStream.Position := 0;
         UnPackStream.LoadFromStream(MyTempStream);
         TRDLib.DeCompressStreamWithZLib(UnPackStream);
@@ -689,8 +718,9 @@ begin
             procedure
             begin
               try
-                FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MyFirstBmp);
-                FormTelaRemota.Caption := 'Suporte Remoto (Latência: ' + IntToStr(Conexao.Latencia) + ' ms)';
+              FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MyFirstBmp);
+              FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
+                'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
               except
                 on e: exception do
                 begin
@@ -704,14 +734,16 @@ begin
           TMemoryStream(MyCompareBmp).Clear;
           TMemoryStream(MySecondBmp).Clear;
           TMemoryStream(MyCompareBmp).LoadFromStream(UnPackStream);
-          ResumeStream(TMemoryStream(MyFirstBmp), TMemoryStream(MySecondBmp), TMemoryStream(MyCompareBmp));
+          ResumeStream(TMemoryStream(MyFirstBmp), TMemoryStream(MySecondBmp),
+            TMemoryStream(MyCompareBmp));
 
           Synchronize(
             procedure
             begin
               Try
                 FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MySecondBmp);
-                FormTelaRemota.Caption := 'Suporte Remoto (Latência: ' + IntToStr(Conexao.Latencia) + ' ms)';
+                FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
+                  'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
               Except
                 on e: exception do
                 begin
@@ -894,7 +926,8 @@ begin
         Delete(BufferTemp, 1, Position + 7);
         BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
         FileSize := StrToInt(BufferTemp);
-        FileStream := TFileStream.Create(FormArquivos.DirectoryToSaveFile + '.tmp', fmCreate or fmOpenReadWrite);
+        FileStream := TFileStream.Create(FormArquivos.DirectoryToSaveFile +
+          '.tmp', fmCreate or fmOpenReadWrite);
 
         if (Conexao.Visualizador) then
         begin
@@ -903,7 +936,9 @@ begin
             begin
               FormArquivos.pgbDownload.Max := FileSize;
               FormArquivos.pgbDownload.Value := 0;
-              FormArquivos.lblTamanhoDownload.Text := 'Tamanho: ' + TRDLib.GetSize(FileStream.Size) + ' / ' + TRDLib.GetSize(FileSize);
+              FormArquivos.LDownloadSize.Text := Format(Locale.GetLocaleDlg(APP,
+                'Size'), [TRDLib.GetSize(FileStream.Size),
+                TRDLib.GetSize(FileSize)]);
             end);
         end;
 
@@ -922,12 +957,16 @@ begin
           procedure
           begin
             FormArquivos.pgbDownload.Value := FileStream.Size;
-            FormArquivos.lblTamanhoDownload.Text := 'Tamanho: ' + TRDLib.GetSize(FileStream.Size) + ' / ' + TRDLib.GetSize(FileSize);
+            FormArquivos.LDownloadSize.Text := Format(Locale.GetLocaleDlg(APP,
+              'Size'), [TRDLib.GetSize(FileStream.Size),
+              TRDLib.GetSize(FileSize)]);
           end);
       end
       else
       begin
-        while Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|UPLOADPROGRESS|>' + IntToStr(FileStream.Size) + '<|END|>') < 0 do
+        while Conexao.SocketPrincipal.Socket.SendText
+          ('<|REDIRECT|><|UPLOADPROGRESS|>' + IntToStr(FileStream.Size) +
+          '<|END|>') < 0 do
           Sleep(FOLGAPROCESSAMENTO);
       end;
 
@@ -938,10 +977,12 @@ begin
         if (FileExists(FormArquivos.DirectoryToSaveFile)) then
           DeleteFile(FormArquivos.DirectoryToSaveFile);
 
-        RenameFile(FormArquivos.DirectoryToSaveFile + '.tmp', FormArquivos.DirectoryToSaveFile);
+        RenameFile(FormArquivos.DirectoryToSaveFile + '.tmp',
+          FormArquivos.DirectoryToSaveFile);
 
         if not(Conexao.Visualizador) then
-          Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|UPLOADCOMPLETE|>')
+          Conexao.SocketPrincipal.Socket.SendText
+            ('<|REDIRECT|><|UPLOADCOMPLETE|>')
         else
         begin
           Synchronize(
@@ -949,8 +990,11 @@ begin
             begin
               FormArquivos.pgbDownload.Value := 0;
               FormArquivos.btnDownload.Enabled := True;
-              FormArquivos.lblTamanhoDownload.Text := 'Tamanho: 0 B / 0 B';
-              MessageBox(0, 'Arquivo baixado com sucesso.', 'Suporte Remoto - Arquivos', MB_ICONASTERISK + MB_TOPMOST);
+              FormArquivos.LDownloadSize.Text := Format(Locale.GetLocaleDlg(APP,
+                'Size'), ['0 B', '0 B']);
+              MessageBox(0, Locale.GetLocaleDlg(MSGS, 'DownloadSuccess'),
+                Locale.GetLocaleDlg(FRMS, 'FileSubTitle'),
+                MB_ICONASTERISK + MB_TOPMOST);
             end);
         end;
 

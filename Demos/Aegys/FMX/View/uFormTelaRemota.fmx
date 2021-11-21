@@ -7074,7 +7074,6 @@ object FormTelaRemota: TFormTelaRemota
       Size.Width = 177.000000000000000000
       Size.Height = 41.000000000000000000
       Size.PlatformDefault = False
-      Visible = True
       object Path3: TPath
         Align = Left
         Data.Path = {
@@ -7097,7 +7096,7 @@ object FormTelaRemota: TFormTelaRemota
         Stroke.Kind = None
         WrapMode = Fit
       end
-      object Label3: TLabel
+      object LMouse: TLabel
         Align = Client
         StyledSettings = [Style]
         Margins.Left = 10.000000000000000000
@@ -7120,7 +7119,6 @@ object FormTelaRemota: TFormTelaRemota
       Size.Width = 102.000000000000000000
       Size.Height = 41.000000000000000000
       Size.PlatformDefault = False
-      Visible = True
       object Path1: TPath
         Align = Left
         Data.Path = {
@@ -7144,7 +7142,7 @@ object FormTelaRemota: TFormTelaRemota
         Stroke.Kind = None
         WrapMode = Fit
       end
-      object Label1: TLabel
+      object LChat: TLabel
         Align = Client
         StyledSettings = [Style]
         Margins.Left = 10.000000000000000000
@@ -7167,7 +7165,6 @@ object FormTelaRemota: TFormTelaRemota
       Size.Width = 153.000000000000000000
       Size.Height = 41.000000000000000000
       Size.PlatformDefault = False
-      Visible = True
       object Path2: TPath
         Align = Left
         Data.Path = {
@@ -7190,7 +7187,7 @@ object FormTelaRemota: TFormTelaRemota
         Stroke.Kind = None
         WrapMode = Fit
       end
-      object Label2: TLabel
+      object LFiles: TLabel
         Align = Client
         StyledSettings = [Style]
         Margins.Left = 10.000000000000000000

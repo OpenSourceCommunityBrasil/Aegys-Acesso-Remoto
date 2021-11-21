@@ -93,7 +93,7 @@ object FormSenha: TFormSenha
         Size.Height = 48.000000000000000000
         Size.PlatformDefault = False
         Stroke.Kind = None
-        object Label23: TLabel
+        object LOkButton: TLabel
           Action = PROC_SENHA
           Align = Client
           Enabled = True
@@ -106,7 +106,7 @@ object FormSenha: TFormSenha
           TextSettings.Font.Size = 20.000000000000000000
           TextSettings.FontColor = claWhite
           TextSettings.HorzAlign = Center
-          Visible = True
+          TabOrder = 0
         end
         object aniBtnLogin: TFloatAnimation
           Duration = 0.500000000000000000
@@ -133,7 +133,7 @@ object FormSenha: TFormSenha
         Stroke.Kind = None
         XRadius = 10.000000000000000000
         YRadius = 10.000000000000000000
-        object Label7: TLabel
+        object LPassword: TLabel
           Align = Client
           StyledSettings = [Style]
           Size.Width = 278.000000000000000000
@@ -144,6 +144,7 @@ object FormSenha: TFormSenha
           TextSettings.FontColor = xFF424242
           TextSettings.HorzAlign = Center
           Text = 'Senha do acesso remoto'
+          TabOrder = 0
         end
       end
       object Layout10: TLayout
@@ -152,7 +153,7 @@ object FormSenha: TFormSenha
         Size.Height = 36.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        object txtSenha: TEdit
+        object EPassword: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
           StyleLookup = 'transparentedit'
@@ -171,7 +172,7 @@ object FormSenha: TFormSenha
           Size.PlatformDefault = False
           TextPrompt = '____'
           StyledSettings = [Style]
-          OnKeyDown = txtSenhaKeyDown
+          OnKeyDown = EPasswordKeyDown
         end
         object SpeedButton3: TSpeedButton
           Action = PROC_COLAR_SENHA
@@ -183,7 +184,6 @@ object FormSenha: TFormSenha
           Size.Width = 36.000000000000000000
           Size.Height = 36.000000000000000000
           Size.PlatformDefault = False
-          Visible = True
           object Path5: TPath
             Align = Client
             Data.Path = {

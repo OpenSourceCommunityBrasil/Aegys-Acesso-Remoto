@@ -1,22 +1,10 @@
 unit uFormArquivos;
 
-{
- Projeto Aegys.
-
-  Criado por Gilberto Rocha da Silva em 05/04/2017 baseado no projeto Allakore, tem por objetivo promover acesso remoto e outros
- de forma gratuita a todos que necessitarem, hoje mantido por uma bela comunidade listando aqui nossos colaboradores de grande estima.
-
-  Gilberto Rocha da Silva(XyberX) (Creator of Aegys Project/Main Desenveloper/Admin).
-  Wendel Rodrigues Fassarella(wendelfassarella) (Creator of Aegys FMX/CORE Desenveloper).
-  Rai Duarte Jales(Raí Duarte) (Aegys Server Desenveloper).
-  Roniery Santos Cardoso (Aegys Desenveloper).
-  Alexandre Carlos Silva Abade (Aegys Desenveloper).
-}
-
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  System.SysUtils, System.Types, System.UITypes, System.Classes,
+  System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.Objects, FMX.Layouts, FMX.ListView, FMX.StdCtrls, System.Actions,
@@ -28,9 +16,9 @@ type
     Layout1: TLayout;
     Line1: TLine;
     Layout2: TLayout;
-    Label1: TLabel;
+    LFolder: TLabel;
     Rectangle3: TRectangle;
-    txtPasta: TEdit;
+    EFolder: TEdit;
     Layout3: TLayout;
     Layout5: TLayout;
     Rectangle4: TRoundRect;
@@ -42,13 +30,13 @@ type
     Layout6: TLayout;
     Layout8: TLayout;
     Layout9: TLayout;
-    Label3: TLabel;
-    lblTamanhoDownload: TLabel;
+    LDownloadProgress: TLabel;
+    LDownloadSize: TLabel;
     pgbDownload: TProgressBar;
     Layout7: TLayout;
     Layout10: TLayout;
-    Label5: TLabel;
-    lblTamanhoUpload: TLabel;
+    LUploadProgress: TLabel;
+    LUploadSize: TLabel;
     pgbUpload: TProgressBar;
     SaveDialog1: TSaveDialog;
     OpenDialog1: TOpenDialog;
@@ -58,15 +46,19 @@ type
     procedure PROC_UPLOADExecute(Sender: TObject);
     procedure PROC_DOWNLOADExecute(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure txtPastaKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
+    procedure EFolderKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
-    procedure lstArquivosItemClick(const Sender: TCustomListBox; const Item: TListBoxItem);
+    procedure lstArquivosItemClick(const Sender: TCustomListBox;
+      const Item: TListBoxItem);
     procedure FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
   private
     procedure AbrirPasta(APasta: string);
     procedure GoToDirectory(ADirectory: string);
-    procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
+    procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
+      message WM_GETMINMAXINFO;
+    procedure Translate;
   public
     DirectoryToSaveFile: string;
     FileStream: TFileStream;
@@ -81,26 +73,26 @@ implementation
 
 {$R *.fmx}
 
-
-uses uFormConexao, uFrameArquivo, Winapi.Windows, FMX.Platform.Win;
+uses uFormConexao, uFrameArquivo, Winapi.Windows, FMX.Platform.Win,
+  uLocaleFunctions, uConstants;
 
 procedure TFormArquivos.AbrirPasta(APasta: string);
 var
   ADirectory: string;
 begin
-  if not txtPasta.Enabled then
+  if not EFolder.Enabled then
     Exit;
 
   if APasta = 'Retorno' then
   begin
-    ADirectory := txtPasta.Text;
+    ADirectory := EFolder.Text;
     Delete(ADirectory, Length(ADirectory), Length(ADirectory));
-    txtPasta.Text := ExtractFilePath(ADirectory + '..');
+    EFolder.Text := ExtractFilePath(ADirectory + '..');
   end
   else
-    txtPasta.Text := txtPasta.Text + APasta + '\';
+    EFolder.Text := EFolder.Text + APasta + '\';
 
-  GoToDirectory(txtPasta.Text);
+  GoToDirectory(EFolder.Text);
 end;
 
 procedure TFormArquivos.CarregarListaArquivos(ALista: string);
@@ -182,18 +174,19 @@ begin
   lstArquivos.EndUpdate;
 end;
 
-procedure TFormArquivos.txtPastaKeyDown(Sender: TObject; var Key: Word;
+procedure TFormArquivos.EFolderKeyDown(Sender: TObject; var Key: Word;
   var KeyChar: Char; Shift: TShiftState);
 begin
   if (Key = vkReturn) then
   begin
-    GoToDirectory(txtPasta.Text);
+    GoToDirectory(EFolder.Text);
     Key := vkNone;
   end;
 end;
 
 procedure TFormArquivos.FormCreate(Sender: TObject);
 begin
+  Translate;
   SetWindowLong(FmxHandleToHWND(Handle), GWL_EXSTYLE, WS_EX_APPWINDOW);
 end;
 
@@ -204,33 +197,35 @@ var
 begin
   if (Key <> vkReturn) then
     Exit;
-  for i := 0 to lstArquivos.Items.Count -1 do
+  for i := 0 to lstArquivos.Items.Count - 1 do
   begin
-    if (lstArquivos.ListItems[i].Components[0] is TFrameArquivo)
-      and (lstArquivos.ListItems[i].Tag < 2) then
+    if (lstArquivos.ListItems[i].Components[0] is TFrameArquivo) and
+      (lstArquivos.ListItems[i].Tag < 2) then
       AbrirPasta(lstArquivos.ListItems[i].TagString);
   end;
 end;
 
 procedure TFormArquivos.FormShow(Sender: TObject);
 begin
-  GoToDirectory(txtPasta.Text);
+  GoToDirectory(EFolder.Text);
 end;
 
 procedure TFormArquivos.GoToDirectory(ADirectory: string);
 begin
-  txtPasta.Enabled := False;
+  EFolder.Enabled := False;
 
   if not(ADirectory[Length(ADirectory)] = '\') then
   begin
     ADirectory := ADirectory + '\';
-    txtPasta.Text := ADirectory;
+    EFolder.Text := ADirectory;
   end;
 
-  Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' + ADirectory + '<|END|>');
+  Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' +
+    ADirectory + '<|END|>');
 end;
 
-procedure TFormArquivos.lstArquivosItemClick(const Sender: TCustomListBox; const Item: TListBoxItem);
+procedure TFormArquivos.lstArquivosItemClick(const Sender: TCustomListBox;
+  const Item: TListBoxItem);
 begin
   if Item.Tag < 2 then
     AbrirPasta(Item.TagString);
@@ -242,20 +237,26 @@ var
 begin
   for i := 0 to lstArquivos.Items.Count - 1 do
   begin
-    if (lstArquivos.ListItems[i].Components[0] is TFrameArquivo)
-      and (TFrameArquivo(lstArquivos.ListItems[i].Components[0]).btnArquivo.IsPressed)
-      and (lstArquivos.ListItems[i].Tag > 1) then
+    if (lstArquivos.ListItems[i].Components[0] is TFrameArquivo) and
+      (TFrameArquivo(lstArquivos.ListItems[i].Components[0])
+      .btnArquivo.IsPressed) and (lstArquivos.ListItems[i].Tag > 1) then
     begin
-      SaveDialog1.FileName := TFrameArquivo(lstArquivos.ListItems[i].Components[0]).Arquivo.Nome;
-      SaveDialog1.Filter := 'Arquivo (*' + ExtractFileExt(TFrameArquivo(lstArquivos.ListItems[i].Components[0]).Arquivo.Nome) +
-        ')|*' + ExtractFileExt(TFrameArquivo(lstArquivos.ListItems[i].Components[0]).Arquivo.Extensao);
+      SaveDialog1.FileName := TFrameArquivo(lstArquivos.ListItems[i].Components
+        [0]).Arquivo.Nome;
+      SaveDialog1.Filter := 'Arquivo (*' +
+        ExtractFileExt(TFrameArquivo(lstArquivos.ListItems[i].Components[0])
+        .Arquivo.Nome) + ')|*' + ExtractFileExt
+        (TFrameArquivo(lstArquivos.ListItems[i].Components[0])
+        .Arquivo.Extensao);
 
       if SaveDialog1.Execute then
       begin
         DirectoryToSaveFile := SaveDialog1.FileName +
-          ExtractFileExt(TFrameArquivo(lstArquivos.ListItems[i].Components[0]).Arquivo.Nome);
-        Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|DOWNLOADFILE|>' + txtPasta.Text +
-          TFrameArquivo(lstArquivos.ListItems[i].Components[0]).Arquivo.Nome + '<|END|>');
+          ExtractFileExt(TFrameArquivo(lstArquivos.ListItems[i].Components[0])
+          .Arquivo.Nome);
+        Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|DOWNLOADFILE|>' +
+          EFolder.Text + TFrameArquivo(lstArquivos.ListItems[i].Components[0])
+          .Arquivo.Nome + '<|END|>');
         btnDownload.Enabled := False;
       end;
       Break;
@@ -275,12 +276,23 @@ begin
     FileStream := TFileStream.Create(OpenDialog1.FileName, fmOpenRead);
     FileName := ExtractFileName(OpenDialog1.FileName);
     pgbUpload.Max := FileStream.Size;
-    Conexao.SocketArquivos.Socket.SendText('<|DIRECTORYTOSAVE|>' + txtPasta.Text + FileName +
-      '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
+    Conexao.SocketArquivos.Socket.SendText('<|DIRECTORYTOSAVE|>' + EFolder.Text
+      + FileName + '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
     FileStream.Position := 0;
     Conexao.SocketArquivos.Socket.SendStream(FileStream);
     btnUpload.Enabled := False;
   end;
+end;
+
+procedure TFormArquivos.Translate;
+begin
+  LFolder.Text := Locale.GetLocale(FRMS, 'FileFolder');
+  LDownloadProgress.Text := Locale.GetLocale(FRMS, 'FileDownloadProgress');
+  LDownloadSize.Text := Format(Locale.GetLocale(APP, 'Size'), ['0 B', '0 B']);
+  LUploadProgress.Text := Locale.GetLocale(FRMS, 'FileUploadProgress');
+  LUploadSize.Text := Format(Locale.GetLocale(APP, 'Size'), ['0 B', '0 B']);
+  btnDownload.Text := Locale.GetLocale(FRMS, 'FileDownloadButton');
+  btnUpload.Text := Locale.GetLocale(FRMS, 'FileUploadButton');
 end;
 
 procedure TFormArquivos.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);

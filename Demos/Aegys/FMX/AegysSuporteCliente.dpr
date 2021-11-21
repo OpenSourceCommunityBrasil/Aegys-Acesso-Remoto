@@ -24,7 +24,8 @@ uses
   uFormSenha in 'View\uFormSenha.pas' {FormSenha},
   uCtrl_Conexao in 'Control\uCtrl_Conexao.pas',
   uHttpClass in 'Lib\uHttpClass.pas',
-  Bcrypt in 'Lib\Bcrypt.pas';
+  Bcrypt in 'Lib\Bcrypt.pas',
+  uLocaleFunctions in 'Locale\uLocaleFunctions.pas';
 
 {$R *.res}
 
@@ -93,7 +94,7 @@ begin
     DeleteFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
   end;
   {$ENDIF}
-  Application.Title := 'Suporte Remoto';
+  Application.Title := Locale.GetLocale(APP, 'Title');
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM_Styles, DM_Styles);
   Application.CreateForm(TFormChat, FormChat);
