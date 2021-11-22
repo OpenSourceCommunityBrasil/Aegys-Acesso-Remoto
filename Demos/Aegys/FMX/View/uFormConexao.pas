@@ -297,7 +297,8 @@ procedure TFormConexao.Translate;
 begin
   self.Caption := Locale.GetLocale(FRMS, 'MainTitle');
   LSubTitle.Text := Locale.GetLocale(FRMS, 'MainSubTitle');
-  LVersion.Text := Locale.GetLocale(APP, 'Version');
+  LVersion.Text := Format(Locale.GetLocale(APP, 'Version'),
+    [TRDLib.GetAppVersionStr]);
   LlyMachineIDCaption.Text := Locale.GetLocale(FRMS, 'MainMachineID');
   LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'MainPassword');
   LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
