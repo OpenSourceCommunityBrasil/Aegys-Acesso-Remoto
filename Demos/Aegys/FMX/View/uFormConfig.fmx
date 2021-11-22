@@ -1,0 +1,129 @@
+object fConfig: TfConfig
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 354
+  ClientWidth = 267
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object lyLanguage: TLayout
+    Align = Top
+    Margins.Top = 10.000000000000000000
+    Position.Y = 10.000000000000000000
+    Size.Width = 267.000000000000000000
+    Size.Height = 56.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object Rectangle4: TRectangle
+      Align = Top
+      Size.Width = 267.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 10.000000000000000000
+      YRadius = 10.000000000000000000
+      object LLanguageSelector: TLabel
+        Align = Client
+        StyledSettings = [Style]
+        Size.Width = 267.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Quicksand'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF424242
+        TextSettings.HorzAlign = Center
+        Text = 'Idioma'
+        TabOrder = 0
+      end
+    end
+    object Layout10: TLayout
+      Align = Client
+      Size.Width = 267.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object cbLanguages: TComboBox
+        Align = Center
+        Size.Width = 107.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'cbxTransparente'
+        TabOrder = 0
+      end
+    end
+  end
+  object lyBottomBar: TLayout
+    Align = Bottom
+    Position.Y = 312.000000000000000000
+    Size.Width = 267.000000000000000000
+    Size.Height = 42.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object flBottomBar: TFlowLayout
+      Align = Client
+      Margins.Left = 10.000000000000000000
+      Margins.Right = 10.000000000000000000
+      Size.Width = 247.000000000000000000
+      Size.Height = 42.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Justify = Center
+      JustifyLastLine = Center
+      FlowDirection = LeftToRight
+      HorizontalGap = 10.000000000000000000
+      object rrReturn: TRoundRect
+        Fill.Color = xFFED3237
+        Position.X = 18.500000000000000000
+        Size.Width = 100.000000000000000000
+        Size.Height = 42.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Thickness = 0.000000000000000000
+        OnClick = rrReturnClick
+        OnMouseEnter = rrApplyMouseEnter
+        OnMouseLeave = rrApplyMouseLeave
+        object LBackButton: TLabel
+          Align = Client
+          StyledSettings = [Style]
+          Size.Width = 100.000000000000000000
+          Size.Height = 42.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Quicksand'
+          TextSettings.Font.Size = 20.000000000000000000
+          TextSettings.FontColor = claWhite
+          TextSettings.HorzAlign = Center
+          Text = 'Voltar'
+          TabOrder = 0
+        end
+      end
+      object rrApply: TRoundRect
+        Fill.Color = xFFED3237
+        Position.X = 128.500000000000000000
+        Size.Width = 100.000000000000000000
+        Size.Height = 42.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Thickness = 0.000000000000000000
+        OnClick = rrApplyClick
+        OnMouseEnter = rrApplyMouseEnter
+        OnMouseLeave = rrApplyMouseLeave
+        object LApplyButton: TLabel
+          Align = Client
+          StyledSettings = [Style]
+          Size.Width = 100.000000000000000000
+          Size.Height = 42.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Quicksand'
+          TextSettings.Font.Size = 20.000000000000000000
+          TextSettings.FontColor = claWhite
+          TextSettings.HorzAlign = Center
+          Text = 'Salvar'
+          TabOrder = 0
+        end
+      end
+    end
+  end
+end

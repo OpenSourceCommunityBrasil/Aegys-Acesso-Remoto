@@ -84,6 +84,8 @@ type
     recDownload: TRectangle;
     Layout16: TLayout;
     aniDownload: TAniIndicator;
+    Path1: TPath;
+    sbOptions: TSpeedButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -98,6 +100,7 @@ type
       Shift: TShiftState);
     procedure EGuestIDTyping(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure sbOptionsClick(Sender: TObject);
   private
     FHash: string;
     Locale: TLocale;
@@ -123,7 +126,7 @@ implementation
 uses uFormTelaRemota, uFormArquivos, uFormChat, FMX.Clipboard,
   System.IOUtils, FMX.Platform, System.Rtti, uLibClass,
   Winapi.Windows, uConstants, BCrypt, System.DateUtils, uHttpClass,
-  System.Threading, Winapi.ShellAPI, FMX.Platform.Win;
+  System.Threading, Winapi.ShellAPI, FMX.Platform.Win, uFormConfig;
 
 procedure TFormConexao.LimparConexao;
 begin
@@ -253,11 +256,17 @@ begin
   actTabChange.ExecuteTarget(self);
 end;
 
+procedure TFormConexao.sbOptionsClick(Sender: TObject);
+begin
+  Application.CreateForm(TfConfig, fConfig);
+  fConfig.show;
+  fConfig.CallBackLang := Translate;
+end;
+
 procedure TFormConexao.actPasteIDExecute(Sender: TObject);
 begin
   EGuestID.Text := MascaraID(TRDLib.ColarTexto, '999-999-999');
   EGuestID.GoToTextEnd;
-  // EGuestID.SelStart := Length(EGuestID.Text);
 end;
 
 procedure TFormConexao.actConnectExecute(Sender: TObject);
@@ -270,8 +279,8 @@ begin
         MB_ICONASTERISK + MB_TOPMOST)
     else
     begin
-      Conexao.SocketPrincipal.Socket.SendText
-        ('<|FINDID|>' + LlyGuestIDCaption.Text + '<|END|>');
+      Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text +
+        '<|END|>');
       btnConectar.Enabled := False;
       MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
     end;

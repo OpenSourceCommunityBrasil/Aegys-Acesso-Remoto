@@ -1,11 +1,11 @@
 unit uCtrl_Threads;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -49,9 +49,6 @@ type
     procedure ThreadTerminate(ASender: TObject);
   end;
 
-var
-  Locale: TLocale;
-
 implementation
 
 { TConexaoPrincipal }
@@ -86,8 +83,10 @@ var
   FileToUpload: TFileStream;
   hDesktop: HDESK;
   Svc: IFMXClipboardService;
+  Locale: TLocale;
 begin
   inherited;
+  Locale := TLocale.Create;
 
   FoldersAndFiles := nil;
   FileToUpload := nil;
@@ -554,6 +553,7 @@ begin
       Conexao.SocketArquivos.Socket.SendStream(FileToUpload);
     end;
   end;
+  Locale.DisposeOf;
 end;
 
 procedure TThreadConexaoPrincipal.ThreadTerminate(ASender: TObject);
@@ -586,9 +586,10 @@ var
   MySecondBmp: TStream;
   hDesktop: HDESK;
   bFirst: Boolean;
+  Locale: TLocale;
 begin
   inherited;
-
+  Locale := TLocale.Create;
   try
     MyFirstBmp := TMemoryStream.Create;
     UnPackStream := TMemoryStream.Create;
@@ -605,7 +606,8 @@ begin
       if (Socket = nil) or not(Socket.Connected) or (Terminated) then
         Break;
 
-      if (Socket.ReceiveLength < 1) and (Pos('<|GETFULLSCREENSHOT|>', Buffer) <= 0) then
+      if (Socket.ReceiveLength < 1) and
+        (Pos('<|GETFULLSCREENSHOT|>', Buffer) <= 0) then
         Continue;
 
       Buffer := Buffer + Socket.ReceiveText;
@@ -637,7 +639,8 @@ begin
         PackStream.LoadFromStream(MyFirstBmp);
         TRDLib.CompressStreamWithZLib(PackStream);
         PackStream.Position := 0;
-        Socket.SendText('<|FIRSTIMAGE|>' + TRDLib.MemoryStreamToString(PackStream) + '<|END|>');
+        Socket.SendText('<|FIRSTIMAGE|>' + TRDLib.MemoryStreamToString
+          (PackStream) + '<|END|>');
 
         while True do
         begin
@@ -713,7 +716,7 @@ begin
         end
         else
         begin
-        Delete(Buffer, 1, Pos('<|IMAGE|>', Buffer) + 8);
+          Delete(Buffer, 1, Pos('<|IMAGE|>', Buffer) + 8);
           bFirst := False;
         end;
 
@@ -736,9 +739,9 @@ begin
             procedure
             begin
               try
-              FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MyFirstBmp);
-              FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
-                'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
+                FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MyFirstBmp);
+                FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
+                  'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
               except
                 on e: exception do
                 begin
@@ -785,6 +788,7 @@ begin
     FreeAndNil(MySecondBmp);
     FreeAndNil(MyCompareBmp);
     FreeAndNil(PackStream);
+    Locale.DisposeOf;
   end;
 end;
 
@@ -907,9 +911,10 @@ var
   Buffer: string;
   BufferTemp: string;
   FileStream: TFileStream;
+  Locale: TLocale;
 begin
   inherited;
-
+  Locale := TLocale.Create;
   ReceivingFile := False;
   FileStream := nil;
 
@@ -1020,6 +1025,7 @@ begin
       end;
     end;
   end;
+  Locale.DisposeOf;
 end;
 
 procedure TThreadConexaoArquivos.ThreadTerminate(ASender: TObject);

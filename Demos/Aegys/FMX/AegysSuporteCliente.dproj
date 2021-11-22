@@ -225,7 +225,6 @@
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <AppExecutionLevelUIAccess>true</AppExecutionLevelUIAccess>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -296,6 +295,10 @@
         <DCCReference Include="Lib\uHttpClass.pas"/>
         <DCCReference Include="Lib\Bcrypt.pas"/>
         <DCCReference Include="Locale\uLocaleFunctions.pas"/>
+        <DCCReference Include="View\uFormConfig.pas">
+            <Form>fConfig</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
         <RcItem Include="Resources\RunAsSystem.exe">
             <ContainerId>ResourceItem</ContainerId>
             <ResourceType>RCDATA</ResourceType>

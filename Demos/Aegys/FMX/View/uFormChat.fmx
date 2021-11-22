@@ -59,7 +59,7 @@ object FormChat: TFormChat
       Stroke.Color = claDarkgray
       XRadius = 5.000000000000000000
       YRadius = 5.000000000000000000
-      object txtMensagem: TMemo
+      object mmMessage: TMemo
         Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
         DataDetectorTypes = []
         MaxLength = 200
@@ -79,9 +79,9 @@ object FormChat: TFormChat
         Size.PlatformDefault = False
         StyleLookup = 'memTransparente'
         TabOrder = 0
-        OnKeyDown = txtMensagemKeyDown
-        Viewport.Width = 271.000000000000000000
-        Viewport.Height = 54.000000000000000000
+        OnKeyDown = mmMessageKeyDown
+        Viewport.Width = 267.000000000000000000
+        Viewport.Height = 50.000000000000000000
       end
     end
     object Splitter1: TSplitter
@@ -93,6 +93,15 @@ object FormChat: TFormChat
       Size.Width = 281.000000000000000000
       Size.Height = 8.000000000000000000
       Size.PlatformDefault = False
+    end
+  end
+  object ActionList1: TActionList
+    Left = 128
+    Top = 192
+    object actSendText: TAction
+      Text = 'actSendText'
+      ShortCut = 13
+      OnExecute = actSendTextExecute
     end
   end
 end

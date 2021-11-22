@@ -1,11 +1,11 @@
 unit uFormChat;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -18,10 +18,12 @@ unit uFormChat;
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  System.SysUtils, System.Types, System.UITypes, System.Classes,
+  System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, FMX.Objects,
-  FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uLocaleFunctions;
+  FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uLocaleFunctions,
+  System.Actions, FMX.ActnList;
 
 type
   TFormChat = class(TForm)
@@ -30,12 +32,16 @@ type
     lstMensagens: TListBox;
     Rectangle1: TRectangle;
     Rectangle8: TRectangle;
-    txtMensagem: TMemo;
-    procedure txtMensagemKeyDown(Sender: TObject; var Key: Word;
+    mmMessage: TMemo;
+    ActionList1: TActionList;
+    actSendText: TAction;
+    procedure mmMessageKeyDown(Sender: TObject; var Key: Word;
       var KeyChar: Char; Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
+    procedure actSendTextExecute(Sender: TObject);
   private
-    procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
+    procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
+      message WM_GETMINMAXINFO;
   public
     procedure Mensagem(AMensagem: string; AAtendente: Boolean = True);
   end;
@@ -46,7 +52,6 @@ var
 implementation
 
 {$R *.fmx}
-
 
 uses uDM_Styles, uFrameMensagemChat, Winapi.Windows;
 
@@ -83,6 +88,19 @@ begin
   MinMaxInfo^.ptMinTrackSize.Y := 340; // Minimum Height
 end;
 
+procedure TFormChat.actSendTextExecute(Sender: TObject);
+begin
+  if not mmMessage.Text.IsEmpty then
+  begin
+    Mensagem(mmMessage.Lines.Text, False);
+    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CHAT|>' +
+      mmMessage.Lines.Text + '<|END|>');
+    mmMessage.Lines.Clear;
+    lstMensagens.ScrollToItem(lstMensagens.ListItems
+      [lstMensagens.Items.Count - 1]);
+  end;
+end;
+
 procedure TFormChat.FormCreate(Sender: TObject);
 begin
   // SetWindowLong(Handle, GWL_EXSTYLE, WS_EX_APPWINDOW);
@@ -90,20 +108,14 @@ begin
   FormChat.Left := Trunc(Screen.WorkAreaWidth - FormChat.Width);
 end;
 
-procedure TFormChat.txtMensagemKeyDown(Sender: TObject; var Key: Word;
+procedure TFormChat.mmMessageKeyDown(Sender: TObject; var Key: Word;
   var KeyChar: Char; Shift: TShiftState);
 begin
-  if Key = vkReturn then
-  begin
-    if Length(txtMensagem.Text) > 0 then
-    begin
-      Key := vkNone;
-      Mensagem(TMemo(Sender).Lines.Text, False);
-      Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CHAT|>' + TMemo(Sender).Lines.Text + '<|END|>');
-      TMemo(Sender).Lines.Clear;
-      lstMensagens.ScrollToItem(lstMensagens.ListItems[lstMensagens.Items.Count - 1]);
-    end;
-  end;
+  // if Key = vkReturn then
+  // begin
+  // actSendText.Execute;
+  // Key := vkNone;
+  // end;
 end;
 
 end.

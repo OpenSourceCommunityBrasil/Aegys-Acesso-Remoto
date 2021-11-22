@@ -25,7 +25,8 @@ uses
   uCtrl_Conexao in 'Control\uCtrl_Conexao.pas',
   uHttpClass in 'Lib\uHttpClass.pas',
   Bcrypt in 'Lib\Bcrypt.pas',
-  uLocaleFunctions in 'Locale\uLocaleFunctions.pas';
+  uLocaleFunctions in 'Locale\uLocaleFunctions.pas',
+  uFormConfig in 'View\uFormConfig.pas' {fConfig};
 
 {$R *.res}
 
