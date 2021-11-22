@@ -21,7 +21,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, FMX.Objects,
-  FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao;
+  FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uLocaleFunctions;
 
 type
   TFormChat = class(TForm)
@@ -62,6 +62,7 @@ begin
   ARec.Atendente := AAtendente;
   ItemAdd := TListBoxItem.Create(nil);
   FItem := TFrameMensagemChat.Create(ItemAdd);
+  FItem.Locale := TLocale.Create;
   FItem.Parent := ItemAdd;
   FItem.Mensagem := ARec;
   ItemAdd.Height := FItem.Tamanho;

@@ -1,11 +1,11 @@
 unit uFormSenha;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -22,7 +22,7 @@ uses
   System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Edit,
   FMX.Objects, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Ani, FMX.Layouts,
-  System.Actions, FMX.ActnList;
+  System.Actions, FMX.ActnList, uLocaleFunctions;
 
 type
   TFormSenha = class(TForm)
@@ -52,8 +52,10 @@ type
     procedure EPasswordKeyDown(Sender: TObject; var Key: Word;
       var KeyChar: Char; Shift: TShiftState);
     procedure PROC_COLAR_SENHAExecute(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
+    Locale: TLocale;
   public
     { Public declarations }
   end;
@@ -66,7 +68,7 @@ implementation
 
 {$R *.fmx}
 
-uses uFormTelaRemota, uFormConexao, uLibClass, uLocaleFunctions, uConstants;
+uses uFormTelaRemota, uFormConexao, uLibClass, uConstants;
 
 procedure TFormSenha.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -79,7 +81,13 @@ end;
 
 procedure TFormSenha.FormCreate(Sender: TObject);
 begin
+  Locale := TLocale.Create;
   // SetWindowLong(Handle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+end;
+
+procedure TFormSenha.FormDestroy(Sender: TObject);
+begin
+  Locale.DisposeOf;
 end;
 
 procedure TFormSenha.FormShow(Sender: TObject);

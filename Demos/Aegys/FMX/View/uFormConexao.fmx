@@ -13,6 +13,7 @@ object FormConexao: TFormConexao
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   OnClose = FormClose
+  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignerMasterStyle = 0
   object tmrIntervalo: TTimer

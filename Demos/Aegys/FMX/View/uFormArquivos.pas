@@ -24,7 +24,7 @@ uses
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.Objects, FMX.Layouts, FMX.ListView, FMX.StdCtrls, System.Actions,
   FMX.ActnList, FMX.Ani, FMX.Edit, FMX.Controls.Presentation, FMX.ListBox,
-  Winapi.Messages;
+  Winapi.Messages, uLocaleFunctions;
 
 type
   TFormArquivos = class(TForm)
@@ -68,7 +68,9 @@ type
       const Item: TListBoxItem);
     procedure FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
+    procedure FormDestroy(Sender: TObject);
   private
+    Locale: TLocale;
     procedure AbrirPasta(APasta: string);
     procedure GoToDirectory(ADirectory: string);
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
@@ -89,7 +91,7 @@ implementation
 {$R *.fmx}
 
 uses uFormConexao, uFrameArquivo, Winapi.Windows, FMX.Platform.Win,
-  uLocaleFunctions, uConstants;
+  uConstants;
 
 procedure TFormArquivos.AbrirPasta(APasta: string);
 var
@@ -201,8 +203,14 @@ end;
 
 procedure TFormArquivos.FormCreate(Sender: TObject);
 begin
+  Locale := TLocale.Create;
   Translate;
   SetWindowLong(FmxHandleToHWND(Handle), GWL_EXSTYLE, WS_EX_APPWINDOW);
+end;
+
+procedure TFormArquivos.FormDestroy(Sender: TObject);
+begin
+  Locale.DisposeOf;
 end;
 
 procedure TFormArquivos.FormKeyDown(Sender: TObject; var Key: Word;

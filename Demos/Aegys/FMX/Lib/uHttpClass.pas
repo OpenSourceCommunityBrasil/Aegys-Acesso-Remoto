@@ -1,11 +1,11 @@
 unit uHttpClass;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -18,7 +18,7 @@ unit uHttpClass;
 interface
 
 uses
-  System.Net.URLClient, System.Net.HTTPClient;
+  System.Net.URLClient, System.Net.HTTPClient, uLocaleFunctions;
 
 type
   TRDHttpProgress = procedure(AStartPosition, AEndPosition, AReadCount: Int64)
@@ -38,6 +38,7 @@ type
       const ARequest: TURLRequest; const Certificate: TCertificate;
       var Accepted: Boolean);
   public
+    Locale: TLocale;
     class function DataArquivo(AUrl: string): TDateTime;
     class function Download(AFile, AUrl: string;
       AProgressEvent: TRDHttpProgress): Boolean; overload;
@@ -54,11 +55,12 @@ implementation
 
 uses
   System.Classes, System.SysUtils, Winapi.Windows, IdGlobalProtocols,
-  uLocaleFunctions, uConstants;
+  uConstants;
 
 constructor TRDHttp.Create;
 begin
   inherited Create;
+  Locale := TLocale.Create;
 
   FHTTPClient := THTTPClient.Create;
   FHTTPClient.OnValidateServerCertificate :=
@@ -85,7 +87,9 @@ class function TRDHttp.DataArquivo(AUrl: string): TDateTime;
 var
   httpResponse: IHTTPResponse;
   hClient: THTTPClient;
+  Locale: TLocale;
 begin
+  Locale := TLocale.Create;
   try
     Result := 0;
     hClient := THTTPClient.Create;
@@ -104,6 +108,7 @@ begin
     httpResponse := nil;
     if Assigned(hClient) then
       FreeAndNil(hClient);
+    Locale.DisposeOf;
   end;
 end;
 
@@ -111,6 +116,7 @@ destructor TRDHttp.Destroy;
 begin
   if Assigned(FHTTPClient) then
     FreeAndNil(FHTTPClient);
+  Locale.DisposeOf;
   inherited Destroy;
 end;
 

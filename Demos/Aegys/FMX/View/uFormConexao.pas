@@ -1,11 +1,11 @@
 unit uFormConexao;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -26,7 +26,7 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, uDWAbout, uRESTDWPoolerDB, Data.DB,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, uDWConstsData, FMX.TabControl,
-  uCtrl_Conexao, uRESTDWServerEvents;
+  uCtrl_Conexao, uRESTDWServerEvents, uLocaleFunctions;
 
 type
   TFormConexao = class(TForm)
@@ -97,8 +97,10 @@ type
     procedure EGuestIDKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
     procedure EGuestIDTyping(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     FHash: string;
+    Locale: TLocale;
     function MascaraID(AText, AMascara: string): string;
     procedure MudarTab(TabItem: TTabItem);
     procedure VerificarAtualizacao;
@@ -121,7 +123,7 @@ implementation
 uses uFormTelaRemota, uFormArquivos, uFormChat, FMX.Clipboard,
   System.IOUtils, FMX.Platform, System.Rtti, uLibClass,
   Winapi.Windows, uConstants, BCrypt, System.DateUtils, uHttpClass,
-  System.Threading, Winapi.ShellAPI, FMX.Platform.Win, uLocaleFunctions;
+  System.Threading, Winapi.ShellAPI, FMX.Platform.Win;
 
 procedure TFormConexao.LimparConexao;
 begin
@@ -191,6 +193,7 @@ end;
 
 procedure TFormConexao.FormCreate(Sender: TObject);
 begin
+  Locale := TLocale.Create;
   Translate;
   tcPrincipal.TabPosition := TTabPosition.None;
   tcPrincipal.ActiveTab := tabAcesso;
@@ -201,6 +204,11 @@ begin
 
   SetOffline;
   Conexao.ReconectarSocket;
+end;
+
+procedure TFormConexao.FormDestroy(Sender: TObject);
+begin
+  Locale.DisposeOf;
 end;
 
 procedure TFormConexao.FormShow(Sender: TObject);

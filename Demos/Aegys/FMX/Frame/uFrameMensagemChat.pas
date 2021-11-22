@@ -20,7 +20,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Controls.Presentation, FMX.Layouts, FMX.ListBox;
+  FMX.Controls.Presentation, FMX.Layouts, FMX.ListBox, uLocaleFunctions;
 
 type
   TMensagemRec = record
@@ -40,6 +40,7 @@ type
     { Private declarations }
   public
     { Public declarations }
+    Locale: TLocale;
   published
     property ListBox: TListBox read FListBox write SetListBox;
     property Mensagem: TMensagemRec write SetMensagem;
@@ -48,7 +49,7 @@ type
 
 implementation
 uses
-  uLocaleFunctions, uConstants;
+  uConstants;
 
 {$R *.fmx}
 

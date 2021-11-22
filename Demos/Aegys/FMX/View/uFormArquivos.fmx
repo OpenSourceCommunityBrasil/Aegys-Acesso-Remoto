@@ -11,6 +11,7 @@ object FormArquivos: TFormArquivos
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   DesignerMasterStyle = 0

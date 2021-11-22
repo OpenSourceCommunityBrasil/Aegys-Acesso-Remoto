@@ -18,7 +18,7 @@ unit uCtrl_Threads;
 interface
 
 uses
-  System.Classes, System.Win.ScktComp;
+  System.Classes, System.Win.ScktComp, uLocaleFunctions;
 
 type
   TThreadConexaoPrincipal = class(TThread)
@@ -49,6 +49,9 @@ type
     procedure ThreadTerminate(ASender: TObject);
   end;
 
+var
+  Locale: TLocale;
+
 implementation
 
 { TConexaoPrincipal }
@@ -58,7 +61,7 @@ uses uFormArquivos, Winapi.Windows, uFormChat, uFormConexao, uFormTelaRemota,
   FMX.ListView.Types, System.SysUtils, uLibClass, uFormSenha, FMX.Platform.Win,
   uSendKeyClass,
   System.Rtti, FMX.Platform, FMX.Surfaces, StreamManager, FMX.Graphics,
-  uConstants, uLocaleFunctions;
+  uConstants;
 
 constructor TThreadConexaoPrincipal.Create(ASocket: TCustomWinSocket);
 begin

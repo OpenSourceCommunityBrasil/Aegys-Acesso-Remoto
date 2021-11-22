@@ -1,11 +1,11 @@
 unit uCtrl_Conexao;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -19,25 +19,36 @@ interface
 
 uses
   System.Classes, System.Threading, uCtrl_Threads, System.Win.ScktComp,
-  uConstants;
+  uConstants, uLocaleFunctions;
 
 type
   TConexao = class
   private
-    procedure SocketAreaRemotaConnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketAreaRemotaDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketAreaRemotaError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+    procedure SocketAreaRemotaConnect(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure SocketAreaRemotaDisconnect(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure SocketAreaRemotaError(Sender: TObject; Socket: TCustomWinSocket;
+      ErrorEvent: TErrorEvent; var ErrorCode: Integer);
     procedure SocketArquivosConnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketArquivosDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketArquivosError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+    procedure SocketArquivosDisconnect(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure SocketArquivosError(Sender: TObject; Socket: TCustomWinSocket;
+      ErrorEvent: TErrorEvent; var ErrorCode: Integer);
     procedure SocketPrincipalConnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketPrincipalConnecting(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketPrincipalDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketPrincipalError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+    procedure SocketPrincipalConnecting(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure SocketPrincipalDisconnect(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure SocketPrincipalError(Sender: TObject; Socket: TCustomWinSocket;
+      ErrorEvent: TErrorEvent; var ErrorCode: Integer);
     procedure SocketTecladoConnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketTecladoDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure SocketTecladoError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+    procedure SocketTecladoDisconnect(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure SocketTecladoError(Sender: TObject; Socket: TCustomWinSocket;
+      ErrorEvent: TErrorEvent; var ErrorCode: Integer);
   private
+    Locale: TLocale;
     FAcessando: Boolean;
     FID: string;
     FIntervalo: Integer;
@@ -87,18 +98,29 @@ type
     property Intervalo: Integer read FIntervalo write SetIntervalo;
     property Latencia: Integer read FLatencia write SetLatencia;
     property MostrarMouse: Boolean read FMostrarMouse write SetMostrarMouse;
-    property OldClipboardText: string read FOldClipboardText write SetOldClipboardText;
-    property ResolucaoAltura: Integer read FResolucaoAltura write SetResolucaoAltura;
-    property ResolucaoLargura: Integer read FResolucaoLargura write SetResolucaoLargura;
+    property OldClipboardText: string read FOldClipboardText
+      write SetOldClipboardText;
+    property ResolucaoAltura: Integer read FResolucaoAltura
+      write SetResolucaoAltura;
+    property ResolucaoLargura: Integer read FResolucaoLargura
+      write SetResolucaoLargura;
     property Senha: string read FSenha write SetSenha;
-    property SocketAreaRemota: TClientSocket read FSocketAreaRemota write SetSocketAreaRemota;
-    property SocketArquivos: TClientSocket read FSocketArquivos write SetSocketArquivos;
-    property SocketPrincipal: TClientSocket read FSocketPrincipal write SetSocketPrincipal;
-    property SocketTeclado: TClientSocket read FSocketTeclado write SetSocketTeclado;
-    property ThreadAreaRemota: TThreadConexaoAreaRemota read FThreadAreaRemota write SetThreadAreaRemota;
-    property ThreadArquivos: TThreadConexaoArquivos read FThreadArquivos write SetThreadArquivos;
-    property ThreadPrincipal: TThreadConexaoPrincipal read FThreadPrincipal write SetThreadPrincipal;
-    property ThreadTeclado: TThreadConexaoTeclado read FThreadTeclado write SetThreadTeclado;
+    property SocketAreaRemota: TClientSocket read FSocketAreaRemota
+      write SetSocketAreaRemota;
+    property SocketArquivos: TClientSocket read FSocketArquivos
+      write SetSocketArquivos;
+    property SocketPrincipal: TClientSocket read FSocketPrincipal
+      write SetSocketPrincipal;
+    property SocketTeclado: TClientSocket read FSocketTeclado
+      write SetSocketTeclado;
+    property ThreadAreaRemota: TThreadConexaoAreaRemota read FThreadAreaRemota
+      write SetThreadAreaRemota;
+    property ThreadArquivos: TThreadConexaoArquivos read FThreadArquivos
+      write SetThreadArquivos;
+    property ThreadPrincipal: TThreadConexaoPrincipal read FThreadPrincipal
+      write SetThreadPrincipal;
+    property ThreadTeclado: TThreadConexaoTeclado read FThreadTeclado
+      write SetThreadTeclado;
     property Visualizador: Boolean read FVisualizador write SetVisualizador;
   end;
 
@@ -106,13 +128,14 @@ implementation
 
 { TConexao }
 
-uses uFormConexao, System.SysUtils, uFormTelaRemota, System.StrUtils, uLocaleFunctions;
+uses uFormConexao, System.SysUtils, uFormTelaRemota, System.StrUtils;
 
 constructor TConexao.Create;
 var
   xHost: AnsiString;
   iPort: Integer;
 begin
+  Locale := TLocale.Create;
   if (ParamStr(1) <> '') then
     xHost := ParamStr(1)
   else
@@ -168,7 +191,8 @@ begin
   Latencia := 256;
 end;
 
-procedure TConexao.CriarThread(AThread: IDThreadType; ASocket: TCustomWinSocket);
+procedure TConexao.CriarThread(AThread: IDThreadType;
+  ASocket: TCustomWinSocket);
 begin
   case AThread of
     ttPrincipal:
@@ -212,6 +236,7 @@ begin
     LimparThread(ttTeclado);
   if Assigned(FThreadArquivos) then
     LimparThread(ttArquivos);
+  Locale.DisposeOf;
   inherited;
 end;
 
@@ -390,39 +415,46 @@ begin
   FVisualizador := Value;
 end;
 
-procedure TConexao.SocketAreaRemotaConnect(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketAreaRemotaConnect(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   Socket.SendText('<|DESKTOPSOCKET|>' + ID + '<|END|>');
   CriarThread(ttAreaRemota, Socket);
 end;
 
-procedure TConexao.SocketAreaRemotaDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketAreaRemotaDisconnect(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   LimparThread(ttAreaRemota);
 end;
 
-procedure TConexao.SocketAreaRemotaError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+procedure TConexao.SocketAreaRemotaError(Sender: TObject;
+  Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
 begin
   ErrorCode := 0;
 end;
 
-procedure TConexao.SocketArquivosConnect(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketArquivosConnect(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   Socket.SendText('<|FILESSOCKET|>' + ID + '<|END|>');
   CriarThread(ttArquivos, Socket);
 end;
 
-procedure TConexao.SocketArquivosDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketArquivosDisconnect(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   LimparThread(ttArquivos);
 end;
 
-procedure TConexao.SocketArquivosError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+procedure TConexao.SocketArquivosError(Sender: TObject;
+  Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
 begin
   ErrorCode := 0;
 end;
 
-procedure TConexao.SocketPrincipalConnect(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketPrincipalConnect(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Connected'));
   Intervalo := 0;
@@ -431,12 +463,14 @@ begin
   CriarThread(ttPrincipal, Socket);
 end;
 
-procedure TConexao.SocketPrincipalConnecting(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketPrincipalConnecting(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   FormConexao.MudarStatusConexao(1, Locale.GetLocale(MSGS, 'Connecting'));
 end;
 
-procedure TConexao.SocketPrincipalDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketPrincipalDisconnect(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   LimparThread(ttPrincipal);
   if (FormTelaRemota.Visible) then
@@ -446,7 +480,8 @@ begin
   FecharSockets;
 end;
 
-procedure TConexao.SocketPrincipalError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+procedure TConexao.SocketPrincipalError(Sender: TObject;
+  Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
 begin
   ErrorCode := 0;
   if (FormTelaRemota.Visible) then
@@ -456,18 +491,21 @@ begin
   FecharSockets;
 end;
 
-procedure TConexao.SocketTecladoConnect(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketTecladoConnect(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   Socket.SendText('<|KEYBOARDSOCKET|>' + ID + '<|END|>');
   CriarThread(ttTeclado, Socket);
 end;
 
-procedure TConexao.SocketTecladoDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+procedure TConexao.SocketTecladoDisconnect(Sender: TObject;
+  Socket: TCustomWinSocket);
 begin
   LimparThread(ttTeclado);
 end;
 
-procedure TConexao.SocketTecladoError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: Integer);
+procedure TConexao.SocketTecladoError(Sender: TObject; Socket: TCustomWinSocket;
+  ErrorEvent: TErrorEvent; var ErrorCode: Integer);
 begin
   ErrorCode := 0;
 end;

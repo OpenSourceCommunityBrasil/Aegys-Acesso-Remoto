@@ -1,11 +1,11 @@
 unit uFormTelaRemota;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -22,7 +22,8 @@ uses
   System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, System.Actions,
-  FMX.ActnList, Winapi.Messages, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo;
+  FMX.ActnList, Winapi.Messages, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo,
+  uLocaleFunctions;
 
 type
   TFormTelaRemota = class(TForm)
@@ -67,7 +68,9 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
     procedure PROC_MOUSEExecute(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
+    Locale: TLocale;
     procedure RetornaMargem;
     procedure SendSocketKeys(AKeys: string);
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
@@ -85,7 +88,7 @@ implementation
 {$R *.fmx}
 
 uses uFormArquivos, uFormChat, uFormConexao, Winapi.Windows, uDM_Styles,
-  FMX.Platform.Win, uLocaleFunctions, uConstants;
+  FMX.Platform.Win, uConstants;
 
 procedure TFormTelaRemota.tCapturarComandosTimer(Sender: TObject);
 var
@@ -382,7 +385,13 @@ end;
 
 procedure TFormTelaRemota.FormCreate(Sender: TObject);
 begin
+  Locale := TLocale.Create;
   SetWindowLong(FmxHandleToHWND(Handle), GWL_EXSTYLE, WS_EX_APPWINDOW);
+end;
+
+procedure TFormTelaRemota.FormDestroy(Sender: TObject);
+begin
+  Locale.DisposeOf;
 end;
 
 procedure TFormTelaRemota.FormKeyDown(Sender: TObject; var Key: Word;

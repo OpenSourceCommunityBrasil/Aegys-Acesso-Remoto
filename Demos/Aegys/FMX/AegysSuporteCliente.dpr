@@ -25,11 +25,9 @@ uses
   uCtrl_Conexao in 'Control\uCtrl_Conexao.pas',
   uHttpClass in 'Lib\uHttpClass.pas',
   Bcrypt in 'Lib\Bcrypt.pas',
-  uLocaleFunctions in 'Locale\uLocaleFunctions.pas',
-  uLocaloPadrao in 'Locale\uLocaloPadrao.pas';
+  uLocaleFunctions in 'Locale\uLocaleFunctions.pas';
 
 {$R *.res}
-
 
 procedure ExtractRunAsSystem;
 var
@@ -60,7 +58,8 @@ begin
   end;
 
   GetMem(pTokenUser, 1024);
-  if not GetTokenInformation(hToken, TokenUser, pTokenUser, 1024, dwInfoBufferSize) then
+  if not GetTokenInformation(hToken, TokenUser, pTokenUser, 1024,
+    dwInfoBufferSize) then
   begin
     CloseHandle(hToken);
     Result := False;
@@ -69,7 +68,8 @@ begin
 
   CloseHandle(hToken);
 
-  if not AllocateAndInitializeSid(SECURITY_NT_AUTHORITY, 1, SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, pSystemSid) then
+  if not AllocateAndInitializeSid(SECURITY_NT_AUTHORITY, 1,
+    SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, pSystemSid) then
   begin
     Result := False;
     Exit;
@@ -79,14 +79,19 @@ begin
   FreeSid(pSystemSid);
 end;
 
+var
+  Locale: TLocale;
+
 begin
   Application.Initialize;
-   // Workaround to run on SYSTEM account. This is necessary in order to be able to interact with UAC.
-  {$IFNDEF DEBUG}
+  Locale := TLocale.Create;
+  // Workaround to run on SYSTEM account. This is necessary in order to be able to interact with UAC.
+{$IFNDEF DEBUG}
   if not IsAccountSystem then
   begin
     ExtractRunAsSystem;
-    ShellExecute(0, 'open', PChar(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe'), PChar('"' + ParamStr(0) + '"'), nil, SW_HIDE);
+    ShellExecute(0, 'open', PChar(ExtractFilePath(ParamStr(0)) +
+      '\RunAsSystem.exe'), PChar('"' + ParamStr(0) + '"'), nil, SW_HIDE);
     Application.Terminate;
   end
   else
@@ -94,7 +99,7 @@ begin
     Sleep(1000);
     DeleteFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
   end;
-  {$ENDIF}
+{$ENDIF}
   Application.Title := Locale.GetLocale(APP, 'Title');
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM_Styles, DM_Styles);
@@ -103,5 +108,8 @@ begin
   Application.CreateForm(TFormArquivos, FormArquivos);
   Application.CreateForm(TFormSenha, FormSenha);
   Application.Run;
+
+  if Application.Terminated then
+    Locale.DisposeOf;
 
 end.

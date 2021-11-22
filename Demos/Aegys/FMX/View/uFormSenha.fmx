@@ -11,6 +11,7 @@ object FormSenha: TFormSenha
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   OnClose = FormClose
+  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignerMasterStyle = 0
   object Layout2: TLayout
