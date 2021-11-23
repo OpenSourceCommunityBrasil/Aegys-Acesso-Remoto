@@ -18,7 +18,7 @@ unit uCtrl_ThreadsService;
 interface
 
 uses
-  System.Classes, System.Win.ScktComp, uConstants;
+  System.Classes, System.Win.ScktComp, uConstants, System.SyncObjs;
 
 type
   TThreadBase = class(TThread)
@@ -288,10 +288,16 @@ end;
 
 procedure TThreadConexaoPrincipal.Execute;
 var
-  xBuffer, xBufferTemp, xID, xIDAcesso, xSenhaAcesso: string;
+  xBuffer,
+  xValue,
+  xBufferTemp,
+  xID,
+  xIDAcesso,
+  xSenhaAcesso: string;
   iPosition: Integer;
   FConexao, FConexaoAcesso: TConexao;
   i: Integer;
+  vCriticalSection : TCriticalSection;
 begin
   FConexao := DMServer.Conexoes.RetornaItemPorConexao(FProtocolo);
 
@@ -366,14 +372,18 @@ begin
     begin
       xID := '';
       xIDAcesso := '';
-
+      xValue    := '';
       xBufferTemp := xBuffer;
+      If Pos('<|BESTQ|>', xBufferTemp) > 0 Then
+       Begin
+        xValue := Copy(xBufferTemp, Pos('<|BESTQ|>', xBufferTemp) + 9, 1);
+        Delete(xBufferTemp, Pos('<|BESTQ|>', xBufferTemp), 19);
+       End;
       Delete(xBufferTemp, 1, iPosition + 11);
       iPosition := Pos('<|>', xBufferTemp);
       xID := Copy(xBufferTemp, 1, iPosition - 1);
-
       Delete(xBufferTemp, 1, iPosition + 2);
-      xIDAcesso := Copy(xBufferTemp, 1, Pos('<|END|>', xBufferTemp) - 1);
+      xIDAcesso := Copy(xBufferTemp, 1, Pos('<|>', xBufferTemp) - 1);
 
       FConexao := nil;
       FConexaoAcesso := nil;
@@ -381,21 +391,18 @@ begin
       FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(xIDAcesso);
 
       // RECONNECT SOCKET CLIENT
-
       FConexao.ThreadPrincipal.SetAcesso(FConexaoAcesso.ThreadPrincipal.scClient);
       FConexaoAcesso.ThreadPrincipal.SetAcesso(FConexao.ThreadPrincipal.scClient);
-
       FConexao.ThreadAreaRemota.SetAcesso(FConexaoAcesso.ThreadAreaRemota.scClient);
       FConexaoAcesso.ThreadAreaRemota.SetAcesso(FConexao.ThreadAreaRemota.scClient);
-
       FConexao.ThreadTeclado.SetAcesso(FConexaoAcesso.ThreadTeclado.scClient);
-
       FConexao.ThreadArquivos.SetAcesso(FConexaoAcesso.ThreadArquivos.scClient);
       FConexaoAcesso.ThreadArquivos.SetAcesso(FConexao.ThreadArquivos.scClient);
-
       FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|ACCESSING|>');
-
-      FConexaoAcesso.ThreadAreaRemota.scClient.SendText('<|GETFULLSCREENSHOT|>');
+      If xValue <> '' Then
+       FConexaoAcesso.ThreadAreaRemota.scClient.SendText('<|GETFULLSCREENSHOT|><|BESTQ|>' + xValue + '<|END|>')
+      Else
+       FConexaoAcesso.ThreadAreaRemota.scClient.SendText('<|GETFULLSCREENSHOT|>');
     end;
 
     // Stop relations

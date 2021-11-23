@@ -1,16 +1,20 @@
 object FormConexao: TFormConexao
   Left = 0
   Top = 0
+  Border.Styling = False
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = Single
   Caption = 'Suporte Remoto'
-  ClientHeight = 573
+  ClientHeight = 472
   ClientWidth = 354
   Fill.Color = claWhitesmoke
   Fill.Kind = Solid
   Position = ScreenCenter
   StyleBook = DM_Styles.DesktopStyle
-  FormFactor.Width = 320
-  FormFactor.Height = 480
-  FormFactor.Devices = [Desktop]
+  FormFactor.Width = 0
+  FormFactor.Height = 0
+  FormFactor.Orientations = []
+  FormFactor.Devices = []
   OnCreate = FormCreate
   OnClose = FormClose
   OnDestroy = FormDestroy
@@ -34,616 +38,592 @@ object FormConexao: TFormConexao
     Left = 256
     Top = 168
   end
-  object tcPrincipal: TTabControl
+  object Layout4: TLayout
     Align = Client
     Size.Width = 354.000000000000000000
-    Size.Height = 573.000000000000000000
+    Size.Height = 472.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'tabcontrolstyle'
-    TabIndex = 0
-    TabOrder = 4
-    TabPosition = Top
-    Sizes = (
-      354s
-      547s)
-    object tabAcesso: TTabItem
-      CustomIcon = <
-        item
-        end>
-      IsSelected = True
-      Size.Width = 74.000000000000000000
-      Size.Height = 26.000000000000000000
+    TabOrder = 10
+    object Layout3: TLayout
+      Align = Client
+      Margins.Left = 20.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Right = 20.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Size.Width = 314.000000000000000000
+      Size.Height = 452.000000000000000000
       Size.PlatformDefault = False
-      StyleLookup = ''
       TabOrder = 0
-      Text = 'tabAcesso'
-      ExplicitSize.cx = 74.000000000000000000
-      ExplicitSize.cy = 26.000000000000000000
-      object RMainBackground: TRectangle
-        Align = Client
-        Fill.Color = claWhitesmoke
-        Size.Width = 354.000000000000000000
-        Size.Height = 547.000000000000000000
+      object lyHeader: TLayout
+        Align = Top
+        Size.Width = 314.000000000000000000
+        Size.Height = 100.000000000000000000
         Size.PlatformDefault = False
-        Stroke.Kind = None
-        object Layout4: TLayout
-          Align = Client
-          Size.Width = 354.000000000000000000
-          Size.Height = 547.000000000000000000
+        TabOrder = 29
+        object PhLogo: TPath
+          Align = Left
+          Data.Path = {
+            5D000000000000008FC29541F6286C41020000005C8F98415C8F5E4102000000
+            7B149A4100005041020000007B149A4100004041020000007B149A41E17A3441
+            0200000033339941A47029410200000014AE974133331F4102000000E17A9241
+            9A992141020000003D0A8D4148E1224102000000295C874148E1224102000000
+            8FC25D4148E12241020000006666324152B80A41020000000000184148E1CA40
+            020000008FC209410000084102000000B81EDD40F628244102000000D7A39840
+            1F85334102000000295C97401F85374102000000295C97400AD73B4102000000
+            295C974000004041020000002B5C9740F31E8041020000003A84FF40F6289A41
+            0200000001004041F6289A4102000000CDCC5041F6289A4102000000C3F56041
+            EC519841020000001F856F413D0A954102000000D7A378418FC29D4102000000
+            CDCC7C417B14A24102000000E17A7C417B14A24102000000713D6241E17AA641
+            0200000085EB4D41D7A3A8410200000000004041D7A3A84102000000AE471941
+            D7A3A84102000000D7A3E8403D0AA14102000000713DB240295C934102000000
+            C3F590403D0A8B4102000000D7A3704048E1804102000000B81E554014AE6B41
+            010000000000004014AE6B41010000000000004048E12241010000008FC24540
+            48E12241020000001F857B40AE47C140020000003333F34048E13A4002000000
+            0000404148E13A40020000006666664148E13A400200000014AE854114AE7740
+            02000000295C93415C8FB240020000001F859D4148E1DA4002000000EC51A441
+            3333074102000000B81EA74148E12241010000000000B04148E1224101000000
+            0000B04152B86A41010000000000B04152B86A41010000000000B0413D0A6B41
+            010000000000B04114AE6B41010000001F85AF4114AE6B41010000003D0A9341
+            0000904101000000AE47514133338B4101000000AE47514114AE7B4101000000
+            AE478F4114AE7B41010000008FC29541F6286C4100000000EC511441EC513C41
+            02000000B81E1941EC513C41020000008FC21D41713D3E4102000000B81E2141
+            8FC2414102000000E17A2441B81E454102000000666626418FC2494102000000
+            666626415C8F4E410200000066662641295C534102000000E17A244100005841
+            02000000B81E2141295C5B41020000008FC21D4152B85E4102000000B81E1941
+            D7A3604102000000EC511441D7A3604102000000713D0A41D7A3604102000000
+            7B140241D7A35841020000007B1402415C8F4E41020000007B140241E17A4441
+            02000000713D0A41EC513C4102000000EC511441EC513C41000000001F856B41
+            EC513C41020000009A997541EC513C41020000009A997D41E17A444102000000
+            9A997D415C8F4E41020000009A997D41D7A35841020000009A997541D7A36041
+            020000001F856B41D7A3604102000000A4706141D7A3604102000000AE475941
+            D7A3584102000000AE4759415C8F4E4102000000AD475941817C444102000000
+            42726141EC513C41020000001E856B41EC513C41030000001F856B41EC513C41}
+          Fill.Color = xFF0070BA
+          Size.Width = 100.000000000000000000
+          Size.Height = 100.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 0
-          object Layout3: TLayout
-            Align = Client
-            Margins.Left = 20.000000000000000000
-            Margins.Right = 20.000000000000000000
-            Size.Width = 314.000000000000000000
-            Size.Height = 547.000000000000000000
+          Stroke.Kind = None
+          WrapMode = Fit
+        end
+        object Layout2: TLayout
+          Margins.Left = 10.000000000000000000
+          Margins.Top = 15.000000000000000000
+          Margins.Right = 10.000000000000000000
+          Margins.Bottom = 10.000000000000000000
+          Position.X = 110.000000000000000000
+          Size.Width = 194.000000000000000000
+          Size.Height = 90.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          object LSubTitle: TLabel
+            Align = Bottom
+            StyledSettings = [Style]
+            Position.Y = 44.000000000000000000
+            Size.Width = 194.000000000000000000
+            Size.Height = 25.000000000000000000
             Size.PlatformDefault = False
-            TabOrder = 0
-            object lyHeader: TLayout
-              Align = Top
-              Margins.Top = 10.000000000000000000
-              Position.Y = 10.000000000000000000
-              Size.Width = 314.000000000000000000
-              Size.Height = 100.000000000000000000
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 20.000000000000000000
+            TextSettings.FontColor = xFF424242
+            Text = 'Suporte remoto'
+          end
+          object LTitle: TLabel
+            Align = Client
+            StyledSettings = []
+            Size.Width = 194.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 30.000000000000000000
+            TextSettings.FontColor = xFF424242
+            Text = 'Aegys'
+          end
+          object LVersion: TLabel
+            Align = Bottom
+            StyledSettings = [Style]
+            Position.Y = 69.000000000000000000
+            Size.Width = 194.000000000000000000
+            Size.Height = 21.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 13.000000000000000000
+            TextSettings.FontColor = xFF424242
+            Text = 'Vers'#227'o: 1.0.0'
+          end
+          object sbOptions: TSpeedButton
+            Position.X = 168.000000000000000000
+            Position.Y = 4.000000000000000000
+            Size.Width = 20.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+            OnClick = sbOptionsClick
+            object phOptions: TPath
+              Align = Client
+              Data.Path = {
+                90000000000000000000F54300809843010000000000F5430000394301000000
+                9C04D2430000394302000000DEC4D04381B5314302000000A04ACF437B942A43
+                020000009498CD43F6A82343010000006155E643B95EE4420100000032E8BB43
+                F4A7EA4101000000852BA3432F9D9D4202000000E3B59F4381D5964202000000
+                FE249C438BEC9042020000000080984391ED8B42010000000080984300000000
+                010000000000394300000000010000000000394391ED8B4202000000C3B53143
+                8BEC9042020000007B942A4381D5964202000000F6A823432F9D9D4201000000
+                B95EE442F0A7EA4101000000F4A7EA41B85EE44201000000309D9D42F6A82343
+                02000000FFD496427B942A43020000008CEC9042C3B531430200000092ED8B42
+                0000394301000000000000000000394301000000000000000080984301000000
+                91ED8B4200809843020000008BEC90423F259C430200000081D59642C3B59F43
+                020000002F9D9D42852BA34301000000F0A7EA4152E8BB4301000000B85EE442
+                8155E64301000000F6A82343B498CD43020000007B942A43C04ACF4302000000
+                C3B53143DDC4D04302000000000039439B04D24301000000000039430000F543
+                01000000008098430000F54301000000008098439C04D243020000001F259C43
+                DEC4D04302000000C3B59F43A04ACF4302000000852BA343B598CD4301000000
+                52E8BB438255E643010000008155E64353E8BB4301000000B498CD43862BA343
+                02000000C04ACF43E4B59F4302000000FEC4D04320259C4302000000BC04D243
+                01809843010000000000F54301809843030000000000F5430080984300000000
+                D91ED14352E8BB430100000031E8BB43D91ED1430100000041D0A5430A07BB43
+                010000006CD7A0432FDDBD43020000000E3D9B439E0FC14302000000F33D9543
+                C78BC34302000000BC048F430040C5430100000000808943F2C2C64301000000
+                008089430000E64301000000000057430000E6430100000000005743F2C2C643
+                0100000004F64B432140C5430200000018843F43E88BC34302000000E3853343
+                BF0FC14302000000A450284350DDBD4301000000FA5E1E432B07BB4301000000
+                B85EE442FA1ED143010000009C848F4273E8BB4301000000D8E3E742A4D0A543
+                01000000458BDC42CFD7A043020000008BC1CF42713D9B4302000000E7D0C542
+                563E9543020000000100BF421F058F4301000000BCF4B8420080894301000000
+                0000F04100808943010000000000F0410000574301000000BCF4B84200005743
+                010000000000BF4204F64B4302000000E5D0C54218843F430200000006C1CF42
+                E385334302000000C08ADC42E550284301000000D6E3E7423B5F1E4301000000
+                18848F42B85EE44201000000345EE4429C848F4201000000F95E1E435AE4E742
+                01000000A3502843448BDC4202000000A18533438AC1CF4202000000D6833F43
+                E6D0C54202000000C2F54B438400BF420100000000005743BCF4B84201000000
+                000057430000F04101000000008089430000F0410100000000808943BCF4B842
+                01000000FE048F430000BF4202000000153E9543E5D0C542020000000E3D9B43
+                89C1CF42020000008DD7A043C08ADC420100000062D0A543D6E3E74201000000
+                52E8BB4318848F4201000000FA1ED143345EE442010000000A07BB43F95E1E43
+                0100000050DDBD43A3502843020000009E0FC1431E85334302000000C78BC343
+                53833F43020000002140C54303F64B4301000000F2C2C6430000574301000000
+                0000E64300005743010000000000E6430080894301000000F2C2C64300808943
+                010000002140C543DD048F4302000000C78BC343143E9543020000007D0FC143
+                2F3D9B430200000050DDBD438DD7A043010000000A07BB4362D0A54301000000
+                D91ED14352E8BB4303000000D91ED14352E8BB43000000000000754300001643
+                02000000F49D4043000016430200000000001643F49D40430200000000001643
+                00007543020000000000164306B1944302000000F49D40430000AA4302000000
+                000075430000AA430200000006B194430000AA43020000000000AA4306B19443
+                020000000000AA4300007543020000000000AA43F49D40430200000006B19443
+                0000164302000000000075430000164303000000000075430000164300000000
+                0000754300009B4302000000B428514300009B430200000000003443A66B8C43
+                0200000000003443000075430200000000003443B428514302000000B4285143
+                0000344302000000000075430000344302000000A66B8C430000344302000000
+                00009B43B42851430200000000009B43000075430200000000009B43A66B8C43
+                02000000A66B8C4300009B43020000000000754300009B430300000000007543
+                00009B43}
+              Fill.Color = xFF0070BA
+              HitTest = False
+              Size.Width = 20.000000000000000000
+              Size.Height = 20.000000000000000000
               Size.PlatformDefault = False
-              TabOrder = 0
-              object PhLogo: TPath
-                Align = Left
-                Data.Path = {
-                  5D000000000000008FC29541F6286C41020000005C8F98415C8F5E4102000000
-                  7B149A4100005041020000007B149A4100004041020000007B149A41E17A3441
-                  0200000033339941A47029410200000014AE974133331F4102000000E17A9241
-                  9A992141020000003D0A8D4148E1224102000000295C874148E1224102000000
-                  8FC25D4148E12241020000006666324152B80A41020000000000184148E1CA40
-                  020000008FC209410000084102000000B81EDD40F628244102000000D7A39840
-                  1F85334102000000295C97401F85374102000000295C97400AD73B4102000000
-                  295C974000004041020000002B5C9740F31E8041020000003A84FF40F6289A41
-                  0200000001004041F6289A4102000000CDCC5041F6289A4102000000C3F56041
-                  EC519841020000001F856F413D0A954102000000D7A378418FC29D4102000000
-                  CDCC7C417B14A24102000000E17A7C417B14A24102000000713D6241E17AA641
-                  0200000085EB4D41D7A3A8410200000000004041D7A3A84102000000AE471941
-                  D7A3A84102000000D7A3E8403D0AA14102000000713DB240295C934102000000
-                  C3F590403D0A8B4102000000D7A3704048E1804102000000B81E554014AE6B41
-                  010000000000004014AE6B41010000000000004048E12241010000008FC24540
-                  48E12241020000001F857B40AE47C140020000003333F34048E13A4002000000
-                  0000404148E13A40020000006666664148E13A400200000014AE854114AE7740
-                  02000000295C93415C8FB240020000001F859D4148E1DA4002000000EC51A441
-                  3333074102000000B81EA74148E12241010000000000B04148E1224101000000
-                  0000B04152B86A41010000000000B04152B86A41010000000000B0413D0A6B41
-                  010000000000B04114AE6B41010000001F85AF4114AE6B41010000003D0A9341
-                  0000904101000000AE47514133338B4101000000AE47514114AE7B4101000000
-                  AE478F4114AE7B41010000008FC29541F6286C4100000000EC511441EC513C41
-                  02000000B81E1941EC513C41020000008FC21D41713D3E4102000000B81E2141
-                  8FC2414102000000E17A2441B81E454102000000666626418FC2494102000000
-                  666626415C8F4E410200000066662641295C534102000000E17A244100005841
-                  02000000B81E2141295C5B41020000008FC21D4152B85E4102000000B81E1941
-                  D7A3604102000000EC511441D7A3604102000000713D0A41D7A3604102000000
-                  7B140241D7A35841020000007B1402415C8F4E41020000007B140241E17A4441
-                  02000000713D0A41EC513C4102000000EC511441EC513C41000000001F856B41
-                  EC513C41020000009A997541EC513C41020000009A997D41E17A444102000000
-                  9A997D415C8F4E41020000009A997D41D7A35841020000009A997541D7A36041
-                  020000001F856B41D7A3604102000000A4706141D7A3604102000000AE475941
-                  D7A3584102000000AE4759415C8F4E4102000000AD475941817C444102000000
-                  42726141EC513C41020000001E856B41EC513C41030000001F856B41EC513C41}
-                Fill.Color = xFF0070BA
-                Size.Width = 100.000000000000000000
-                Size.Height = 100.000000000000000000
-                Size.PlatformDefault = False
-                Stroke.Kind = None
-                WrapMode = Fit
-              end
-              object Layout2: TLayout
-                Margins.Left = 10.000000000000000000
-                Margins.Top = 15.000000000000000000
-                Margins.Right = 10.000000000000000000
-                Margins.Bottom = 10.000000000000000000
-                Position.X = 110.000000000000000000
-                Size.Width = 194.000000000000000000
-                Size.Height = 90.000000000000000000
-                Size.PlatformDefault = False
-                TabOrder = 1
-                object LSubTitle: TLabel
-                  Align = Bottom
-                  StyledSettings = [Style]
-                  Position.Y = 44.000000000000000000
-                  Size.Width = 194.000000000000000000
-                  Size.Height = 25.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 20.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  Text = 'Suporte remoto'
-                end
-                object LTitle: TLabel
-                  Align = Client
-                  StyledSettings = []
-                  Size.Width = 194.000000000000000000
-                  Size.Height = 44.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 30.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  Text = 'Aegys'
-                end
-                object LVersion: TLabel
-                  Align = Bottom
-                  StyledSettings = [Style]
-                  Position.Y = 69.000000000000000000
-                  Size.Width = 194.000000000000000000
-                  Size.Height = 21.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 13.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  Text = 'Vers'#227'o: 1.0.0'
-                end
-                object sbOptions: TSpeedButton
-                  Position.X = 168.000000000000000000
-                  Position.Y = 4.000000000000000000
-                  Size.Width = 20.000000000000000000
-                  Size.Height = 20.000000000000000000
-                  Size.PlatformDefault = False
-                  OnClick = sbOptionsClick
-                  object phOptions: TPath
-                    Align = Client
-                    Data.Path = {
-                      90000000000000000000F54300809843010000000000F5430000394301000000
-                      9C04D2430000394302000000DEC4D04381B5314302000000A04ACF437B942A43
-                      020000009498CD43F6A82343010000006155E643B95EE4420100000032E8BB43
-                      F4A7EA4101000000852BA3432F9D9D4202000000E3B59F4381D5964202000000
-                      FE249C438BEC9042020000000080984391ED8B42010000000080984300000000
-                      010000000000394300000000010000000000394391ED8B4202000000C3B53143
-                      8BEC9042020000007B942A4381D5964202000000F6A823432F9D9D4201000000
-                      B95EE442F0A7EA4101000000F4A7EA41B85EE44201000000309D9D42F6A82343
-                      02000000FFD496427B942A43020000008CEC9042C3B531430200000092ED8B42
-                      0000394301000000000000000000394301000000000000000080984301000000
-                      91ED8B4200809843020000008BEC90423F259C430200000081D59642C3B59F43
-                      020000002F9D9D42852BA34301000000F0A7EA4152E8BB4301000000B85EE442
-                      8155E64301000000F6A82343B498CD43020000007B942A43C04ACF4302000000
-                      C3B53143DDC4D04302000000000039439B04D24301000000000039430000F543
-                      01000000008098430000F54301000000008098439C04D243020000001F259C43
-                      DEC4D04302000000C3B59F43A04ACF4302000000852BA343B598CD4301000000
-                      52E8BB438255E643010000008155E64353E8BB4301000000B498CD43862BA343
-                      02000000C04ACF43E4B59F4302000000FEC4D04320259C4302000000BC04D243
-                      01809843010000000000F54301809843030000000000F5430080984300000000
-                      D91ED14352E8BB430100000031E8BB43D91ED1430100000041D0A5430A07BB43
-                      010000006CD7A0432FDDBD43020000000E3D9B439E0FC14302000000F33D9543
-                      C78BC34302000000BC048F430040C5430100000000808943F2C2C64301000000
-                      008089430000E64301000000000057430000E6430100000000005743F2C2C643
-                      0100000004F64B432140C5430200000018843F43E88BC34302000000E3853343
-                      BF0FC14302000000A450284350DDBD4301000000FA5E1E432B07BB4301000000
-                      B85EE442FA1ED143010000009C848F4273E8BB4301000000D8E3E742A4D0A543
-                      01000000458BDC42CFD7A043020000008BC1CF42713D9B4302000000E7D0C542
-                      563E9543020000000100BF421F058F4301000000BCF4B8420080894301000000
-                      0000F04100808943010000000000F0410000574301000000BCF4B84200005743
-                      010000000000BF4204F64B4302000000E5D0C54218843F430200000006C1CF42
-                      E385334302000000C08ADC42E550284301000000D6E3E7423B5F1E4301000000
-                      18848F42B85EE44201000000345EE4429C848F4201000000F95E1E435AE4E742
-                      01000000A3502843448BDC4202000000A18533438AC1CF4202000000D6833F43
-                      E6D0C54202000000C2F54B438400BF420100000000005743BCF4B84201000000
-                      000057430000F04101000000008089430000F0410100000000808943BCF4B842
-                      01000000FE048F430000BF4202000000153E9543E5D0C542020000000E3D9B43
-                      89C1CF42020000008DD7A043C08ADC420100000062D0A543D6E3E74201000000
-                      52E8BB4318848F4201000000FA1ED143345EE442010000000A07BB43F95E1E43
-                      0100000050DDBD43A3502843020000009E0FC1431E85334302000000C78BC343
-                      53833F43020000002140C54303F64B4301000000F2C2C6430000574301000000
-                      0000E64300005743010000000000E6430080894301000000F2C2C64300808943
-                      010000002140C543DD048F4302000000C78BC343143E9543020000007D0FC143
-                      2F3D9B430200000050DDBD438DD7A043010000000A07BB4362D0A54301000000
-                      D91ED14352E8BB4303000000D91ED14352E8BB43000000000000754300001643
-                      02000000F49D4043000016430200000000001643F49D40430200000000001643
-                      00007543020000000000164306B1944302000000F49D40430000AA4302000000
-                      000075430000AA430200000006B194430000AA43020000000000AA4306B19443
-                      020000000000AA4300007543020000000000AA43F49D40430200000006B19443
-                      0000164302000000000075430000164303000000000075430000164300000000
-                      0000754300009B4302000000B428514300009B430200000000003443A66B8C43
-                      0200000000003443000075430200000000003443B428514302000000B4285143
-                      0000344302000000000075430000344302000000A66B8C430000344302000000
-                      00009B43B42851430200000000009B43000075430200000000009B43A66B8C43
-                      02000000A66B8C4300009B43020000000000754300009B430300000000007543
-                      00009B43}
-                    Fill.Color = xFF0070BA
-                    HitTest = False
-                    Size.Width = 20.000000000000000000
-                    Size.Height = 20.000000000000000000
-                    Size.PlatformDefault = False
-                    Stroke.Kind = None
-                  end
-                end
-              end
-            end
-            object lyMachineID: TLayout
-              Align = Top
-              Margins.Top = 40.000000000000000000
-              Position.Y = 150.000000000000000000
-              Size.Width = 314.000000000000000000
-              Size.Height = 56.000000000000000000
-              Size.PlatformDefault = False
-              TabOrder = 3
-              object RMachineID: TRectangle
-                Align = Top
-                Size.Width = 314.000000000000000000
-                Size.Height = 20.000000000000000000
-                Size.PlatformDefault = False
-                Stroke.Kind = None
-                XRadius = 10.000000000000000000
-                YRadius = 10.000000000000000000
-                object LlyMachineIDCaption: TLabel
-                  Align = Client
-                  StyledSettings = [Style]
-                  Size.Width = 314.000000000000000000
-                  Size.Height = 20.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 15.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  TextSettings.HorzAlign = Center
-                  Text = 'Seu ID'
-                end
-              end
-              object Layout6: TLayout
-                Align = Client
-                Size.Width = 314.000000000000000000
-                Size.Height = 36.000000000000000000
-                Size.PlatformDefault = False
-                TabOrder = 1
-                object LMachineID: TLabel
-                  Align = Client
-                  StyledSettings = [Style]
-                  Margins.Left = 46.000000000000000000
-                  Size.Width = 222.000000000000000000
-                  Size.Height = 36.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 30.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  TextSettings.HorzAlign = Center
-                  Text = 'transparentedit'
-                end
-                object sbMachineIDCopy: TSpeedButton
-                  Action = actCopyID
-                  Align = Right
-                  Enabled = True
-                  ImageIndex = -1
-                  Margins.Left = 10.000000000000000000
-                  Position.X = 278.000000000000000000
-                  Size.Width = 36.000000000000000000
-                  Size.Height = 36.000000000000000000
-                  Size.PlatformDefault = False
-                  object PhMachineIDCopy: TPath
-                    Align = Client
-                    Data.Path = {
-                      2000000000000000000098410000A84101000000000000410000A84101000000
-                      000000410000E04001000000000098410000E04000000000000098410000A040
-                      01000000000000410000A040020000005EA7DC400000A040020000000000C040
-                      5EA7BC40020000000000C0400000E040010000000000C0400000A84102000000
-                      0000C04029D6B041020000005EA7DC400000B84102000000000000410000B841
-                      01000000000098410000B8410200000029D6A0410000B841020000000000A841
-                      29D6B041020000000000A8410000A841010000000000A8410000E04002000000
-                      0000A8415EA7BC400200000029D6A0410000A04002000000000098410000A040
-                      00000000000080410000803F01000000000080400000803F02000000BC4E3940
-                      0000803F0200000000000040779DF23F02000000000000400000404001000000
-                      0000004000008841010000000000804000008841010000000000804000004040
-                      01000000000080410000404001000000000080410000803F0300000000008041
-                      0000803F}
-                    Fill.Color = xFF424242
-                    HitTest = False
-                    Margins.Top = 8.000000000000000000
-                    Margins.Bottom = 8.000000000000000000
-                    Size.Width = 36.000000000000000000
-                    Size.Height = 20.000000000000000000
-                    Size.PlatformDefault = False
-                    Stroke.Kind = None
-                    WrapMode = Fit
-                  end
-                end
-              end
-            end
-            object lyPassword: TLayout
-              Align = Top
-              Margins.Top = 20.000000000000000000
-              Position.Y = 226.000000000000000000
-              Size.Width = 314.000000000000000000
-              Size.Height = 56.000000000000000000
-              Size.PlatformDefault = False
-              TabOrder = 2
-              object RPassword: TRectangle
-                Align = Top
-                Size.Width = 314.000000000000000000
-                Size.Height = 20.000000000000000000
-                Size.PlatformDefault = False
-                Stroke.Kind = None
-                XRadius = 10.000000000000000000
-                YRadius = 10.000000000000000000
-                object LlyPasswordCaption: TLabel
-                  Align = Client
-                  StyledSettings = [Style]
-                  Size.Width = 314.000000000000000000
-                  Size.Height = 20.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 15.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  TextSettings.HorzAlign = Center
-                  Text = 'Sua senha'
-                end
-              end
-              object Layout8: TLayout
-                Align = Client
-                Size.Width = 314.000000000000000000
-                Size.Height = 36.000000000000000000
-                Size.PlatformDefault = False
-                TabOrder = 1
-                object LPassword: TLabel
-                  Align = Client
-                  StyledSettings = [Style]
-                  Margins.Left = 46.000000000000000000
-                  Size.Width = 222.000000000000000000
-                  Size.Height = 36.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 30.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  TextSettings.HorzAlign = Center
-                  Text = 'transparentedit'
-                end
-                object sbPasswordCopy: TSpeedButton
-                  Action = actCopyPassword
-                  Align = Right
-                  Enabled = True
-                  ImageIndex = -1
-                  Margins.Left = 10.000000000000000000
-                  Position.X = 278.000000000000000000
-                  Size.Width = 36.000000000000000000
-                  Size.Height = 36.000000000000000000
-                  Size.PlatformDefault = False
-                  object PhPasswordCopy: TPath
-                    Align = Client
-                    Data.Path = {
-                      2000000000000000000098410000A84101000000000000410000A84101000000
-                      000000410000E04001000000000098410000E04000000000000098410000A040
-                      01000000000000410000A040020000005EA7DC400000A040020000000000C040
-                      5EA7BC40020000000000C0400000E040010000000000C0400000A84102000000
-                      0000C04029D6B041020000005EA7DC400000B84102000000000000410000B841
-                      01000000000098410000B8410200000029D6A0410000B841020000000000A841
-                      29D6B041020000000000A8410000A841010000000000A8410000E04002000000
-                      0000A8415EA7BC400200000029D6A0410000A04002000000000098410000A040
-                      00000000000080410000803F01000000000080400000803F02000000BC4E3940
-                      0000803F0200000000000040779DF23F02000000000000400000404001000000
-                      0000004000008841010000000000804000008841010000000000804000004040
-                      01000000000080410000404001000000000080410000803F0300000000008041
-                      0000803F}
-                    Fill.Color = xFF424242
-                    HitTest = False
-                    Margins.Top = 8.000000000000000000
-                    Margins.Bottom = 8.000000000000000000
-                    Size.Width = 36.000000000000000000
-                    Size.Height = 20.000000000000000000
-                    Size.PlatformDefault = False
-                    Stroke.Kind = None
-                    WrapMode = Fit
-                  end
-                end
-              end
-            end
-            object lyGuestID: TLayout
-              Align = Top
-              Margins.Top = 40.000000000000000000
-              Position.Y = 353.000000000000000000
-              Size.Width = 314.000000000000000000
-              Size.Height = 56.000000000000000000
-              Size.PlatformDefault = False
-              TabOrder = 1
-              object RGuestID: TRectangle
-                Align = Top
-                Size.Width = 314.000000000000000000
-                Size.Height = 20.000000000000000000
-                Size.PlatformDefault = False
-                Stroke.Kind = None
-                XRadius = 10.000000000000000000
-                YRadius = 10.000000000000000000
-                object LlyGuestIDCaption: TLabel
-                  Align = Client
-                  StyledSettings = [Style]
-                  Size.Width = 314.000000000000000000
-                  Size.Height = 20.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 15.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  TextSettings.HorzAlign = Center
-                  Text = 'ID do acesso remoto'
-                end
-              end
-              object Layout10: TLayout
-                Align = Client
-                Size.Width = 314.000000000000000000
-                Size.Height = 36.000000000000000000
-                Size.PlatformDefault = False
-                TabOrder = 1
-                object EGuestID: TEdit
-                  Touch.InteractiveGestures = [LongTap, DoubleTap]
-                  Align = Client
-                  StyleLookup = 'transparentedit'
-                  TabOrder = 0
-                  KeyboardType = NumberPad
-                  ReturnKeyType = Go
-                  MaxLength = 11
-                  FilterChar = '0123456789-'
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 30.000000000000000000
-                  TextSettings.FontColor = xFF424242
-                  TextSettings.HorzAlign = Center
-                  Margins.Left = 46.000000000000000000
-                  Size.Width = 222.000000000000000000
-                  Size.Height = 36.000000000000000000
-                  Size.PlatformDefault = False
-                  TextPrompt = '___-___-___'
-                  StyledSettings = [Style]
-                  OnTyping = EGuestIDTyping
-                  OnKeyDown = EGuestIDKeyDown
-                end
-                object sbPasteID: TSpeedButton
-                  Action = actPasteID
-                  Align = Right
-                  Enabled = True
-                  ImageIndex = -1
-                  Margins.Left = 10.000000000000000000
-                  Position.X = 278.000000000000000000
-                  Size.Width = 36.000000000000000000
-                  Size.Height = 36.000000000000000000
-                  Size.PlatformDefault = False
-                  object PhPasteID: TPath
-                    Align = Client
-                    Data.Path = {
-                      1B00000000000000C3F560410000104101000000000070413D0A1F4101000000
-                      A470BD4000009841010000000000A04000009841010000000000A040D7A39041
-                      01000000C3F560410000104100000000AE478D410000404002000000AE478B41
-                      000040400200000033338941666646400200000014AE87415C8F524001000000
-                      7B1472410AD7A340010000003D0A974185EB0D410100000014AEA541AE47E140
-                      02000000CDCCA841CDCCD44002000000CDCCA8410000C0400200000014AEA541
-                      F628B44001000000C3F592415C8F524002000000295C91418FC2454002000000
-                      295C8F410000404002000000AE478D410000404000000000C3F560417B14C640
-                      010000000000404000008A4101000000000040400000A841010000000000D840
-                      0000A84101000000E17A8E413D0A1F4101000000C3F560417B14C64003000000
-                      C3F560417B14C640}
-                    Fill.Color = xFF424242
-                    HitTest = False
-                    Margins.Top = 8.000000000000000000
-                    Margins.Bottom = 8.000000000000000000
-                    Size.Width = 36.000000000000000000
-                    Size.Height = 20.000000000000000000
-                    Size.PlatformDefault = False
-                    Stroke.Kind = None
-                    WrapMode = Fit
-                  end
-                end
-              end
-            end
-            object lyConnect: TLayout
-              Align = Top
-              Margins.Top = 40.000000000000000000
-              Position.Y = 449.000000000000000000
-              Size.Width = 314.000000000000000000
-              Size.Height = 48.000000000000000000
-              Size.PlatformDefault = False
-              TabOrder = 32
-              object btnConectar: TRoundRect
-                Align = Contents
-                Fill.Color = xFF0070BA
-                Size.Width = 314.000000000000000000
-                Size.Height = 48.000000000000000000
-                Size.PlatformDefault = False
-                Stroke.Kind = None
-                object LbtnConectar: TLabel
-                  Action = actConnect
-                  Align = Client
-                  Enabled = True
-                  StyledSettings = [Style]
-                  HitTest = True
-                  Size.Width = 314.000000000000000000
-                  Size.Height = 48.000000000000000000
-                  Size.PlatformDefault = False
-                  TextSettings.Font.Family = 'Quicksand'
-                  TextSettings.Font.Size = 20.000000000000000000
-                  TextSettings.FontColor = claWhite
-                  TextSettings.HorzAlign = Center
-                end
-                object aniBtnLogin: TFloatAnimation
-                  Duration = 0.500000000000000000
-                  PropertyName = 'Opacity'
-                  StartValue = 1.000000000000000000
-                  StartFromCurrent = True
-                  StopValue = 0.000000000000000000
-                end
-              end
-            end
-            object Divider: TLine
-              Align = Top
-              LineType = Diagonal
-              Margins.Top = 30.000000000000000000
-              Position.Y = 312.000000000000000000
-              Size.Width = 314.000000000000000000
-              Size.Height = 1.000000000000000000
-              Size.PlatformDefault = False
-              Stroke.Color = claLightgray
-              Stroke.Cap = Round
-            end
-            object lyStatus: TLayout
-              Align = Bottom
-              Margins.Bottom = 5.000000000000000000
-              Position.Y = 512.000000000000000000
-              Size.Width = 314.000000000000000000
-              Size.Height = 30.000000000000000000
-              Size.PlatformDefault = False
-              TabOrder = 34
-              object PhStatus: TPath
-                Align = Left
-                Data.Path = {
-                  2800000000000000000040410000A0400200000085EB7D410000A04002000000
-                  000098417B140241020000000000984100004041020000000000984185EB7D41
-                  0200000085EB7D4100009841020000000000404100009841020000007B140241
-                  00009841020000000000A04085EB7D41020000000000A0400000404102000000
-                  0000A0407B140241020000007B1402410000A04002000000000040410000A040
-                  0000000000004041000000400200000000008C4100000040020000000000B041
-                  0000D040020000000000B04100004041020000000000B04100008C4102000000
-                  00008C410000B04102000000000040410000B041020000000000D0400000B041
-                  020000000000004000008C410200000000000040000040410200000000000040
-                  0000D040020000000000D0400000004002000000000040410000004000000000
-                  0000404100008040020000005C8FF2400000804002000000000080405C8FF240
-                  0200000000008040000040410200000000008040295C8341020000005C8FF240
-                  0000A04102000000000040410000A04102000000295C83410000A04102000000
-                  0000A041295C8341020000000000A04100004041020000000000A0415C8FF240
-                  02000000295C8341000080400200000000004041000080400300000000004041
-                  00008040}
-                Fill.Color = xFFED3237
-                Margins.Top = 5.000000000000000000
-                Margins.Bottom = 5.000000000000000000
-                Position.Y = 5.000000000000000000
-                Size.Width = 30.000000000000000000
-                Size.Height = 20.000000000000000000
-                Size.PlatformDefault = False
-                Stroke.Kind = None
-                WrapMode = Fit
-              end
-              object LStatus: TLabel
-                Align = Client
-                StyledSettings = [Style]
-                Size.Width = 284.000000000000000000
-                Size.Height = 30.000000000000000000
-                Size.PlatformDefault = False
-                TextSettings.Font.Family = 'Quicksand'
-                TextSettings.Font.Size = 14.000000000000000000
-                TextSettings.FontColor = xFF424242
-              end
+              Stroke.Kind = None
             end
           end
         end
       end
-    end
-  end
-  object recDownload: TRectangle
-    Align = Contents
-    Fill.Color = claBlack
-    Opacity = 0.500000000000000000
-    Size.Width = 354.000000000000000000
-    Size.Height = 573.000000000000000000
-    Size.PlatformDefault = False
-    Stroke.Kind = None
-    Visible = False
-    object Layout16: TLayout
-      Align = Client
-      Size.Width = 354.000000000000000000
-      Size.Height = 573.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 0
-      object aniDownload: TAniIndicator
-        Align = Center
-        Size.Width = 78.000000000000000000
-        Size.Height = 81.000000000000000000
+      object lyMachineID: TLayout
+        Align = Top
+        Margins.Top = 10.000000000000000000
+        Position.Y = 176.000000000000000000
+        Size.Width = 314.000000000000000000
+        Size.Height = 56.000000000000000000
         Size.PlatformDefault = False
-        Style = Circular
+        TabOrder = 30
+        object RMachineID: TRectangle
+          Align = Top
+          Size.Width = 314.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 10.000000000000000000
+          YRadius = 10.000000000000000000
+          object LlyMachineIDCaption: TLabel
+            Align = Client
+            StyledSettings = [Style]
+            Size.Width = 314.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 15.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Text = 'Seu ID'
+          end
+        end
+        object Layout6: TLayout
+          Align = Client
+          Size.Width = 314.000000000000000000
+          Size.Height = 36.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          object LMachineID: TLabel
+            Align = Client
+            StyledSettings = [Style]
+            Margins.Left = 46.000000000000000000
+            Size.Width = 222.000000000000000000
+            Size.Height = 36.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 30.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Text = 'transparentedit'
+          end
+          object sbMachineIDCopy: TSpeedButton
+            Action = actCopyID
+            Align = Right
+            Enabled = True
+            ImageIndex = -1
+            Margins.Left = 10.000000000000000000
+            Position.X = 278.000000000000000000
+            Size.Width = 36.000000000000000000
+            Size.Height = 36.000000000000000000
+            Size.PlatformDefault = False
+            Visible = True
+            object PhMachineIDCopy: TPath
+              Align = Client
+              Data.Path = {
+                2000000000000000000098410000A84101000000000000410000A84101000000
+                000000410000E04001000000000098410000E04000000000000098410000A040
+                01000000000000410000A040020000005EA7DC400000A040020000000000C040
+                5EA7BC40020000000000C0400000E040010000000000C0400000A84102000000
+                0000C04029D6B041020000005EA7DC400000B84102000000000000410000B841
+                01000000000098410000B8410200000029D6A0410000B841020000000000A841
+                29D6B041020000000000A8410000A841010000000000A8410000E04002000000
+                0000A8415EA7BC400200000029D6A0410000A04002000000000098410000A040
+                00000000000080410000803F01000000000080400000803F02000000BC4E3940
+                0000803F0200000000000040779DF23F02000000000000400000404001000000
+                0000004000008841010000000000804000008841010000000000804000004040
+                01000000000080410000404001000000000080410000803F0300000000008041
+                0000803F}
+              Fill.Color = xFF424242
+              HitTest = False
+              Margins.Top = 8.000000000000000000
+              Margins.Bottom = 8.000000000000000000
+              Size.Width = 36.000000000000000000
+              Size.Height = 20.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Kind = None
+              WrapMode = Fit
+            end
+          end
+        end
+      end
+      object lyPassword: TLayout
+        Align = Top
+        Margins.Top = 10.000000000000000000
+        Position.Y = 110.000000000000000000
+        Size.Width = 314.000000000000000000
+        Size.Height = 56.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 31
+        object RPassword: TRectangle
+          Align = Top
+          Size.Width = 314.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 10.000000000000000000
+          YRadius = 10.000000000000000000
+          object LlyPasswordCaption: TLabel
+            Align = Client
+            StyledSettings = [Style]
+            Size.Width = 314.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 15.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Text = 'Sua senha'
+          end
+        end
+        object Layout8: TLayout
+          Align = Client
+          Size.Width = 314.000000000000000000
+          Size.Height = 36.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          object LPassword: TLabel
+            Align = Client
+            StyledSettings = [Style]
+            Margins.Left = 46.000000000000000000
+            Size.Width = 222.000000000000000000
+            Size.Height = 36.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 30.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Text = 'transparentedit'
+          end
+          object sbPasswordCopy: TSpeedButton
+            Action = actCopyPassword
+            Align = Right
+            Enabled = True
+            ImageIndex = -1
+            Margins.Left = 10.000000000000000000
+            Position.X = 278.000000000000000000
+            Size.Width = 36.000000000000000000
+            Size.Height = 36.000000000000000000
+            Size.PlatformDefault = False
+            Visible = True
+            object PhPasswordCopy: TPath
+              Align = Client
+              Data.Path = {
+                2000000000000000000098410000A84101000000000000410000A84101000000
+                000000410000E04001000000000098410000E04000000000000098410000A040
+                01000000000000410000A040020000005EA7DC400000A040020000000000C040
+                5EA7BC40020000000000C0400000E040010000000000C0400000A84102000000
+                0000C04029D6B041020000005EA7DC400000B84102000000000000410000B841
+                01000000000098410000B8410200000029D6A0410000B841020000000000A841
+                29D6B041020000000000A8410000A841010000000000A8410000E04002000000
+                0000A8415EA7BC400200000029D6A0410000A04002000000000098410000A040
+                00000000000080410000803F01000000000080400000803F02000000BC4E3940
+                0000803F0200000000000040779DF23F02000000000000400000404001000000
+                0000004000008841010000000000804000008841010000000000804000004040
+                01000000000080410000404001000000000080410000803F0300000000008041
+                0000803F}
+              Fill.Color = xFF424242
+              HitTest = False
+              Margins.Top = 8.000000000000000000
+              Margins.Bottom = 8.000000000000000000
+              Size.Width = 36.000000000000000000
+              Size.Height = 20.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Kind = None
+              WrapMode = Fit
+            end
+          end
+        end
+      end
+      object lResolution: TLayout
+        Align = Top
+        Margins.Top = 10.000000000000000000
+        Position.Y = 242.000000000000000000
+        Size.Width = 314.000000000000000000
+        Size.Height = 55.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 32
+        object Rectangle1: TRectangle
+          Align = Top
+          Size.Width = 314.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 10.000000000000000000
+          YRadius = 10.000000000000000000
+          object Label1: TLabel
+            Align = Client
+            StyledSettings = [Style]
+            Size.Width = 314.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 15.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Text = 'Qualidade do V'#237'deo'
+          end
+        end
+        object cbQualidade: TComboBox
+          Align = Center
+          Locked = True
+          Items.Strings = (
+            'Baixa'
+            'Alta')
+          ItemIndex = 1
+          Size.Width = 89.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+        end
+      end
+      object lyGuestID: TLayout
+        Align = Top
+        Margins.Top = 10.000000000000000000
+        Position.Y = 307.000000000000000000
+        Size.Width = 314.000000000000000000
+        Size.Height = 56.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 33
+        object RGuestID: TRectangle
+          Align = Top
+          Size.Width = 314.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 10.000000000000000000
+          YRadius = 10.000000000000000000
+          object LlyGuestIDCaption: TLabel
+            Align = Client
+            StyledSettings = [Style]
+            Size.Width = 314.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 15.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Text = 'ID do acesso remoto'
+          end
+        end
+        object Layout10: TLayout
+          Align = Client
+          Size.Width = 314.000000000000000000
+          Size.Height = 36.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          object EGuestID: TEdit
+            Touch.InteractiveGestures = [LongTap, DoubleTap]
+            Align = Client
+            StyleLookup = 'transparentedit'
+            TabOrder = 0
+            KeyboardType = NumberPad
+            ReturnKeyType = Go
+            MaxLength = 11
+            FilterChar = '0123456789-'
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 30.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Margins.Left = 46.000000000000000000
+            Size.Width = 222.000000000000000000
+            Size.Height = 36.000000000000000000
+            Size.PlatformDefault = False
+            TextPrompt = '___-___-___'
+            StyledSettings = [Style]
+            OnTyping = EGuestIDTyping
+            OnKeyDown = EGuestIDKeyDown
+          end
+          object sbPasteID: TSpeedButton
+            Action = actPasteID
+            Align = Right
+            Enabled = True
+            ImageIndex = -1
+            Margins.Left = 10.000000000000000000
+            Position.X = 278.000000000000000000
+            Size.Width = 36.000000000000000000
+            Size.Height = 36.000000000000000000
+            Size.PlatformDefault = False
+            Visible = True
+            object PhPasteID: TPath
+              Align = Client
+              Data.Path = {
+                1B00000000000000C3F560410000104101000000000070413D0A1F4101000000
+                A470BD4000009841010000000000A04000009841010000000000A040D7A39041
+                01000000C3F560410000104100000000AE478D410000404002000000AE478B41
+                000040400200000033338941666646400200000014AE87415C8F524001000000
+                7B1472410AD7A340010000003D0A974185EB0D410100000014AEA541AE47E140
+                02000000CDCCA841CDCCD44002000000CDCCA8410000C0400200000014AEA541
+                F628B44001000000C3F592415C8F524002000000295C91418FC2454002000000
+                295C8F410000404002000000AE478D410000404000000000C3F560417B14C640
+                010000000000404000008A4101000000000040400000A841010000000000D840
+                0000A84101000000E17A8E413D0A1F4101000000C3F560417B14C64003000000
+                C3F560417B14C640}
+              Fill.Color = xFF424242
+              HitTest = False
+              Margins.Top = 8.000000000000000000
+              Margins.Bottom = 8.000000000000000000
+              Size.Width = 36.000000000000000000
+              Size.Height = 20.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Kind = None
+              WrapMode = Fit
+            end
+          end
+        end
+      end
+      object lyConnect: TLayout
+        Align = Top
+        Margins.Top = 10.000000000000000000
+        Position.Y = 373.000000000000000000
+        Size.Width = 314.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 34
+        object btnConectar: TRoundRect
+          Align = Contents
+          Fill.Color = xFF0070BA
+          Size.Width = 314.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          object LbtnConectar: TLabel
+            Action = actConnect
+            Align = Client
+            Enabled = True
+            StyledSettings = [Style]
+            HitTest = True
+            Size.Width = 314.000000000000000000
+            Size.Height = 40.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 20.000000000000000000
+            TextSettings.FontColor = claWhite
+            TextSettings.HorzAlign = Center
+            Visible = True
+          end
+          object aniBtnLogin: TFloatAnimation
+            Duration = 0.500000000000000000
+            PropertyName = 'Opacity'
+            StartValue = 1.000000000000000000
+            StartFromCurrent = True
+            StopValue = 0.000000000000000000
+          end
+        end
+      end
+      object lyStatus: TLayout
+        Align = Top
+        Margins.Top = 5.000000000000000000
+        Position.Y = 418.000000000000000000
+        Size.Width = 314.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 35
+        object PhStatus: TPath
+          Align = Left
+          Data.Path = {
+            2800000000000000000040410000A0400200000085EB7D410000A04002000000
+            000098417B140241020000000000984100004041020000000000984185EB7D41
+            0200000085EB7D4100009841020000000000404100009841020000007B140241
+            00009841020000000000A04085EB7D41020000000000A0400000404102000000
+            0000A0407B140241020000007B1402410000A04002000000000040410000A040
+            0000000000004041000000400200000000008C4100000040020000000000B041
+            0000D040020000000000B04100004041020000000000B04100008C4102000000
+            00008C410000B04102000000000040410000B041020000000000D0400000B041
+            020000000000004000008C410200000000000040000040410200000000000040
+            0000D040020000000000D0400000004002000000000040410000004000000000
+            0000404100008040020000005C8FF2400000804002000000000080405C8FF240
+            0200000000008040000040410200000000008040295C8341020000005C8FF240
+            0000A04102000000000040410000A04102000000295C83410000A04102000000
+            0000A041295C8341020000000000A04100004041020000000000A0415C8FF240
+            02000000295C8341000080400200000000004041000080400300000000004041
+            00008040}
+          Fill.Color = xFFED3237
+          Margins.Top = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 30.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          WrapMode = Fit
+        end
+        object LStatus: TLabel
+          Align = Client
+          StyledSettings = [Style]
+          Size.Width = 284.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Quicksand'
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.FontColor = xFF424242
+        end
       end
     end
   end
@@ -661,16 +641,11 @@ object FormConexao: TFormConexao
     object actCopyPassword: TAction
       OnExecute = actCopyPasswordExecute
     end
-    object actTabChange: TChangeTabAction
-      Category = 'Tab'
-    end
     object actPasteID: TAction
       OnExecute = actPasteIDExecute
     end
   end
   object RDQuery: TRESTDWClientSQL
-    Active = False
-    Filtered = False
     FieldDefs = <>
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]
@@ -692,6 +667,7 @@ object FormConexao: TFormConexao
     CacheUpdateRecords = True
     AutoCommitData = False
     AutoRefreshAfterCommit = False
+    ThreadRequest = False
     RaiseErrors = True
     ActionCursor = crSQLWait
     ReflectChanges = False

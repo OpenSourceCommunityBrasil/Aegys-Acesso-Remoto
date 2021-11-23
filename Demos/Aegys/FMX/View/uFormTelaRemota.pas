@@ -27,16 +27,12 @@ uses
 
 type
   TFormTelaRemota = class(TForm)
-    imgTelaRemota: TImage;
     sbChat: TSpeedButton;
     Path1: TPath;
     LChat: TLabel;
     sbArquivos: TSpeedButton;
     Path2: TPath;
     LFiles: TLabel;
-    Line1: TLine;
-    Layout2: TLayout;
-    Rectangle1: TRectangle;
     ActionList1: TActionList;
     PROC_ARQUIVOS: TAction;
     PROC_CHAT: TAction;
@@ -49,6 +45,7 @@ type
     LMouse: TLabel;
     PROC_MOUSE: TAction;
     pControles: TPanel;
+    imgTelaRemota: TRectangle;
     procedure PROC_ARQUIVOSExecute(Sender: TObject);
     procedure PROC_CHATExecute(Sender: TObject);
     procedure imgTelaRemotaMouseMove(Sender: TObject; Shift: TShiftState;
@@ -446,8 +443,9 @@ end;
 
 procedure TFormTelaRemota.PROC_REDIMENSIONARExecute(Sender: TObject);
 begin
-  imgTelaRemota.Align := TAlignLayout.Client;
-  imgTelaRemota.WrapMode := TImageWrapMode.Fit;
+//  imgTelaRemota.Align                := TAlignLayout.Client;
+//  imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
+//  imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
   pControles.Position.X := (Self.Width / 2) - (pControles.Width / 2);
   RetornaMargem;
 end;
@@ -483,10 +481,10 @@ begin
     iMarginH := iMarginH / 2;
   end;
 
-  imgTelaRemota.Margins.Left := iMarginW;
-  imgTelaRemota.Margins.Right := iMarginW;
-  imgTelaRemota.Margins.Top := iMarginH;
-  imgTelaRemota.Margins.Bottom := iMarginH;
+//  imgTelaRemota.Margins.Left := iMarginW;
+//  imgTelaRemota.Margins.Right := iMarginW;
+//  imgTelaRemota.Margins.Top := iMarginH;
+//  imgTelaRemota.Margins.Bottom := iMarginH;
 end;
 
 procedure TFormTelaRemota.imgTelaRemotaMouseDown(Sender: TObject;

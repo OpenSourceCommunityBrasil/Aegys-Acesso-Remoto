@@ -18,7 +18,7 @@ unit uCtrl_Threads;
 interface
 
 uses
-  System.Classes, System.Win.ScktComp, uLocaleFunctions;
+  System.Classes, System.Win.ScktComp, uLocaleFunctions, Vcl.Graphics;
 
 type
   TThreadConexaoPrincipal = class(TThread)
@@ -226,7 +226,8 @@ begin
           FormTelaRemota.Show;
           FormConexao.Hide;
           Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' +
-            FormConexao.EGuestID.Text + '<|END|>');
+            FormConexao.EGuestID.Text + '<|>' + '<|BESTQ|>' +
+          IntToStr(FormConexao.cbQualidade.ItemIndex) + '<|END|>');
         end);
     end;
 
@@ -583,18 +584,21 @@ end;
 
 procedure TThreadConexaoAreaRemota.Execute;
 var
-  Position: Integer;
-  Buffer: string;
-  TempBuffer: string;
-  MyFirstBmp: TStream;
-  PackStream: TMemoryStream;
-  MyTempStream: TMemoryStream;
-  UnPackStream: TMemoryStream;
-  MyCompareBmp: TStream;
-  MySecondBmp: TStream;
-  hDesktop: HDESK;
-  bFirst: Boolean;
-  Locale: TLocale;
+  PixelFormat   : TPixelFormat;
+  Position      : Integer;
+  xValue,
+  Buffer,
+  TempBuffer    : String;
+  PackStream,
+  MyTempStream,
+  UnPackStream  : TMemoryStream;
+  MyFirstBmp,
+  MyCompareBmp,
+  MySecondBmp   : TStream;
+  hDesktop      : HDESK;
+  bFirst        : Boolean;
+  Locale        : TLocale;
+  vBitmap       : TBitmap;
 begin
   inherited;
   Locale := TLocale.Create;
@@ -624,6 +628,15 @@ begin
       Position := Pos('<|GETFULLSCREENSHOT|>', Buffer);
       if Position > 0 then
       begin
+       xValue := Buffer;
+       If Pos('<|BESTQ|>', xValue) > 0 Then
+        Begin
+         xValue := Copy(xValue, Pos('<|BESTQ|>', xValue) + 9, 1);
+         Case StrToInt(xValue) Of
+          0 : PixelFormat := pf8bit;
+          1 : PixelFormat := pfDevice;
+         End;
+        End;
         Delete(Buffer, 1, Position + 20);
         Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' +
           IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height))
@@ -640,7 +653,7 @@ begin
           procedure
           begin
             GetScreenToMemoryStream(Conexao.MostrarMouse,
-              TMemoryStream(MyFirstBmp));
+              TMemoryStream(MyFirstBmp), PixelFormat);
           end);
 
         MyFirstBmp.Position := 0;
@@ -679,14 +692,14 @@ begin
           // Workaround to run on change from secure desktop to default.
           try
             GetScreenToMemoryStream(Conexao.MostrarMouse,
-              TMemoryStream(MySecondBmp));
+              TMemoryStream(MySecondBmp), PixelFormat);
             MySecondBmp.Position := 0;
           except
             Synchronize(
               procedure
               begin
                 GetScreenToMemoryStream(Conexao.MostrarMouse,
-                  TMemoryStream(MySecondBmp));
+                  TMemoryStream(MySecondBmp), PixelFormat);
                 MySecondBmp.Position := 0;
               end);
           end;
@@ -747,8 +760,12 @@ begin
             procedure
             begin
               try
-                FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MyFirstBmp);
-                FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
+//               vBitmap := TBitmap.Create;
+//               vBitmap.LoadFromStream(MyFirstBmp);
+//               FormTelaRemota.imgTelaRemota.Fill.Kind := TbrushKind.Bitmap;
+//               FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+               FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(MyFirstBmp);//   := vBitmap;
+               FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
                   'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
               except
                 on e: exception do
@@ -770,7 +787,11 @@ begin
             procedure
             begin
               Try
-                FormTelaRemota.imgTelaRemota.Bitmap.LoadFromStream(MySecondBmp);
+//               vBitmap := TBitmap.Create;
+//               vBitmap.LoadFromStream(MySecondBmp);
+//               FormTelaRemota.imgTelaRemota.Fill.Kind := TbrushKind.Bitmap;
+//               FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+               FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(MySecondBmp);// := vBitmap;
                 FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
                   'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
               Except

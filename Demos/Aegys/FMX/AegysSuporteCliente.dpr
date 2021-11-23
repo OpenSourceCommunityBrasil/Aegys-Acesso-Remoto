@@ -26,8 +26,7 @@ uses
   uHttpClass in 'Lib\uHttpClass.pas',
   Bcrypt in 'Lib\Bcrypt.pas',
   uLocaleFunctions in 'Locale\uLocaleFunctions.pas',
-  uFormConfig in 'View\uFormConfig.pas' {fConfig},
-  UFuncoes in 'Functions\UFuncoes.pas';
+  uFormConfig in 'View\uFormConfig.pas';
 
 {$R *.res}
 

@@ -26,7 +26,7 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, uDWAbout, uRESTDWPoolerDB, Data.DB,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, uDWConstsData, FMX.TabControl,
-  uCtrl_Conexao, uRESTDWServerEvents, uLocaleFunctions;
+  uCtrl_Conexao, uRESTDWServerEvents, uLocaleFunctions, FMX.ListBox;
 
 type
   TFormConexao = class(TForm)
@@ -61,7 +61,6 @@ type
     aniBtnLogin: TFloatAnimation;
     ActionList1: TActionList;
     actConnect: TAction;
-    Divider: TLine;
     lyStatus: TLayout;
     PhStatus: TPath;
     LStatus: TLabel;
@@ -70,22 +69,19 @@ type
     tmrClipboard: TTimer;
     actCopyID: TAction;
     actCopyPassword: TAction;
-    tcPrincipal: TTabControl;
-    tabAcesso: TTabItem;
-    RMainBackground: TRectangle;
     Layout4: TLayout;
     RDQuery: TRESTDWClientSQL;
     RESTDWDataBase1: TRESTDWDataBase;
-    actTabChange: TChangeTabAction;
     sbPasteID: TSpeedButton;
     PhPasteID: TPath;
     actPasteID: TAction;
     LVersion: TLabel;
-    recDownload: TRectangle;
-    Layout16: TLayout;
-    aniDownload: TAniIndicator;
     phOptions: TPath;
     sbOptions: TSpeedButton;
+    lResolution: TLayout;
+    Rectangle1: TRectangle;
+    Label1: TLabel;
+    cbQualidade: TComboBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -136,9 +132,9 @@ begin
 
   FormTelaRemota.tCapturarComandos.Enabled := True;
   FormTelaRemota.tCapturarComandos.Enabled := False;
-  FormTelaRemota.imgTelaRemota.WrapMode := TImageWrapMode.Fit;
-  FormTelaRemota.imgTelaRemota.MultiResBitmap.Assign
-    (FormTelaRemota.imgTelaRemota.MultiResBitmap);
+//  FormTelaRemota.imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
+//  FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+  FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign(FormTelaRemota.imgTelaInicial.Bitmap);
 
   FormArquivos.btnDownload.Enabled := True;
   FormArquivos.btnUpload.Enabled := True;
@@ -201,8 +197,8 @@ begin
   Locale := TLocale.Create;
   Conexao := TConexao.Create;
   // --------------------------
-  tcPrincipal.TabPosition := TTabPosition.None;
-  tcPrincipal.ActiveTab := tabAcesso;
+//  tcPrincipal.TabPosition := TTabPosition.None;
+//  tcPrincipal.ActiveTab := tabAcesso;
   SetOffline;
   Translate;
 end;
@@ -251,8 +247,8 @@ end;
 
 procedure TFormConexao.MudarTab(TabItem: TTabItem);
 begin
-  actTabChange.Tab := TabItem;
-  actTabChange.ExecuteTarget(self);
+//  actTabChange.Tab := TabItem;
+//  actTabChange.ExecuteTarget(self);
 end;
 
 procedure TFormConexao.sbOptionsClick(Sender: TObject);

@@ -21,7 +21,9 @@ uses
   System.Classes, FMX.Graphics, Vcl.Graphics, FMX.Forms, Winapi.Windows,
   FMX.Objects;
 
-procedure GetScreenToMemoryStream(DrawCur: Boolean; TargetMemoryStream: TMemoryStream);
+procedure GetScreenToMemoryStream(DrawCur            : Boolean;
+                                  TargetMemoryStream : TMemoryStream;
+                                  PixelFormat        : TPixelFormat = pfDevice);
 
 procedure CompareStream(MyFirstStream, MySecondStream, MyCompareStream: TMemoryStream);
 
@@ -78,57 +80,57 @@ begin
   end;
 end;
 
-procedure GetScreenToMemoryStream(DrawCur: Boolean; TargetMemoryStream: TMemoryStream);
-const
-  CAPTUREBLT = $40000000;
-var
-  Mybmp: Vcl.Graphics.TBitmap;
-  Cursorx, Cursory: Integer;
-  dc: hdc;
-  R: TRect;
-  DrawPos: TPoint;
-  MyCursor: TIcon;
-  hld: hwnd;
-  Threadld: dword;
-  mp: TPoint;
-  pIconInfo: TIconInfo;
-begin
-  Mybmp := Vcl.Graphics.TBitmap.Create;
-
-  dc := GetWindowDC(0);
-  try
-    R := Rect(0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
-    Mybmp.Width := R.Right;
-    Mybmp.Height := R.Bottom;
-    BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, dc, 0, 0, SRCCOPY or CAPTUREBLT);
-  finally
-    releaseDC(0, dc);
-  end;
-
-  if DrawCur then
-  begin
-    GetCursorPos(DrawPos);
-    MyCursor := TIcon.Create;
-    GetCursorPos(mp);
-    hld := WindowFromPoint(mp);
-    Threadld := GetWindowThreadProcessId(hld, nil);
-    AttachThreadInput(GetCurrentThreadId, Threadld, True);
-    MyCursor.Handle := Getcursor();
-    AttachThreadInput(GetCurrentThreadId, Threadld, False);
-    GetIconInfo(MyCursor.Handle, pIconInfo);
-    Cursorx := DrawPos.x - round(pIconInfo.xHotspot);
-    Cursory := DrawPos.y - round(pIconInfo.yHotspot);
-    Mybmp.Canvas.Draw(Cursorx, Cursory, MyCursor);
-    DeleteObject(pIconInfo.hbmColor);
-    DeleteObject(pIconInfo.hbmMask);
-    MyCursor.ReleaseHandle;
-    MyCursor.Free;
-  end;
-  Mybmp.PixelFormat := pf15bit;
-  TargetMemoryStream.Clear;
-  Mybmp.SaveToStream(TargetMemoryStream);
-  Mybmp.Free;
-end;
+procedure GetScreenToMemoryStream(DrawCur            : Boolean;
+                                  TargetMemoryStream : TMemoryStream;
+                                  PixelFormat        : TPixelFormat = pfDevice);
+Const
+ CAPTUREBLT = $40000000;
+Var
+ Mybmp: Vcl.Graphics.TBitmap;
+ Cursorx, Cursory: Integer;
+ dc: hdc;
+ R: TRect;
+ DrawPos: TPoint;
+ MyCursor: TIcon;
+ hld: hwnd;
+ Threadld: dword;
+ mp: TPoint;
+ pIconInfo: TIconInfo;
+Begin
+ Mybmp := Vcl.Graphics.TBitmap.Create;
+ dc := GetWindowDC(0);
+ Try
+  R := Rect(0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+  Mybmp.Width := R.Right;
+  Mybmp.Height := R.Bottom;
+  BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, dc, 0, 0, SRCCOPY or CAPTUREBLT);
+ Finally
+  ReleaseDC(0, dc);
+ End;
+ If DrawCur Then
+  Begin
+   GetCursorPos(DrawPos);
+   MyCursor := TIcon.Create;
+   GetCursorPos(mp);
+   hld := WindowFromPoint(mp);
+   Threadld := GetWindowThreadProcessId(hld, nil);
+   AttachThreadInput(GetCurrentThreadId, Threadld, True);
+   MyCursor.Handle := Getcursor();
+   AttachThreadInput(GetCurrentThreadId, Threadld, False);
+   GetIconInfo(MyCursor.Handle, pIconInfo);
+   Cursorx := DrawPos.x - round(pIconInfo.xHotspot);
+   Cursory := DrawPos.y - round(pIconInfo.yHotspot);
+   Mybmp.Canvas.Draw(Cursorx, Cursory, MyCursor);
+   DeleteObject(pIconInfo.hbmColor);
+   DeleteObject(pIconInfo.hbmMask);
+   MyCursor.ReleaseHandle;
+   MyCursor.Free;
+  End;
+ Mybmp.PixelFormat := PixelFormat;
+ TargetMemoryStream.Clear;
+ Mybmp.SaveToStream(TargetMemoryStream);
+ Mybmp.Free;
+End;
 
 // Compare Streams and separate when the Bitmap Pixels are equal.
 procedure CompareStream(MyFirstStream, MySecondStream, MyCompareStream: TMemoryStream);
