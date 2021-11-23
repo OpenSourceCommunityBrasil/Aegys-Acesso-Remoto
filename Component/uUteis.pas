@@ -221,39 +221,47 @@ begin
 end;
 
 Function MacAddress: string;
-var
-  Lib: Cardinal;
-  Func: function(GUID: PGUID): longint; stdcall;
-  GUID1, GUID2: TGUID;
+Var
+ Lib    : Cardinal;
+ Func   : Function(GUID: PGUID): longint; Stdcall;
+ GUID1,
+ GUID2  : TGUID;
+Begin
+ Result := '';
+ Lib := LoadLibrary('rpcrt4.dll');
+ If Lib <> 0 Then
+  Begin
+   @Func := GetProcAddress(Lib, 'UuidCreateSequential');
+   If assigned(Func) Then
+    Begin
+     If (Func(@GUID1) = 0) And
+        (Func(@GUID2) = 0) And
+        (GUID1.D4[2] = GUID2.D4[2]) And
+        (GUID1.D4[3] = GUID2.D4[3]) And
+        (GUID1.D4[4] = GUID2.D4[4]) And
+        (GUID1.D4[5] = GUID2.D4[5]) And
+        (GUID1.D4[6] = GUID2.D4[6]) And
+        (GUID1.D4[7] = GUID2.D4[7]) Then
+      Result := IntToHex(GUID1.D4[2], 2) + '-' +
+                IntToHex(GUID1.D4[3], 2) + '-' +
+                IntToHex(GUID1.D4[4], 2) + '-' +
+                IntToHex(GUID1.D4[5], 2) + '-' +
+                IntToHex(GUID1.D4[6], 2) + '-' +
+                IntToHex(GUID1.D4[7], 2);
+    End;
+  End;
+End;
 
-begin
-  Result := '';
-  Lib := LoadLibrary('rpcrt4.dll');
-  if Lib <> 0 then
-  begin
-    @Func := GetProcAddress(Lib, 'UuidCreateSequential');
-    if assigned(Func) then
-    begin
-      if (Func(@GUID1) = 0) and (Func(@GUID2) = 0) and (GUID1.D4[2] = GUID2.D4[2]) and (GUID1.D4[3] = GUID2.D4[3]) and (GUID1.D4[4] = GUID2.D4[4]) and (GUID1.D4[5] = GUID2.D4[5])
-        and (GUID1.D4[6] = GUID2.D4[6]) and (GUID1.D4[7] = GUID2.D4[7]) then
-      begin
-        Result := IntToHex(GUID1.D4[2], 2) + '-' + IntToHex(GUID1.D4[3], 2) + '-' + IntToHex(GUID1.D4[4], 2) + '-' + IntToHex(GUID1.D4[5], 2) + '-' + IntToHex(GUID1.D4[6], 2) + '-'
-          + IntToHex(GUID1.D4[7], 2);
-      end;
-    end;
-  end;
-end;
-
-function SystemDrive: string;
-var
-  DirWin, SystemDriv: string;
-begin
-  SetLength(DirWin, MAX_PATH);
-  GetSystemDirectory(PChar(DirWin), MAX_PATH);
-  SystemDriv := Copy(DirWin, 1, 3);
-  Result := SystemDriv
-
-end;
+Function SystemDrive : String;
+Var
+ DirWin,
+ SystemDriv : String;
+Begin
+ SetLength(DirWin, MAX_PATH);
+ GetSystemDirectory(PChar(DirWin), MAX_PATH);
+ SystemDriv := Copy(DirWin, 1, 3);
+ Result := SystemDriv
+End;
 
 Function SerialNumHardDisk(FDrive: String): String;
 Var

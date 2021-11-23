@@ -86,8 +86,13 @@ end;
 
 procedure TThreadConexaoDefinidor.Execute;
 var
-  xBuffer, xBufferTemp, xID: string;
-  iPosition: Integer;
+ xBuffer,
+ xBufferTemp,
+ xValue,
+ xID,
+ xMAC,
+ xHD         : String;
+ iPosition   : Integer;
 begin
   inherited;
 
@@ -107,11 +112,25 @@ begin
 
     iPosition := Pos('<|MAINSOCKET|>', xBuffer);
     if iPosition > 0 then
-    begin
+    Begin
+     If Pos('<|MAC|>', xBuffer) > 0 Then
+      Begin
+       xValue := xBuffer;
+       Delete(xValue, 1, Pos('<|MAC|>', xValue)+ 6);
+       xMAC := xValue;
+       xMAC := Copy(xMAC, 1, Pos('<|>', xMAC) - 1);
+       Delete(xValue, 1, Pos('<|>', xValue) + 2);
+       Delete(xValue, 1, Pos('<|HD|>', xValue)+ 5);
+       xHD := xValue;
+       xHD := Copy(xHD, 1, Pos('<|>', xHD) - 1);
+       xValue := '';
+       DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle), XMac, XHD);
+      End
+     Else
       DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle));
-      DMServer.Conexoes.RetornaItemPorConexao(IntToStr(scClient.Handle)).CriarThread(ttPrincipal, scClient);
-      Break;
-    end;
+     DMServer.Conexoes.RetornaItemPorConexao(IntToStr(scClient.Handle)).CriarThread(ttPrincipal, scClient);
+     Break;
+    End;
 
     iPosition := Pos('<|DESKTOPSOCKET|>', xBuffer);
     if iPosition > 0 then

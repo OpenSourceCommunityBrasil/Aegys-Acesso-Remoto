@@ -24,16 +24,18 @@ uses
 type
   TConexao = class
   private
-    FID: string;
-    FLatencia: string;
-    FProtocolo: string;
-    FSenha: string;
-    FThreadAreaRemota: TThreadConexaoAreaRemota;
-    FThreadArquivos: TThreadConexaoArquivos;
-    FThreadPrincipal: TThreadConexaoPrincipal;
-    FThreadTeclado: TThreadConexaoTeclado;
-    FPingInicial: Int64;
-    FPingFinal: Int64;
+    FID,
+    FMAC,
+    FHD,
+    FLatencia,
+    FProtocolo,
+    FSenha            : String;
+    FThreadAreaRemota : TThreadConexaoAreaRemota;
+    FThreadArquivos   : TThreadConexaoArquivos;
+    FThreadPrincipal  : TThreadConexaoPrincipal;
+    FThreadTeclado    : TThreadConexaoTeclado;
+    FPingInicial,
+    FPingFinal        : Int64;
     procedure SetID(const Value: string);
     procedure SetLatencia(const Value: string);
     procedure SetProtocolo(const Value: string);
@@ -50,6 +52,8 @@ type
     procedure Ping;
     procedure CriarThread(AThread: IDThreadType; ASocket: TCustomWinSocket);
     procedure LimparThread(AThread: IDThreadType);
+    property MAC : String Read FMAC Write FMAC;
+    property HD  : String Read FHD  Write FHD;
     property ID: string read FID write SetID;
     property Latencia: string read FLatencia write SetLatencia;
     property PingFinal: Int64 read FPingFinal write SetPingFinal;
@@ -68,6 +72,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    Function GenerateID(strMAC, strHD : String) : String;
     function GerarID: string;
     function GerarSenha: string;
     function RetornaItemPorConexao(AConexao: string): TConexao;
@@ -75,7 +80,9 @@ type
     function RetornaItemPorID(AID: string): TConexao;
     function VerificaID(AID: string): Boolean;
     function VerificaIDSenha(AID, ASenha: string): Boolean;
-    procedure AdicionarConexao(AProtocolo: string);
+    procedure AdicionarConexao(AProtocolo,
+                               MAC, HD : String);Overload;
+    procedure AdicionarConexao(AProtocolo: string);Overload;
     procedure RemoverConexao(AProtocolo: string);
     property ListaConexoes: TObjectList<TConexao> read FListaConexoes;
   end;
@@ -251,16 +258,30 @@ end;
 
 { TConexoes }
 
+procedure TConexoes.AdicionarConexao(AProtocolo,
+                                     MAC, HD : String);
+Var
+ I : Integer;
+Begin
+ FListaConexoes.Add(TConexao.Create);
+ i := FListaConexoes.Count - 1;
+ FListaConexoes[i].Protocolo := AProtocolo;
+ FListaConexoes[i].MAC       := MAC;
+ FListaConexoes[i].HD        := HD;
+ FListaConexoes[i].ID        := GenerateID(MAC, HD);
+ FListaConexoes[i].Senha     := GerarSenha;
+End;
+
 procedure TConexoes.AdicionarConexao(AProtocolo: string);
-var
-  i: Integer;
-begin
-  FListaConexoes.Add(TConexao.Create);
-  i := FListaConexoes.Count - 1;
-  FListaConexoes[i].Protocolo := AProtocolo;
-  FListaConexoes[i].ID := GerarID;
-  FListaConexoes[i].Senha := GerarSenha;
-end;
+Var
+ I : Integer;
+Begin
+ FListaConexoes.Add(TConexao.Create);
+ i := FListaConexoes.Count - 1;
+ FListaConexoes[i].Protocolo := AProtocolo;
+ FListaConexoes[i].ID := GerarID;
+ FListaConexoes[i].Senha := GerarSenha;
+End;
 
 constructor TConexoes.Create;
 begin
@@ -273,6 +294,76 @@ begin
   FreeAndNil(FListaConexoes);
 end;
 
+Function GenerateIDUnique(mac, hd : String) : String;
+ Function LetToNum(Str : String) : String;
+ Const
+  Cad1: String = 'ABCDEF';
+  Cad2: String = '123456';
+ Var
+  x, y : Integer;
+ Begin
+  Result := '';
+  For y := 1 To Length(Str) Do
+   Begin
+    x := Pos(Str[y], Cad1);
+    If x > 0 Then Result := Result + Copy(Cad2,x,1)
+    Else Result := Result + Copy(str,y,1);
+   End;
+ End;
+ Function RemoveChrInvalidos(Str: string): string;
+ Var
+  x   : Integer;
+  ret : String;
+ Begin
+  ret := '';
+  For x := 1 To Length(Str) Do
+   Begin
+    If (Str[x] <> '-') And
+       (Str[x] <> '.') And
+       (Str[x] <> ',') And
+       (Str[x] <> '/') Then
+     ret := ret + Str[x];
+   End;
+  RemoveChrInvalidos := Trim(TrimRight(ret));
+ End;
+Var
+ AMac,
+ AHD, S,
+ sID1,
+ sID2,
+ sID3   : String;
+Begin
+ AMac := RemoveChrInvalidos(mac);
+ AHD := RemoveChrInvalidos(hd);
+ S := LetToNum(AMac + AHD); // Trocando as letras pelos numeros;
+ sID1 := Copy(s,StrToIntDef(Copy(s,1,1),1),3);
+ sID2 := Copy(s,StrToIntDef(Copy(s,10,1),2),3);
+ sID3 := Copy(s,StrToIntDef(Copy(s,length(s)-3,1),3),3);
+ Result := sID1 + '-'+ sID2  +'-'+ sID3;
+End;
+
+Function TConexoes.GenerateID(strMAC, strHD : String) : String;
+Var
+ I       : Integer;
+ ID      : String;
+ Exists  : Boolean;
+ Conexao : TConexao;
+Begin
+ Randomize;
+ ID := GenerateIDUnique(strMAC, strHD);
+ Exists := False;
+ Try
+  For Conexao in FListaConexoes do
+   Begin
+    Exists := (Conexao.ID = ID);
+    If Exists Then
+     Break;
+   End;
+ Finally
+  Result := ID;
+ End;
+End;
+
 function TConexoes.GerarID: string;
 var
   xID: string;

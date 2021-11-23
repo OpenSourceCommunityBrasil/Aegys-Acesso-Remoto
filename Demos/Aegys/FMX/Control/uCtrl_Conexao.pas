@@ -19,7 +19,7 @@ interface
 
 uses
   System.Classes, System.Threading, uCtrl_Threads, System.Win.ScktComp,
-  uConstants, uLocaleFunctions;
+  uConstants, uLocaleFunctions, Winapi.Windows;
 
 type
   TConexao = class
@@ -453,13 +453,76 @@ begin
   ErrorCode := 0;
 end;
 
+Function MacAddress: string;
+Var
+ Lib    : Cardinal;
+ Func   : Function(GUID: PGUID): longint; Stdcall;
+ GUID1,
+ GUID2  : TGUID;
+Begin
+ Result := '';
+ Lib := LoadLibrary('rpcrt4.dll');
+ If Lib <> 0 Then
+  Begin
+   @Func := GetProcAddress(Lib, 'UuidCreateSequential');
+   If assigned(Func) Then
+    Begin
+     If (Func(@GUID1) = 0) And
+        (Func(@GUID2) = 0) And
+        (GUID1.D4[2] = GUID2.D4[2]) And
+        (GUID1.D4[3] = GUID2.D4[3]) And
+        (GUID1.D4[4] = GUID2.D4[4]) And
+        (GUID1.D4[5] = GUID2.D4[5]) And
+        (GUID1.D4[6] = GUID2.D4[6]) And
+        (GUID1.D4[7] = GUID2.D4[7]) Then
+      Result := IntToHex(GUID1.D4[2], 2) + '-' +
+                IntToHex(GUID1.D4[3], 2) + '-' +
+                IntToHex(GUID1.D4[4], 2) + '-' +
+                IntToHex(GUID1.D4[5], 2) + '-' +
+                IntToHex(GUID1.D4[6], 2) + '-' +
+                IntToHex(GUID1.D4[7], 2);
+    End;
+  End;
+End;
+
+Function SystemDrive : String;
+Var
+ DirWin,
+ SystemDriv : String;
+Begin
+ SetLength(DirWin, MAX_PATH);
+ GetSystemDirectory(PChar(DirWin), MAX_PATH);
+ SystemDriv := Copy(DirWin, 1, 3);
+ Result := SystemDriv
+End;
+
+Function SerialNumHardDisk(FDrive : String) : String;
+Var
+ Serial,
+ DirLen,
+ Flags   : DWORD;
+ DLabel  : Array[0..11] Of Char;
+Begin
+ Try
+  GetVolumeInformation(PChar(Copy(FDrive, 1, 1) + ':\'), DLabel, 12, @Serial, DirLen, Flags, nil, 0);
+  Result := IntToHex(Serial, 8);
+ Except
+  Result := '';
+ End;
+End;
+
 procedure TConexao.SocketPrincipalConnect(Sender: TObject;
   Socket: TCustomWinSocket);
+Var
+ vHD,
+ vMAC : String;
 begin
   FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Connected'));
   Intervalo := 0;
   FormConexao.tmrIntervalo.Enabled := True;
-  Socket.SendText('<|MAINSOCKET|>');
+  vMAC := MacAddress;
+  vHD  := SerialNumHardDisk(SystemDrive);
+  Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' + vHD + '<|>');
   CriarThread(ttPrincipal, Socket);
 end;
 

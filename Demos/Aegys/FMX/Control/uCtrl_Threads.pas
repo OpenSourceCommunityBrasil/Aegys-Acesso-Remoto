@@ -159,6 +159,7 @@ begin
         procedure
         begin
           FormConexao.btnConectar.Enabled := False;
+          FormConexao.LbtnConectar.Enabled := FormConexao.btnConectar.Enabled;
           FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS,
             'RemoteConnected'));
         end);
@@ -184,6 +185,7 @@ begin
           FormConexao.MudarStatusConexao(2, Locale.GetLocale(MSGS,
             'IDNoExist'));
           FormConexao.btnConectar.Enabled := True;
+          FormConexao.LbtnConectar.Enabled := FormConexao.btnConectar.Enabled;
         end);
     end;
 
@@ -194,7 +196,9 @@ begin
         begin
           FormConexao.MudarStatusConexao(2, Locale.GetLocale(MSGS,
             'WrongPassword'));
+
           FormConexao.btnConectar.Enabled := True;
+          FormConexao.LbtnConectar.Enabled := FormConexao.btnConectar.Enabled;
         end);
     end;
 
@@ -206,6 +210,7 @@ begin
           FormConexao.MudarStatusConexao(2, Locale.GetLocale(MSGS,
             'BusyGuest'));
           FormConexao.btnConectar.Enabled := True;
+          FormConexao.LbtnConectar.Enabled := FormConexao.btnConectar.Enabled;
         end);
     end;
 

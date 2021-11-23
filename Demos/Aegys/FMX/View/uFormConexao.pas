@@ -271,20 +271,23 @@ end;
 
 procedure TFormConexao.actConnectExecute(Sender: TObject);
 begin
-  if not(LlyGuestIDCaption.Text = '   -   -   ') then
-  begin
-    if (LlyGuestIDCaption.Text = Conexao.ID) then
-      MessageBox(0, Locale.GetLocaleDlg(DLGS, 'ErrorSelfConnect'),
-        Locale.GetLocaleDlg(DLGS, 'RemoteSupport'),
-        MB_ICONASTERISK + MB_TOPMOST)
-    else
+ If LbtnConectar.Enabled Then
+  Begin
+   If not(LlyGuestIDCaption.Text = '   -   -   ') then
     begin
-      Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text +
-        '<|END|>');
-      btnConectar.Enabled := False;
-      MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
+      if (LlyGuestIDCaption.Text = Conexao.ID) then
+        MessageBox(0, Locale.GetLocaleDlg(DLGS, 'ErrorSelfConnect'),
+          Locale.GetLocaleDlg(DLGS, 'RemoteSupport'),
+          MB_ICONASTERISK + MB_TOPMOST)
+      else
+      begin
+       LbtnConectar.Enabled := False;
+        Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text + '<|END|>');
+        btnConectar.Enabled := False;
+        MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
+      end;
     end;
-  end;
+  End;
 end;
 
 procedure TFormConexao.actCopyIDExecute(Sender: TObject);
@@ -316,9 +319,11 @@ end;
 
 procedure TFormConexao.SetOffline;
 begin
+
   LMachineID.Text := Locale.GetLocale(MSGS, 'Disconnected');
   LPassword.Text := Locale.GetLocale(MSGS, 'Disconnected');
   btnConectar.Enabled := False;
+  LbtnConectar.Enabled := btnConectar.Enabled;
   tmrIntervalo.Enabled := False;
   tmrClipboard.Enabled := False;
 end;
@@ -328,6 +333,7 @@ begin
   LMachineID.Text := Conexao.ID;
   LPassword.Text := Conexao.Senha;
   btnConectar.Enabled := True;
+  LbtnConectar.Enabled := btnConectar.Enabled;
 end;
 
 procedure TFormConexao.EGuestIDKeyDown(Sender: TObject; var Key: Word;

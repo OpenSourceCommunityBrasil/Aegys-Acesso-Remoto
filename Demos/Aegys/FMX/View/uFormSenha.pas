@@ -53,6 +53,8 @@ type
       var KeyChar: Char; Shift: TShiftState);
     procedure PROC_COLAR_SENHAExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure EPasswordKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
   private
     { Private declarations }
     Locale: TLocale;
@@ -69,6 +71,17 @@ implementation
 {$R *.fmx}
 
 uses uFormTelaRemota, uFormConexao, uLibClass, uConstants;
+
+procedure TFormSenha.EPasswordKeyUp(Sender: TObject; var Key: Word;
+  var KeyChar: Char; Shift: TShiftState);
+begin
+ if (Key = vkReturn) And
+    (EPassword.Text <> '') then
+  begin
+    PROC_SENHAExecute(Sender);
+    Key := vkNone;
+  end
+end;
 
 procedure TFormSenha.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
