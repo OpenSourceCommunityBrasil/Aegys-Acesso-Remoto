@@ -19,7 +19,7 @@ interface
 
 uses
   System.Classes, System.Threading, uCtrl_Threads, System.Win.ScktComp,
-  uConstants, uLocaleFunctions, Winapi.Windows;
+  uConstants, uLocaleFunctions, Winapi.Windows,UFuncoes;
 
 type
   TConexao = class
@@ -510,15 +510,18 @@ End;
 procedure TConexao.SocketPrincipalConnect(Sender: TObject;
   Socket: TCustomWinSocket);
 Var
-  vHD, vMAC: String;
+ vHD,
+ vMAC,
+ vSenha : String;
 begin
   FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Connected'));
   Intervalo := 0;
   FormConexao.tmrIntervalo.Enabled := True;
   vMAC := MacAddress;
-  vHD := SerialNumHardDisk(SystemDrive);
-  Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' +
-    vHD + '<|>');
+  vHD  := SerialNumHardDisk(SystemDrive);
+  vSenha := lercfg('cfg','ini','CFG','pass',false);
+  Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' + vHD + '<|>'+'<|SENHADEFINIDA|>'+
+  vSenha+'<|>');
   CriarThread(ttPrincipal, Socket);
 end;
 
