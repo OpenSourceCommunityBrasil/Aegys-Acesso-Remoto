@@ -311,7 +311,6 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
-                  Visible = True
                   object PhMachineIDCopy: TPath
                     Align = Client
                     Data.Path = {
@@ -399,7 +398,6 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
-                  Visible = True
                   object PhPasswordCopy: TPath
                     Align = Client
                     Data.Path = {
@@ -496,7 +494,6 @@ object FormConexao: TFormConexao
                   Size.Width = 36.000000000000000000
                   Size.Height = 36.000000000000000000
                   Size.PlatformDefault = False
-                  Visible = True
                   object PhPasteID: TPath
                     Align = Client
                     Data.Path = {
@@ -552,7 +549,6 @@ object FormConexao: TFormConexao
                   TextSettings.Font.Size = 20.000000000000000000
                   TextSettings.FontColor = claWhite
                   TextSettings.HorzAlign = Center
-                  Visible = True
                 end
                 object aniBtnLogin: TFloatAnimation
                   Duration = 0.500000000000000000
@@ -673,6 +669,8 @@ object FormConexao: TFormConexao
     end
   end
   object RDQuery: TRESTDWClientSQL
+    Active = False
+    Filtered = False
     FieldDefs = <>
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]
@@ -694,7 +692,6 @@ object FormConexao: TFormConexao
     CacheUpdateRecords = True
     AutoCommitData = False
     AutoRefreshAfterCommit = False
-    ThreadRequest = False
     RaiseErrors = True
     ActionCursor = crSQLWait
     ReflectChanges = False
