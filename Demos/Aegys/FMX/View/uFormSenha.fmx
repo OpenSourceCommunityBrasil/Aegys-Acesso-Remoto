@@ -157,10 +157,8 @@ object FormSenha: TFormSenha
           Align = Client
           StyleLookup = 'transparentedit'
           TabOrder = 0
-          KeyboardType = NumberPad
           ReturnKeyType = Go
-          MaxLength = 4
-          FilterChar = '0123456789-'
+          MaxLength = 20
           TextSettings.Font.Family = 'Quicksand'
           TextSettings.Font.Size = 30.000000000000000000
           TextSettings.FontColor = xFF424242
@@ -169,7 +167,7 @@ object FormSenha: TFormSenha
           Size.Width = 186.000000000000000000
           Size.Height = 36.000000000000000000
           Size.PlatformDefault = False
-          TextPrompt = '____'
+          TextPrompt = '_____________'
           StyledSettings = [Style]
           OnKeyDown = EPasswordKeyDown
           OnKeyUp = EPasswordKeyUp
