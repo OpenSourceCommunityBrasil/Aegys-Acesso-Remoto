@@ -23,7 +23,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, FMX.Objects,
   FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uLocaleFunctions,
-  System.Actions, FMX.ActnList;
+  System.Actions, FMX.ActnList,MMSystem;
 
 type
   TFormChat = class(TForm)
@@ -42,6 +42,7 @@ type
   private
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
+    procedure ExtractSoundandPlay;
   public
     procedure Mensagem(AMensagem: string; AAtendente: Boolean = True);
   end;
@@ -77,6 +78,8 @@ begin
 
   lstMensagens.EndUpdate;
   lstMensagens.ItemIndex := lstMensagens.Items.Count-1;
+  if( not Visible) or (not active) then
+  ExtractSoundandPlay;
 end;
 
 procedure TFormChat.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
@@ -99,6 +102,26 @@ begin
     mmMessage.Lines.Clear;
     lstMensagens.ScrollToItem(lstMensagens.ListItems
       [lstMensagens.Items.Count - 1]);
+  end;
+end;
+
+procedure TFormChat.ExtractSoundandPlay;
+var
+  resource: TResourceStream;
+begin
+  if not FileExists(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav') then
+  begin
+    resource := TResourceStream.Create(HInstance, 'MESSAGE_BEEP', RT_RCDATA);
+    try
+      resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav');
+    finally
+      FreeAndNil(resource);
+    end;
+  end;
+  try
+  if FileExists(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav') then
+  sndPlaySound(pwchar(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav'), SND_ASYNC);
+  except
   end;
 end;
 
