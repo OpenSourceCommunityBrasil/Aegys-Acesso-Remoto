@@ -76,6 +76,7 @@ begin
   lstMensagens.AddObject(ItemAdd);
 
   lstMensagens.EndUpdate;
+  lstMensagens.ItemIndex := lstMensagens.Items.Count-1;
 end;
 
 procedure TFormChat.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);

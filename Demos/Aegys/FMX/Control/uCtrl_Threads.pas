@@ -18,7 +18,7 @@ unit uCtrl_Threads;
 interface
 
 uses
-  System.Classes, System.Win.ScktComp, uLocaleFunctions;
+  System.Classes, System.Win.ScktComp, uLocaleFunctions,MMSystem;
 
 type
   TThreadConexaoPrincipal = class(TThread)
@@ -26,6 +26,7 @@ type
     constructor Create(ASocket: TCustomWinSocket); overload;
     procedure Execute; override;
     procedure ThreadTerminate(ASender: TObject);
+    procedure ExtractSoundandPlay;
   end;
 
   TThreadConexaoAreaRemota = class(TThread)
@@ -84,6 +85,7 @@ var
   hDesktop: HDESK;
   Svc: IFMXClipboardService;
   Locale: TLocale;
+
 begin
   inherited;
   Locale := TLocale.Create;
@@ -395,13 +397,13 @@ begin
 
           if not(FormChat.Visible) then
           begin
-            Beep;
+            self.ExtractSoundandPlay;
             FormChat.Show;
           end;
 
           if not(FormChat.Active) then
           begin
-            Beep;
+            self.ExtractSoundandPlay;
             FlashWindow(FmxHandleToHWND(FormConexao.Handle), True);
             FlashWindow(FmxHandleToHWND(FormChat.Handle), True);
           end;
@@ -554,6 +556,25 @@ begin
     end;
   end;
   Locale.DisposeOf;
+end;
+
+procedure TThreadConexaoPrincipal.ExtractSoundandPlay;
+var
+  resource: TResourceStream;
+begin
+  if not FileExists(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav') then
+  begin
+    resource := TResourceStream.Create(HInstance, 'MESSAGE_BEEP', RT_RCDATA);
+    try
+      resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav');
+    finally
+      FreeAndNil(resource);
+    end;
+  end;
+  try
+  sndPlaySound(pwchar(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav'), SND_ASYNC);
+  except
+  end;
 end;
 
 procedure TThreadConexaoPrincipal.ThreadTerminate(ASender: TObject);
