@@ -91,7 +91,8 @@ var
  xValue,
  xID,
  xMAC,
- xHD         : String;
+ xHD,
+ xSenha         : String;
  iPosition   : Integer;
 begin
   inherited;
@@ -120,14 +121,20 @@ begin
        xMAC := xValue;
        xMAC := Copy(xMAC, 1, Pos('<|>', xMAC) - 1);
        Delete(xValue, 1, Pos('<|>', xValue) + 2);
+
        Delete(xValue, 1, Pos('<|HD|>', xValue)+ 5);
        xHD := xValue;
        xHD := Copy(xHD, 1, Pos('<|>', xHD) - 1);
+       Delete(xValue, 1, Pos('<|>', xValue) + 2);
+
+       Delete(xValue, 1, Pos('<|SENHADEFINIDA|>', xValue)+ 16);
+       xSenha := xValue;
+       xSenha := Copy(xSenha, 1, Pos('<|>', xSenha) - 1);
        xValue := '';
-       DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle), XMac, XHD);
-      End
-     Else
-      DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle));
+       DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle), XMac, XHD, XSenha);
+      End;
+//     Else
+//      DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle));
      DMServer.Conexoes.RetornaItemPorConexao(IntToStr(scClient.Handle)).CriarThread(ttPrincipal, scClient);
      Break;
     End;

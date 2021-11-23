@@ -301,6 +301,7 @@
             <Form>fConfig</Form>
             <FormType>fmx</FormType>
         </DCCReference>
+        <DCCReference Include="Functions\UFuncoes.pas"/>
         <RcItem Include="Resources\RunAsSystem.exe">
             <ContainerId>ResourceItem</ContainerId>
             <ResourceType>RCDATA</ResourceType>
@@ -352,45 +353,47 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
-                <DeployFile LocalName="OSX64\Release\RedRemotoSuporte.dSYM" Configuration="Release" Class="ProjectOSXDebug">
+<<<<<<< .mine                <DeployFile LocalName="Locale\EN_US.ini" Configuration="Debug" Class="ProjectFile">
+=======                <DeployFile LocalName="OSX64\Release\RedRemotoSuporte.dSYM" Configuration="Release" Class="ProjectOSXDebug">
                     <Platform Name="OSX64">
                         <RemoteName>RedRemotoSuporte</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="Resources\RunAsSystem.exe" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
+>>>>>>> .theirs                    <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Resources\RunAsSystem.exe" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win32">
+<<<<<<< .mine                <DeployFile LocalName="Locale\PT_BR.ini" Configuration="Release" Class="ProjectFile">
+=======                <DeployFile LocalName="Resources\RunAsSystem.exe" Configuration="Release" Class="ProjectFile">
+>>>>>>> .theirs                    <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="OSX64\Release\AegysSuporteCliente" Configuration="Release" Class="ProjectOutput">
+<<<<<<< .mine                <DeployFile LocalName="Locale\EN_US.ini" Configuration="Release" Class="ProjectFile">
+=======                <DeployFile LocalName="OSX64\Release\AegysSuporteCliente" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="OSX64">
                         <RemoteName>AegysSuporteCliente</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="Locale\PT_BR.ini" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
+>>>>>>> .theirs                    <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win64\Debug\AegysSuporteCliente.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win64">
-                        <RemoteName>AegysSuporteCliente.exe</RemoteName>
+<<<<<<< .mine                <DeployFile LocalName="OSX64\Release\RedRemotoSuporte.dSYM" Configuration="Release" Class="ProjectOSXDebug">
+                    <Platform Name="OSX64">
+                        <RemoteName>RedRemotoSuporte</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Locale\PT_BR.ini" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
+                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libPCRE.dylib" Class="DependencyModule">
+                    <Platform Name="iOSSimulator">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -406,7 +409,44 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libpcre.dylib" Class="DependencyModule">
+                <DeployFile LocalName="Win64\Debug\AegysSuporteCliente.exe" Configuration="Debug" Class="ProjectOutput">
+=======                <DeployFile LocalName="Win64\Debug\AegysSuporteCliente.exe" Configuration="Debug" Class="ProjectOutput">
+>>>>>>> .theirs                    <Platform Name="Win64">
+                        <RemoteName>AegysSuporteCliente.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+<<<<<<< .mine                <DeployFile LocalName="OSX64\Release\RedRemotoSuporte.entitlements" Configuration="Release" Class="ProjectOSXEntitlements">
+                    <Platform Name="OSX64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Locale\PT_BR.ini" Configuration="Debug" Class="ProjectFile">
+=======                <DeployFile LocalName="Locale\PT_BR.ini" Configuration="Release" Class="ProjectFile">
+>>>>>>> .theirs                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+<<<<<<< .mine                <DeployFile LocalName="Win64\Release\AegysSuporteCliente.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>AegysSuporteCliente.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+=======                <DeployFile LocalName="Locale\ES_ES.ini" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Locale\ES_ES.ini" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+>>>>>>> .theirs                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libpcre.dylib" Class="DependencyModule">
                     <Platform Name="iOSSimulator">
                         <Overwrite>true</Overwrite>
                     </Platform>
@@ -427,7 +467,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win32\Release\AegysSuporteCliente.exe" Configuration="Release" Class="ProjectOutput">
+<<<<<<< .mine=======                <DeployFile LocalName="Win32\Release\AegysSuporteCliente.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>AegysSuporteCliente.exe</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -439,7 +479,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win64\Release\AegysSuporteCliente.exe" Configuration="Release" Class="ProjectOutput">
+>>>>>>> .theirs                <DeployFile LocalName="Win64\Release\AegysSuporteCliente.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>AegysSuporteCliente.exe</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -466,7 +506,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Locale\EN_US.ini" Configuration="Debug" Class="ProjectFile">
+<<<<<<< .mine=======                <DeployFile LocalName="Locale\EN_US.ini" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -478,13 +518,19 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="OSX64\Release\RedRemotoSuporte.info.plist" Configuration="Release" Class="ProjectOSXInfoPList">
+>>>>>>> .theirs                <DeployFile LocalName="OSX64\Release\RedRemotoSuporte.info.plist" Configuration="Release" Class="ProjectOSXInfoPList">
                     <Platform Name="OSX64">
                         <RemoteName>Info.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="AdditionalDebugSymbols">
+<<<<<<< .mine                <DeployFile LocalName="Win32\Release\AegysSuporteCliente.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>AegysSuporteCliente.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+=======>>>>>>> .theirs                <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">
                         <Operation>1</Operation>
                     </Platform>

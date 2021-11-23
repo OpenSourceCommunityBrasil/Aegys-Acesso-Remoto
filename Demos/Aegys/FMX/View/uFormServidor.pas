@@ -32,8 +32,8 @@ type
     tReload: TTimer;
     QryConexoesPROTOCOLO: TStringField;
     QryConexoesID: TStringField;
-    QryConexoesSENHA: TStringField;
     QryConexoesLATENCIA: TStringField;
+    QryConexoesSENHA: TStringField;
     procedure tReloadTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);

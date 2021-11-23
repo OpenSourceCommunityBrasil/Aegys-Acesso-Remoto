@@ -7,8 +7,8 @@ uses
   System.Variants, System.Classes,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ListBox,
   FMX.Objects, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
-  FMX.Ani,
-  uLocaleFunctions, uConstants;
+  FMX.Ani,uCtrl_Conexao,
+  uLocaleFunctions, uConstants,UFuncoes, System.Actions, FMX.ActnList;
 
 type
   TCallBackLanguage = procedure of object;
@@ -26,6 +26,12 @@ type
     flBottomBar: TFlowLayout;
     rrApply: TRoundRect;
     LApplyButton: TLabel;
+    lyDefinirSenha: TLayout;
+    RDefinirSenha: TRectangle;
+    LlyGuestIDCaption: TLabel;
+    Layout3: TLayout;
+    ESenha: TEdit;
+    sbPasteID: TSpeedButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure rrReturnClick(Sender: TObject);
@@ -48,6 +54,7 @@ type
 
 var
   fConfig: TfConfig;
+  Conexao: TConexao;
 
 implementation
 
@@ -69,6 +76,7 @@ end;
 
 procedure TfConfig.FormCreate(Sender: TObject);
 begin
+  ESenha.Text := lercfg('cfg','ini','CFG','pass',false);
   Locale := TLocale.Create;
   FillComboLanguages(cbLanguages);
   Translate;
@@ -85,14 +93,22 @@ var
 begin
   if cbLanguages.ItemIndex > -1 then
   begin
-    Res := TResourceStream.Create(HInstance, cbLanguages.Selected.ItemData.Text,
-      RT_RCDATA);
+    Res := TResourceStream.Create(HInstance, cbLanguages.Selected.ItemData.Text, RT_RCDATA);
     Res.SaveToFile(Locale.LocaleFileName);
-
     Translate;
     if Assigned(FCallBackLanguage) then
       FCallBackLanguage;
   end;
+
+if ESenha.Text <> '' then
+ begin
+ salvarcfg('cfg','ini','CFG','pass',ESenha.Text,false);
+ ShowMessage('Senha salva o programa precisa ser reiniciado!');
+ Application.Terminate;
+ end
+ else
+ ShowMessage('Senha não poder ser vazia!');
+
 end;
 
 procedure TfConfig.rrApplyMouseEnter(Sender: TObject);

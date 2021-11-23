@@ -9,6 +9,7 @@ object FormServidor: TFormServidor
   Font.Height = -13
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OldCreateOrder = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
@@ -45,7 +46,7 @@ object FormServidor: TFormServidor
         Expanded = False
         FieldName = 'SENHA'
         Title.Caption = 'Senha'
-        Width = 60
+        Width = 116
         Visible = True
       end
       item
@@ -77,7 +78,7 @@ object FormServidor: TFormServidor
       item
         Name = 'SENHA'
         DataType = ftString
-        Size = 4
+        Size = 20
       end
       item
         Name = 'LATENCIA'
@@ -105,7 +106,6 @@ object FormServidor: TFormServidor
     end
     object QryConexoesSENHA: TStringField
       FieldName = 'SENHA'
-      Size = 4
     end
     object QryConexoesLATENCIA: TStringField
       FieldName = 'LATENCIA'

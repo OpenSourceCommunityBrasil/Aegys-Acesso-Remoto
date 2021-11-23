@@ -19,7 +19,7 @@ interface
 
 uses
   System.Classes, System.Generics.Collections, uConstants, System.Win.ScktComp,
-  uCtrl_ThreadsService;
+  uCtrl_ThreadsService,IdHashMessageDigest;
 
 type
   TConexao = class
@@ -74,17 +74,18 @@ type
     destructor Destroy; override;
     Function GenerateID(strMAC, strHD : String) : String;
     function GerarID: string;
-    function GerarSenha: string;
+    function GerarSenha(psw:string): string;
     function RetornaItemPorConexao(AConexao: string): TConexao;
     function RetornaItemPorHandle(AHandle: Integer): TConexao;
     function RetornaItemPorID(AID: string): TConexao;
     function VerificaID(AID: string): Boolean;
     function VerificaIDSenha(AID, ASenha: string): Boolean;
     procedure AdicionarConexao(AProtocolo,
-                               MAC, HD : String);Overload;
-    procedure AdicionarConexao(AProtocolo: string);Overload;
+                               MAC, HD, DSenha : String);Overload;
+    //procedure AdicionarConexao(AProtocolo: string);Overload;
     procedure RemoverConexao(AProtocolo: string);
     property ListaConexoes: TObjectList<TConexao> read FListaConexoes;
+    function MD5String(const texto: string): string;
   end;
 
 implementation
@@ -259,7 +260,7 @@ end;
 { TConexoes }
 
 procedure TConexoes.AdicionarConexao(AProtocolo,
-                                     MAC, HD : String);
+                                     MAC, HD, DSenha : String);
 Var
  I : Integer;
 Begin
@@ -269,19 +270,19 @@ Begin
  FListaConexoes[i].MAC       := MAC;
  FListaConexoes[i].HD        := HD;
  FListaConexoes[i].ID        := GenerateID(MAC, HD);
- FListaConexoes[i].Senha     := GerarSenha;
+ FListaConexoes[i].Senha     := GerarSenha(DSenha);
 End;
 
-procedure TConexoes.AdicionarConexao(AProtocolo: string);
-Var
- I : Integer;
-Begin
- FListaConexoes.Add(TConexao.Create);
- i := FListaConexoes.Count - 1;
- FListaConexoes[i].Protocolo := AProtocolo;
- FListaConexoes[i].ID := GerarID;
- FListaConexoes[i].Senha := GerarSenha;
-End;
+//procedure TConexoes.AdicionarConexao(AProtocolo: string);
+//Var
+// I : Integer;
+//Begin
+// FListaConexoes.Add(TConexao.Create);
+// i := FListaConexoes.Count - 1;
+// FListaConexoes[i].Protocolo := AProtocolo;
+// FListaConexoes[i].ID := GerarID;
+// FListaConexoes[i].Senha := GerarSenha('');
+//End;
 
 constructor TConexoes.Create;
 begin
@@ -389,10 +390,27 @@ begin
   Result := xID;
 end;
 
-function TConexoes.GerarSenha: string;
+function TConexoes.GerarSenha(psw:string): string;
 begin
-  Randomize;
-  Result := IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9));
+ if psw = '' then
+ begin
+    Randomize;
+    Result := IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9));
+ end
+ else
+ result := psw;
+end;
+
+function TConexoes.MD5String(const texto: string): string;
+var
+  idmd5: TIdHashMessageDigest5;
+begin
+  idmd5 := TIdHashMessageDigest5.Create;
+  try
+    Result := LowerCase(idmd5.HashStringAsHex(texto));
+  finally
+    idmd5.Free;
+  end;
 end;
 
 procedure TConexoes.RemoverConexao(AProtocolo: string);

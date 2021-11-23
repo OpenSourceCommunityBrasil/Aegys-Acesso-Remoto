@@ -4,6 +4,7 @@ object fConfig: TfConfig
   Caption = 'Form1'
   ClientHeight = 354
   ClientWidth = 267
+  Position = ScreenCenter
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -18,7 +19,7 @@ object fConfig: TfConfig
     Size.Width = 267.000000000000000000
     Size.Height = 56.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 0
+    TabOrder = 1
     object Rectangle4: TRectangle
       Align = Top
       Size.Width = 267.000000000000000000
@@ -63,7 +64,7 @@ object fConfig: TfConfig
     Size.Width = 267.000000000000000000
     Size.Height = 42.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 1
+    TabOrder = 2
     object flBottomBar: TFlowLayout
       Align = Client
       Margins.Left = 10.000000000000000000
@@ -123,6 +124,71 @@ object fConfig: TfConfig
           Text = 'Salvar'
           TabOrder = 0
         end
+      end
+    end
+  end
+  object lyDefinirSenha: TLayout
+    Align = Top
+    Margins.Top = 5.000000000000000000
+    Position.Y = 71.000000000000000000
+    Size.Width = 267.000000000000000000
+    Size.Height = 56.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object RDefinirSenha: TRectangle
+      Align = Top
+      Size.Width = 267.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 10.000000000000000000
+      YRadius = 10.000000000000000000
+      object LlyGuestIDCaption: TLabel
+        Align = Client
+        StyledSettings = [Style]
+        Size.Width = 267.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Quicksand'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF424242
+        TextSettings.HorzAlign = Center
+        Text = 'Definir Senha'
+      end
+    end
+    object Layout3: TLayout
+      Align = Client
+      Size.Width = 267.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object ESenha: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Client
+        StyleLookup = 'transparentedit'
+        TabOrder = 0
+        KeyboardType = NumberPad
+        ReturnKeyType = Go
+        Password = True
+        MaxLength = 20
+        TextSettings.Font.Family = 'Quicksand'
+        TextSettings.Font.Size = 30.000000000000000000
+        TextSettings.FontColor = xFF424242
+        TextSettings.HorzAlign = Center
+        Margins.Left = 46.000000000000000000
+        Size.Width = 175.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        TextPrompt = 'Sua Senha'
+        StyledSettings = [Style]
+      end
+      object sbPasteID: TSpeedButton
+        Align = Right
+        Margins.Left = 10.000000000000000000
+        Position.X = 231.000000000000000000
+        Size.Width = 36.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
       end
     end
   end
