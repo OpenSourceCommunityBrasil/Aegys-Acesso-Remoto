@@ -7,7 +7,7 @@ uses
   System.Variants, System.Classes,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ListBox,
   FMX.Objects, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
-  FMX.Ani,uCtrl_Conexao,
+  FMX.Ani,uCtrl_Conexao, UFuncoes,
   uLocaleFunctions, uConstants, System.Actions, FMX.ActnList;
 
 type
@@ -76,7 +76,7 @@ end;
 
 procedure TfConfig.FormCreate(Sender: TObject);
 begin
-  ESenha.Text := '';//lercfg('cfg','ini','CFG','pass',false);
+  ESenha.Text := lercfg('cfg','ini','CFG','pass',false);
   Locale := TLocale.Create;
   FillComboLanguages(cbLanguages);
   Translate;
@@ -102,7 +102,7 @@ begin
 
 if ESenha.Text <> '' then
  begin
- //salvarcfg('cfg','ini','CFG','pass',ESenha.Text,false);
+ salvarcfg('cfg','ini','CFG','pass',ESenha.Text,false);
  ShowMessage('Senha salva o programa precisa ser reiniciado!');
  Application.Terminate;
  end
