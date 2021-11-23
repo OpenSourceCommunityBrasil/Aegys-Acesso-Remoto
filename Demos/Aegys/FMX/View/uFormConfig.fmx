@@ -77,7 +77,7 @@ object fConfig: TfConfig
       FlowDirection = LeftToRight
       HorizontalGap = 10.000000000000000000
       object rrReturn: TRoundRect
-        Fill.Color = xFFED3237
+        Fill.Color = xFF0070BA
         Position.X = 18.500000000000000000
         Size.Width = 100.000000000000000000
         Size.Height = 42.000000000000000000
@@ -101,7 +101,7 @@ object fConfig: TfConfig
         end
       end
       object rrApply: TRoundRect
-        Fill.Color = xFFED3237
+        Fill.Color = xFF0070BA
         Position.X = 128.500000000000000000
         Size.Width = 100.000000000000000000
         Size.Height = 42.000000000000000000

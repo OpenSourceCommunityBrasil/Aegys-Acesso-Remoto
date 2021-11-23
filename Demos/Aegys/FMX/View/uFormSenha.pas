@@ -95,6 +95,8 @@ end;
 procedure TFormSenha.FormCreate(Sender: TObject);
 begin
   Locale := TLocale.Create;
+  btnLogin.Fill.Color := PRIMARY_COLOR;
+  Path1.Fill.Color := PRIMARY_COLOR;
   // SetWindowLong(Handle, GWL_EXSTYLE, WS_EX_APPWINDOW);
 end;
 

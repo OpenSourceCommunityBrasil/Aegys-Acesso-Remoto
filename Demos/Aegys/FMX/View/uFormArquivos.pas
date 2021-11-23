@@ -1,11 +1,11 @@
 unit uFormArquivos;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -36,12 +36,12 @@ type
     EFolder: TEdit;
     Layout3: TLayout;
     Layout5: TLayout;
-    Rectangle4: TRoundRect;
+    rDownload: TRoundRect;
     ActionList1: TActionList;
     PROC_UPLOAD: TAction;
     PROC_DOWNLOAD: TAction;
     Layout4: TLayout;
-    Rectangle5: TRoundRect;
+    rUpload: TRoundRect;
     Layout6: TLayout;
     Layout8: TLayout;
     Layout9: TLayout;
@@ -76,6 +76,7 @@ type
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
     procedure Translate;
+    procedure SetColors;
   public
     DirectoryToSaveFile: string;
     FileStream: TFileStream;
@@ -305,6 +306,12 @@ begin
     Conexao.SocketArquivos.Socket.SendStream(FileStream);
     btnUpload.Enabled := False;
   end;
+end;
+
+procedure TFormArquivos.SetColors;
+begin
+  rUpload.Fill.Color := PRIMARY_COLOR;
+  rDownload.Fill.Color := PRIMARY_COLOR;
 end;
 
 procedure TFormArquivos.Translate;

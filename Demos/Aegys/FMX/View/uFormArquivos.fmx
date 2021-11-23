@@ -105,9 +105,9 @@ object FormArquivos: TFormArquivos
         Size.Height = 25.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 34
-        object Rectangle4: TRoundRect
+        object rDownload: TRoundRect
           Align = Contents
-          Fill.Color = xFF424242
+          Fill.Color = xFF0070BA
           Size.Width = 241.000000000000000000
           Size.Height = 25.000000000000000000
           Size.PlatformDefault = False
@@ -135,9 +135,9 @@ object FormArquivos: TFormArquivos
         Size.Height = 25.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 33
-        object Rectangle5: TRoundRect
+        object rUpload: TRoundRect
           Align = Contents
-          Fill.Color = xFF424242
+          Fill.Color = xFF0070BA
           Size.Width = 241.000000000000000000
           Size.Height = 25.000000000000000000
           Size.PlatformDefault = False

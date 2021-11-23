@@ -23,7 +23,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, FMX.Objects,
   FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uLocaleFunctions,
-  System.Actions, FMX.ActnList,MMSystem;
+  System.Actions, FMX.ActnList, MMSystem, uConstants;
 
 type
   TFormChat = class(TForm)
@@ -35,10 +35,14 @@ type
     mmMessage: TMemo;
     ActionList1: TActionList;
     actSendText: TAction;
+    sbSendMessage: TSpeedButton;
+    phSendMessage: TPath;
+    Layout2: TLayout;
     procedure mmMessageKeyDown(Sender: TObject; var Key: Word;
       var KeyChar: Char; Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
     procedure actSendTextExecute(Sender: TObject);
+    procedure sbSendMessageClick(Sender: TObject);
   private
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
@@ -77,9 +81,9 @@ begin
   lstMensagens.AddObject(ItemAdd);
 
   lstMensagens.EndUpdate;
-  lstMensagens.ItemIndex := lstMensagens.Items.Count-1;
-  if( not Visible) or (not active) then
-  ExtractSoundandPlay;
+  lstMensagens.ItemIndex := lstMensagens.Items.Count - 1;
+  if (not Visible) or (not active) then
+    ExtractSoundandPlay;
 end;
 
 procedure TFormChat.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
@@ -119,8 +123,9 @@ begin
     end;
   end;
   try
-  if FileExists(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav') then
-  sndPlaySound(pwchar(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav'), SND_ASYNC);
+    if FileExists(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav') then
+      sndPlaySound(pwchar(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav'),
+        SND_ASYNC);
   except
   end;
 end;
@@ -128,6 +133,7 @@ end;
 procedure TFormChat.FormCreate(Sender: TObject);
 begin
   // SetWindowLong(Handle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+  phSendMessage.Fill.Color := PRIMARY_COLOR;
   FormChat.Top := Trunc(Screen.WorkAreaHeight - FormChat.Height);
   FormChat.Left := Trunc(Screen.WorkAreaWidth - FormChat.Width);
 end;
@@ -140,6 +146,11 @@ begin
   // actSendText.Execute;
   // Key := vkNone;
   // end;
+end;
+
+procedure TFormChat.sbSendMessageClick(Sender: TObject);
+begin
+  actSendText.Execute;
 end;
 
 end.

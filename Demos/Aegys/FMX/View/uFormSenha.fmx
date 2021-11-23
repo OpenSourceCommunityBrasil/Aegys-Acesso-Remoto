@@ -53,7 +53,7 @@ object FormSenha: TFormSenha
           51AC914100008040020000000000A041BC4EB940020000000000A04100000041
           020000000000A041A25823410200000051AC9141000040410200000000008041
           00004041030000000000804100004041}
-        Fill.Color = xFFED3237
+        Fill.Color = xFF0070BA
         Position.X = 79.000000000000000000
         Size.Width = 119.000000000000000000
         Size.Height = 113.000000000000000000
@@ -80,7 +80,7 @@ object FormSenha: TFormSenha
         EndAngle = 280.000000000000000000
         object aniLogin: TFloatAnimation
           AnimationType = InOut
-          Duration = 0.800000011920928900
+          Duration = 0.800000011920929000
           Loop = True
           PropertyName = 'RotationAngle'
           StartValue = 0.000000000000000000
@@ -89,7 +89,7 @@ object FormSenha: TFormSenha
       end
       object btnLogin: TRoundRect
         Align = Contents
-        Fill.Color = xFFED3237
+        Fill.Color = xFF0070BA
         Size.Width = 278.000000000000000000
         Size.Height = 48.000000000000000000
         Size.PlatformDefault = False
@@ -107,7 +107,6 @@ object FormSenha: TFormSenha
           TextSettings.Font.Size = 20.000000000000000000
           TextSettings.FontColor = claWhite
           TextSettings.HorzAlign = Center
-          Visible = True
         end
         object aniBtnLogin: TFloatAnimation
           Duration = 0.500000000000000000
@@ -185,7 +184,6 @@ object FormSenha: TFormSenha
           Size.Width = 36.000000000000000000
           Size.Height = 36.000000000000000000
           Size.PlatformDefault = False
-          Visible = True
           object Path5: TPath
             Align = Client
             Data.Path = {

@@ -126,7 +126,7 @@ object FormConexao: TFormConexao
                   020000001F856B41D7A3604102000000A4706141D7A3604102000000AE475941
                   D7A3584102000000AE4759415C8F4E4102000000AD475941817C444102000000
                   42726141EC513C41020000001E856B41EC513C41030000001F856B41EC513C41}
-                Fill.Color = xFFED3237
+                Fill.Color = xFF0070BA
                 Size.Width = 100.000000000000000000
                 Size.Height = 100.000000000000000000
                 Size.PlatformDefault = False
@@ -185,7 +185,7 @@ object FormConexao: TFormConexao
                   Size.Height = 20.000000000000000000
                   Size.PlatformDefault = False
                   OnClick = sbOptionsClick
-                  object Path1: TPath
+                  object phOptions: TPath
                     Align = Client
                     Data.Path = {
                       90000000000000000000F54300809843010000000000F5430000394301000000
@@ -243,7 +243,7 @@ object FormConexao: TFormConexao
                       00009B43B42851430200000000009B43000075430200000000009B43A66B8C43
                       02000000A66B8C4300009B43020000000000754300009B430300000000007543
                       00009B43}
-                    Fill.Color = xFFED3237
+                    Fill.Color = xFF0070BA
                     HitTest = False
                     Size.Width = 20.000000000000000000
                     Size.Height = 20.000000000000000000
@@ -531,7 +531,7 @@ object FormConexao: TFormConexao
               TabOrder = 32
               object btnConectar: TRoundRect
                 Align = Contents
-                Fill.Color = xFFED3237
+                Fill.Color = xFF0070BA
                 Size.Width = 314.000000000000000000
                 Size.Height = 48.000000000000000000
                 Size.PlatformDefault = False

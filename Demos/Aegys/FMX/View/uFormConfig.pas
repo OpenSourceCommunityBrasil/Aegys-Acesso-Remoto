@@ -38,6 +38,7 @@ type
     Locale: TLocale;
     FCallBackLanguage: TCallBackLanguage;
     procedure FillComboLanguages(aCombo: TComboBox);
+    procedure SetColors;
   public
     { Public declarations }
     procedure Translate;
@@ -108,6 +109,12 @@ procedure TfConfig.rrReturnClick(Sender: TObject);
 begin
   Self.DisposeOf;
   // Self.Close;
+end;
+
+procedure TfConfig.SetColors;
+begin
+  rrApply.Fill.Color := PRIMARY_COLOR;
+  rrReturn.Fill.Color := PRIMARY_COLOR;
 end;
 
 procedure TfConfig.Translate;

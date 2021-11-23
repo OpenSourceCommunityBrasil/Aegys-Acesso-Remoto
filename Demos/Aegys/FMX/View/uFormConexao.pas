@@ -84,7 +84,7 @@ type
     recDownload: TRectangle;
     Layout16: TLayout;
     aniDownload: TAniIndicator;
-    Path1: TPath;
+    phOptions: TPath;
     sbOptions: TSpeedButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
@@ -108,6 +108,7 @@ type
     procedure MudarTab(TabItem: TTabItem);
     procedure VerificarAtualizacao;
     procedure Translate;
+    procedure SetColors;
   public
     procedure LimparConexao;
     procedure MudarStatusConexao(AStatus: Integer; AMensagem: string);
@@ -196,17 +197,14 @@ end;
 
 procedure TFormConexao.FormCreate(Sender: TObject);
 begin
+  // inicializando os objetos
   Locale := TLocale.Create;
-  Translate;
+  Conexao := TConexao.Create;
+  // --------------------------
   tcPrincipal.TabPosition := TTabPosition.None;
   tcPrincipal.ActiveTab := tabAcesso;
-  LVersion.Text := Format(Locale.GetLocale(APP, 'Version'),
-    [TRDLib.GetAppVersionStr]);
-
-  Conexao := TConexao.Create;
-
   SetOffline;
-  Conexao.ReconectarSocket;
+  Translate;
 end;
 
 procedure TFormConexao.FormDestroy(Sender: TObject);
@@ -247,6 +245,7 @@ begin
       cColor := TAlphaColorRec.Mediumseagreen;
   end;
   PhStatus.Fill.Color := cColor;
+  PhStatus.Tag := AStatus;
   LStatus.Text := AMensagem;
 end;
 
@@ -271,9 +270,9 @@ end;
 
 procedure TFormConexao.actConnectExecute(Sender: TObject);
 begin
- If LbtnConectar.Enabled Then
+  If LbtnConectar.Enabled Then
   Begin
-   If not(LlyGuestIDCaption.Text = '   -   -   ') then
+    If not(LlyGuestIDCaption.Text = '   -   -   ') then
     begin
       if (LlyGuestIDCaption.Text = Conexao.ID) then
         MessageBox(0, Locale.GetLocaleDlg(DLGS, 'ErrorSelfConnect'),
@@ -281,8 +280,9 @@ begin
           MB_ICONASTERISK + MB_TOPMOST)
       else
       begin
-       LbtnConectar.Enabled := False;
-        Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text + '<|END|>');
+        LbtnConectar.Enabled := False;
+        Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text +
+          '<|END|>');
         btnConectar.Enabled := False;
         MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
       end;
@@ -315,11 +315,18 @@ begin
   LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'MainPassword');
   LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
   LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
+  Conexao.ReconectarSocket(True);
+end;
+
+procedure TFormConexao.SetColors;
+begin
+  PhLogo.Fill.Color := PRIMARY_COLOR;
+  phOptions.Fill.Color := PRIMARY_COLOR;
+  btnConectar.Fill.Color := PRIMARY_COLOR;
 end;
 
 procedure TFormConexao.SetOffline;
 begin
-
   LMachineID.Text := Locale.GetLocale(MSGS, 'Disconnected');
   LPassword.Text := Locale.GetLocale(MSGS, 'Disconnected');
   btnConectar.Enabled := False;

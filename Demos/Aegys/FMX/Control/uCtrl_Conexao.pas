@@ -91,7 +91,7 @@ type
     procedure CriarThread(AThread: IDThreadType; ASocket: TCustomWinSocket);
     procedure FecharSockets;
     procedure LimparThread(AThread: IDThreadType);
-    procedure ReconectarSocket;
+    procedure ReconectarSocket(Forced: Boolean = false);
     procedure ReconectarSocketsSecundarios;
     property Acessando: Boolean read FAcessando write SetAcessando;
     property ID: string read FID write SetID;
@@ -146,10 +146,10 @@ begin
   else
     iPort := PORTA;
 
-  FMostrarMouse := False;
+  FMostrarMouse := false;
 
   SocketPrincipal := TClientSocket.Create(nil);
-  SocketPrincipal.Active := False;
+  SocketPrincipal.Active := false;
   SocketPrincipal.ClientType := ctNonBlocking;
   SocketPrincipal.OnConnecting := SocketPrincipalConnecting;
   SocketPrincipal.OnConnect := SocketPrincipalConnect;
@@ -159,7 +159,7 @@ begin
   SocketPrincipal.Port := iPort;
 
   SocketAreaRemota := TClientSocket.Create(nil);
-  SocketAreaRemota.Active := False;
+  SocketAreaRemota.Active := false;
   SocketAreaRemota.ClientType := ctNonBlocking;
   SocketAreaRemota.OnConnect := SocketAreaRemotaConnect;
   SocketAreaRemota.OnError := SocketAreaRemotaError;
@@ -168,7 +168,7 @@ begin
   SocketAreaRemota.Port := iPort;
 
   SocketTeclado := TClientSocket.Create(nil);
-  SocketTeclado.Active := False;
+  SocketTeclado.Active := false;
   SocketTeclado.ClientType := ctNonBlocking;
   SocketTeclado.OnConnect := SocketTecladoConnect;
   SocketTeclado.OnError := SocketTecladoError;
@@ -177,7 +177,7 @@ begin
   SocketTeclado.Port := iPort;
 
   SocketArquivos := TClientSocket.Create(nil);
-  SocketArquivos.Active := False;
+  SocketArquivos.Active := false;
   SocketArquivos.ClientType := ctNonBlocking;
   SocketArquivos.OnConnect := SocketArquivosConnect;
   SocketArquivos.OnError := SocketArquivosError;
@@ -247,10 +247,10 @@ begin
   SocketTeclado.Close;
   SocketArquivos.Close;
 
-  Visualizador := False;
+  Visualizador := false;
 
   if Acessando then
-    Acessando := False;
+    Acessando := false;
 
   if not FormConexao.Visible then
     FormConexao.Show;
@@ -300,15 +300,21 @@ begin
   end;
 end;
 
-procedure TConexao.ReconectarSocket;
+procedure TConexao.ReconectarSocket(Forced: Boolean = false);
 begin
-  if not SocketPrincipal.Active then
+  if (Forced) and (SocketPrincipal.Active) then
+  begin
+    SocketPrincipal.Close;
+    Sleep(1000);
+    SocketPrincipal.Open;
+  end
+  else if not SocketPrincipal.Active then
     SocketPrincipal.Active := True;
 end;
 
 procedure TConexao.ReconectarSocketsSecundarios;
 begin
-  Visualizador := False;
+  Visualizador := false;
   SocketAreaRemota.Close;
   SocketTeclado.Close;
   SocketArquivos.Close;
@@ -455,74 +461,64 @@ end;
 
 Function MacAddress: string;
 Var
- Lib    : Cardinal;
- Func   : Function(GUID: PGUID): longint; Stdcall;
- GUID1,
- GUID2  : TGUID;
+  Lib: Cardinal;
+  Func: Function(GUID: PGUID): longint; Stdcall;
+  GUID1, GUID2: TGUID;
 Begin
- Result := '';
- Lib := LoadLibrary('rpcrt4.dll');
- If Lib <> 0 Then
+  Result := '';
+  Lib := LoadLibrary('rpcrt4.dll');
+  If Lib <> 0 Then
   Begin
-   @Func := GetProcAddress(Lib, 'UuidCreateSequential');
-   If assigned(Func) Then
+    @Func := GetProcAddress(Lib, 'UuidCreateSequential');
+    If Assigned(Func) Then
     Begin
-     If (Func(@GUID1) = 0) And
-        (Func(@GUID2) = 0) And
-        (GUID1.D4[2] = GUID2.D4[2]) And
-        (GUID1.D4[3] = GUID2.D4[3]) And
-        (GUID1.D4[4] = GUID2.D4[4]) And
-        (GUID1.D4[5] = GUID2.D4[5]) And
-        (GUID1.D4[6] = GUID2.D4[6]) And
-        (GUID1.D4[7] = GUID2.D4[7]) Then
-      Result := IntToHex(GUID1.D4[2], 2) + '-' +
-                IntToHex(GUID1.D4[3], 2) + '-' +
-                IntToHex(GUID1.D4[4], 2) + '-' +
-                IntToHex(GUID1.D4[5], 2) + '-' +
-                IntToHex(GUID1.D4[6], 2) + '-' +
-                IntToHex(GUID1.D4[7], 2);
+      If (Func(@GUID1) = 0) And (Func(@GUID2) = 0) And
+        (GUID1.D4[2] = GUID2.D4[2]) And (GUID1.D4[3] = GUID2.D4[3]) And
+        (GUID1.D4[4] = GUID2.D4[4]) And (GUID1.D4[5] = GUID2.D4[5]) And
+        (GUID1.D4[6] = GUID2.D4[6]) And (GUID1.D4[7] = GUID2.D4[7]) Then
+        Result := IntToHex(GUID1.D4[2], 2) + '-' + IntToHex(GUID1.D4[3], 2) +
+          '-' + IntToHex(GUID1.D4[4], 2) + '-' + IntToHex(GUID1.D4[5], 2) + '-'
+          + IntToHex(GUID1.D4[6], 2) + '-' + IntToHex(GUID1.D4[7], 2);
     End;
   End;
 End;
 
-Function SystemDrive : String;
+Function SystemDrive: String;
 Var
- DirWin,
- SystemDriv : String;
+  DirWin, SystemDriv: String;
 Begin
- SetLength(DirWin, MAX_PATH);
- GetSystemDirectory(PChar(DirWin), MAX_PATH);
- SystemDriv := Copy(DirWin, 1, 3);
- Result := SystemDriv
+  SetLength(DirWin, MAX_PATH);
+  GetSystemDirectory(PChar(DirWin), MAX_PATH);
+  SystemDriv := Copy(DirWin, 1, 3);
+  Result := SystemDriv
 End;
 
-Function SerialNumHardDisk(FDrive : String) : String;
+Function SerialNumHardDisk(FDrive: String): String;
 Var
- Serial,
- DirLen,
- Flags   : DWORD;
- DLabel  : Array[0..11] Of Char;
+  Serial, DirLen, Flags: DWORD;
+  DLabel: Array [0 .. 11] Of Char;
 Begin
- Try
-  GetVolumeInformation(PChar(Copy(FDrive, 1, 1) + ':\'), DLabel, 12, @Serial, DirLen, Flags, nil, 0);
-  Result := IntToHex(Serial, 8);
- Except
-  Result := '';
- End;
+  Try
+    GetVolumeInformation(PChar(Copy(FDrive, 1, 1) + ':\'), DLabel, 12, @Serial,
+      DirLen, Flags, nil, 0);
+    Result := IntToHex(Serial, 8);
+  Except
+    Result := '';
+  End;
 End;
 
 procedure TConexao.SocketPrincipalConnect(Sender: TObject;
   Socket: TCustomWinSocket);
 Var
- vHD,
- vMAC : String;
+  vHD, vMAC: String;
 begin
   FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Connected'));
   Intervalo := 0;
   FormConexao.tmrIntervalo.Enabled := True;
   vMAC := MacAddress;
-  vHD  := SerialNumHardDisk(SystemDrive);
-  Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' + vHD + '<|>');
+  vHD := SerialNumHardDisk(SystemDrive);
+  Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' +
+    vHD + '<|>');
   CriarThread(ttPrincipal, Socket);
 end;
 
