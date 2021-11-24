@@ -318,12 +318,11 @@ begin
 end;
 }
 
-Function ResumeStreamASM(Const S, d: Pointer; Var c: Pointer): Integer;
-  Assembler;
+Function ResumeStreamASM(Const S, d: Pointer; Var c: Pointer): Integer;Assembler;
 Var
-  src: ^Char;
-  dest: ^Char;
-  n1, n2: Cardinal;
+ src,
+ dest: ^Char;
+ n1, n2: Cardinal;
 Begin
   Asm
     mov muASM, 0

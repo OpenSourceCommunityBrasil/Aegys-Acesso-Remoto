@@ -1,4 +1,3 @@
-MESSAGE_BEEP RCDATA "Assets\\Resources\\MessageBeep.wav"
 RUN_AS_SYSTEM RCDATA "Assets\\Resources\\RunAsSystem.exe"
 CN_TR RCDATA "Assets\\Resources\\Locale\\CN_TR.ini"
 EN_US RCDATA "Assets\\Resources\\Locale\\EN_US.ini"
