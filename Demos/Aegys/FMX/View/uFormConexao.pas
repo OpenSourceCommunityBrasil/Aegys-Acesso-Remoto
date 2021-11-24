@@ -29,7 +29,7 @@ uses
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Comp.DataSet,
   FireDAC.Comp.Client,
   uDWAbout, uRESTDWPoolerDB, uDWConstsData,
-  uCtrl_Threads, uCtrl_Conexao, uLocaleFunctions
+  uCtrl_Threads, uCtrl_Conexao, uLocaleFunctions,UFuncoes
 
     ;
 
@@ -271,7 +271,10 @@ end;
 
 procedure TFormConexao.actCopyPasswordExecute(Sender: TObject);
 begin
-  TRDLib.CopiarTexto(LPassword.Text);
+ if lercfg('cfg', 'ini', 'CFG', 'pass', false) = '' then
+  TRDLib.CopiarTexto(LPassword.Text)
+  else
+  TRDLib.CopiarTexto(lercfg('cfg', 'ini', 'CFG', 'pass', false));
 end;
 
 procedure TFormConexao.tmrReconnectTimer(Sender: TObject);
@@ -313,7 +316,8 @@ end;
 procedure TFormConexao.SetOnline;
 begin
   LMachineID.Text := Conexao.ID;
-  LPassword.Text := Conexao.Senha;
+  if lercfg('cfg', 'ini', 'CFG', 'pass', false) = '' then
+  LPassword.Text := Conexao.Senha else LPassword.Text := '*****';
   btnConectar.Enabled := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
 end;
