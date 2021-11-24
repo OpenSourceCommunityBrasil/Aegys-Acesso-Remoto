@@ -432,9 +432,11 @@ object FormConexao: TFormConexao
           Align = Center
           Locked = True
           Items.Strings = (
+            'P/B'
             'Baixa'
-            'Alta')
-          ItemIndex = 1
+            'Alta'
+            'Real')
+          ItemIndex = 2
           Size.Width = 89.000000000000000000
           Size.Height = 30.000000000000000000
           Size.PlatformDefault = False

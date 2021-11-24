@@ -21,15 +21,31 @@ uses
   System.Classes, FMX.Graphics, Vcl.Graphics, FMX.Forms, Winapi.Windows,
   FMX.Objects;
 
+Const
+  TNeutroColor = 255;
+
+Type
+  TRGBTriple = Packed Record
+    B: Byte;
+    G: Byte;
+    R: Byte;
+  End;
+
+Type
+  PRGBTripleArray = ^TRGBTripleArray;
+  TRGBTripleArray = Array [0 .. 4095] of TRGBTriple;
+
 procedure GetScreenToMemoryStream(DrawCur            : Boolean;
                                   TargetMemoryStream : TMemoryStream;
                                   PixelFormat        : TPixelFormat = pfDevice);
 
-procedure CompareStream(MyFirstStream, MySecondStream, MyCompareStream: TMemoryStream);
+Function CompareStream(Var MyFirstStream,
+                        MySecondStream,
+                        MyCompareStream    : TMemoryStream) : Boolean;
 
-procedure ResumeStream(MyFirstStream      : TMemoryStream;
+procedure ResumeStream(MyFirstStream       : TMemoryStream;
                        Var MySecondStream,
-                       MyCompareStream    : TMemoryStream);
+                       MyCompareStream     : TMemoryStream);
 
 procedure ResizeBmp(AImage: TImage; AStream: TMemoryStream; AWidth, AHeight: Single);
 
@@ -37,6 +53,9 @@ Var
  pdst     : Pointer;
  ASMSize,
  muASM    : Integer;
+ cpdst     : Pointer;
+ cASMSize,
+ cmuASM    : Integer;
 
 implementation
 
@@ -96,6 +115,30 @@ Var
  Threadld: dword;
  mp: TPoint;
  pIconInfo: TIconInfo;
+ Procedure MakeGrey(Bitmap: Vcl.Graphics.TBitmap);
+ Var
+   w, h, y, x: Integer;
+   sl: PRGBTripleArray;
+   grey: Byte;
+ Begin
+   Bitmap.PixelFormat := pf32bit;
+   w := Bitmap.Width;
+   h := Bitmap.Height;
+   For y := 0 To h - 1 Do
+   Begin
+     sl := Bitmap.ScanLine[y];
+     For x := 0 To w - 1 Do
+     Begin
+       With sl[x] Do
+       Begin
+         grey := (B + G + R) div 3;
+         B := grey;
+         G := grey;
+         R := grey;
+       End;
+     End;
+   End;
+ End;
 Begin
  Mybmp := Vcl.Graphics.TBitmap.Create;
  dc := GetWindowDC(0);
@@ -126,12 +169,114 @@ Begin
    MyCursor.ReleaseHandle;
    MyCursor.Free;
   End;
- Mybmp.PixelFormat := PixelFormat;
  TargetMemoryStream.Clear;
+ If PixelFormat = pf4bit Then
+  Begin
+   Mybmp.PixelFormat := pf16bit;
+   MakeGrey(Mybmp);
+  End
+ Else
+  Mybmp.PixelFormat := PixelFormat;
  Mybmp.SaveToStream(TargetMemoryStream);
  Mybmp.Free;
 End;
 
+Function CompareStreamASM(Const s, d: Pointer; Var c: Pointer) : Integer; Assembler;
+Var
+ src     : ^AnsiChar;
+ dest    : ^AnsiChar;
+ n1, n2  : Cardinal;
+Begin
+ Asm
+  mov cmuASM, 0
+  mov cpdst, ECX             //Move resolutado pra cPDST
+  mov src, EAX               //Move S pra src
+  mov dest, EDX              //Move D pra dest
+  call System.@LStrLen       //Tamanho de string S
+  mov n1, EAX                //Move tamanho do S para n1
+  mov EAX, dest              //Move dest para EAX
+  call System.@LStrLen       //Tamanho do dst/D
+  mov n2, EAX                //Move Tamanho D para n2
+  mov EDX, EAX               //Move tamanho D para EDX segundo parametro setlenght
+  mov EAX, cpdst             //Move Result/pdst para EAX primeiro parametro strlenght
+  call System.@LStrSetLength //Seta parametro pdst para tamanho n2
+  mov ECX, cASMSize          //Mov n2 para ECX para controlar loopings
+  test ECX, ECX              //Testa ECX
+  jz @@end                   //Se EXX = 0 Termina
+  push ESI                   //Guarda ESI na pilha
+  push EDI
+  mov EAX, cpdst              //EAX := pdst; //Endereço da string de resultado
+  mov ESI, src               //ESI := src; //String de origem
+  mov EDI, dest
+  mov EDX, [EAX]             //EDX := pdst^; //String de resultado
+  @@cycle:
+   mov AL, [ESI]             //Move um caracter do primeiro stream para AL
+   cmp AL, [EDI]             //Copara caracter com o segundo stream
+   je @@igual                //Se for igual pula para igual
+   mov AL, [EDI]             //Se defente copia Carcter do Segund stream para AL
+   mov [EDX], AL             //Coloca caracter no terceiro stream
+   mov cmuASM, 1
+   cmp AL, AL                //Apenas para gerra um Je
+   je @@incremento           //Incrementa caracter
+  @@igual:
+   mov AL, '0'               //Se for igual Coloca '0' em AL
+   mov [EDX], AL             //Move '0' para terceiro Stream
+  @@incremento:
+   inc ESI
+   inc EDI
+   inc EDX
+   dec ECX
+   cmp ECX, 0
+   ja @@cycle
+   pop EDI
+   pop ESI                   //Recupera ESI na pilha
+  @@end:
+ End;
+ Result := cmuASM;
+End;
+
+Function CompareStream(Var MyFirstStream,
+                       MySecondStream,
+                       MyCompareStream    : TMemoryStream) : Boolean;
+Var
+ P1, P2, P3 : Pointer;
+Begin
+ Result := False;
+ If MyFirstStream.Size <> MySecondStream.Size Then
+  Begin
+   MyFirstStream.LoadFromStream(MySecondStream);
+   MyCompareStream.LoadFromStream(MySecondStream);
+   Exit;
+  End;
+ MyFirstStream.Position := 0;
+ MySecondStream.Position := 0;
+ MyCompareStream.Clear;
+ P1 := MyFirstStream.Memory;
+ P2 := MySecondStream.Memory;
+ P3 := MyCompareStream.Memory;
+ cmuASM   := 0;
+ cASMSize := MySecondStream.Size;
+ If CompareStreamASM(P1, P2, P3) > 0 Then
+  Begin
+   CompareStreamASM(P1, P2, P3);
+   MyCompareStream.Clear;
+   MyCompareStream.Write(P3^, MySecondStream.Size);
+   MyCompareStream.Position := 0;
+   MyFirstStream.Clear;
+   MySecondStream.Position  := 0;
+   MyFirstStream.CopyFrom(MySecondStream, 0);
+   MyFirstStream.Position   := 0;
+   MySecondStream.Position  := 0;
+   Result := True;
+  End;
+ Asm
+  mov EDX, 0                 //Move tamanho D para EDX segundo parametro setlenght
+  mov EAX, cpdst             //Move Result/pdst para EAX primeiro para metro strlenght
+  call System.@LStrSetLength //Seta parametro pdst para tamanho n2
+ End;
+End;
+
+{
 // Compare Streams and separate when the Bitmap Pixels are equal.
 procedure CompareStream(MyFirstStream, MySecondStream, MyCompareStream: TMemoryStream);
 var
@@ -171,6 +316,7 @@ begin
 
   MyFirstStream.LoadFromStream(MySecondStream);
 end;
+}
 
 Function ResumeStreamASM(Const S, d: Pointer; Var c: Pointer): Integer;
   Assembler;

@@ -19,7 +19,7 @@ interface
 
 uses
   System.Classes, System.Threading, uCtrl_Threads, System.Win.ScktComp,
-  uConstants, uLocaleFunctions, Winapi.Windows,UFuncoes;
+  uConstants, uLocaleFunctions, Winapi.Windows, UFuncoes;
 
 type
   TConexao = class

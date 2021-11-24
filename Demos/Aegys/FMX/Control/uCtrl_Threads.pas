@@ -628,13 +628,16 @@ begin
       Position := Pos('<|GETFULLSCREENSHOT|>', Buffer);
       if Position > 0 then
       begin
+       PixelFormat := TPixelFormat(0);
        xValue := Buffer;
        If Pos('<|BESTQ|>', xValue) > 0 Then
         Begin
          xValue := Copy(xValue, Pos('<|BESTQ|>', xValue) + 9, 1);
          Case StrToInt(xValue) Of
-          0 : PixelFormat := pf8bit;
-          1 : PixelFormat := pfDevice;
+          0 : PixelFormat := pf4bit;
+          1 : PixelFormat := pf8bit;
+          2 : PixelFormat := pf15bit;
+          3 : PixelFormat := pfDevice;
          End;
         End;
         Delete(Buffer, 1, Position + 20);
@@ -649,13 +652,12 @@ begin
         TMemoryStream(MyCompareBmp).Clear;
         PackStream.Clear;
 
-        Synchronize(
-          procedure
-          begin
-            GetScreenToMemoryStream(Conexao.MostrarMouse,
-              TMemoryStream(MyFirstBmp), PixelFormat);
-          end);
-
+//        Synchronize(
+//          procedure
+//          begin
+        GetScreenToMemoryStream(Conexao.MostrarMouse, TMemoryStream(MyFirstBmp), PixelFormat);
+//          end);
+//
         MyFirstBmp.Position := 0;
         PackStream.LoadFromStream(MyFirstBmp);
         TRDLib.CompressStreamWithZLib(PackStream);
@@ -709,20 +711,22 @@ begin
             Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>'
               + IntToStr(Trunc(Screen.Width)) + '<|>' +
               IntToStr(Trunc(Screen.Height)) + '<|END|>');
-
-          CompareStream(TMemoryStream(MyFirstBmp), TMemoryStream(MySecondBmp),
-            TMemoryStream(MyCompareBmp));
-          MyCompareBmp.Position := 0;
-          PackStream.LoadFromStream(MyCompareBmp);
-          TRDLib.CompressStreamWithZLib(PackStream);
-          PackStream.Position := 0;
-
-          if (Socket <> nil) and (Socket.Connected) then
-          begin
-            while Socket.SendText('<|IMAGE|>' + TRDLib.MemoryStreamToString
-              (PackStream) + '<|END|>') < 0 do
-              Sleep(FOLGAPROCESSAMENTO);
-          end;
+          If CompareStream(TMemoryStream(MyFirstBmp), TMemoryStream(MySecondBmp), TMemoryStream(MyCompareBmp)) Then
+           Begin
+            MyCompareBmp.Position := 0;
+            If MyCompareBmp.Size > 0 Then
+             Begin
+              PackStream.LoadFromStream(MyCompareBmp);
+              TRDLib.CompressStreamWithZLib(PackStream);
+              PackStream.Position := 0;
+              If (Socket <> nil) and (Socket.Connected) then
+               Begin
+                while Socket.SendText('<|IMAGE|>' + TRDLib.MemoryStreamToString
+                  (PackStream) + '<|END|>') < 0 do
+                  Sleep(FOLGAPROCESSAMENTO);
+               End;
+             End;
+           End;
         end;
       end;
 
@@ -764,6 +768,7 @@ begin
 //               vBitmap.LoadFromStream(MyFirstBmp);
 //               FormTelaRemota.imgTelaRemota.Fill.Kind := TbrushKind.Bitmap;
 //               FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+//               FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.PixelFormat := PixelFormat;
                FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(MyFirstBmp);//   := vBitmap;
                FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
                   'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
@@ -791,6 +796,7 @@ begin
 //               vBitmap.LoadFromStream(MySecondBmp);
 //               FormTelaRemota.imgTelaRemota.Fill.Kind := TbrushKind.Bitmap;
 //               FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+//               FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.PixelFormat := PixelFormat;
                FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(MySecondBmp);// := vBitmap;
                 FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
                   'RemoteTitle'), [IntToStr(Conexao.Latencia)]);

@@ -277,8 +277,7 @@ begin
       else
       begin
         LbtnConectar.Enabled := False;
-        Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text +
-          '<|END|>');
+        Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text + '<|END|>');
         btnConectar.Enabled := False;
         MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
       end;
