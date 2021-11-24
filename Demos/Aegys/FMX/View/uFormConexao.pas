@@ -125,64 +125,54 @@ uses uFormTelaRemota, uFormArquivos, uFormChat, FMX.Clipboard,
   Winapi.Windows, uConstants, BCrypt, System.DateUtils, uHttpClass,
   System.Threading, Winapi.ShellAPI, FMX.Platform.Win, uFormConfig;
 
-procedure TFormConexao.LimparConexao;
-begin
-  Conexao.ResolucaoLargura := 986;
-  Conexao.ResolucaoAltura := 600;
+Procedure TFormConexao.LimparConexao;
+Begin
+ Conexao.ResolucaoLargura                 := 986;
+ Conexao.ResolucaoAltura                  := 600;
+ FormTelaRemota.tCapturarComandos.Enabled := True;
+ FormTelaRemota.tCapturarComandos.Enabled := False;
+ // FormTelaRemota.imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
+ // FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+ FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign(FormTelaRemota.imgTelaInicial.Bitmap);
+ FormArquivos.btnDownload.Enabled         := True;
+ FormArquivos.btnUpload.Enabled           := True;
+ FormArquivos.pgbDownload.Value           := 0;
+ FormArquivos.pgbUpload.Value             := 0;
+ FormArquivos.LDownloadSize.Text          := Locale.GetLocale(APP, 'Size');
+ FormArquivos.LUploadSize.Text            := Locale.GetLocale(APP, 'Size');
+ FormArquivos.EFolder.Text                := 'C:\';
+ FormArquivos.lstArquivos.Items.Clear;
+ If (FormArquivos.Visible) Then FormArquivos.Close;
+ FormChat.Width                           := 230;
+ FormChat.Height                          := 340;
+ FormChat.Left                            := Trunc(Screen.WorkAreaWidth - FormChat.Width);
+ FormChat.Top                             := Trunc(Screen.WorkAreaHeight - FormChat.Height);
+ FormChat.lstMensagens.Clear;
+ If (FormChat.Visible)     Then FormChat.Close;
+End;
 
-  FormTelaRemota.tCapturarComandos.Enabled := True;
-  FormTelaRemota.tCapturarComandos.Enabled := False;
-  // FormTelaRemota.imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
-  // FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
-  FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign
-    (FormTelaRemota.imgTelaInicial.Bitmap);
-
-  FormArquivos.btnDownload.Enabled := True;
-  FormArquivos.btnUpload.Enabled := True;
-  FormArquivos.pgbDownload.Value := 0;
-  FormArquivos.pgbUpload.Value := 0;
-  FormArquivos.LDownloadSize.Text := Locale.GetLocale(APP, 'Size');
-  FormArquivos.LUploadSize.Text := Locale.GetLocale(APP, 'Size');
-
-  FormArquivos.EFolder.Text := 'C:\';
-  FormArquivos.lstArquivos.Items.Clear;
-
-  if (FormArquivos.Visible) then
-    FormArquivos.Close;
-
-  FormChat.Width := 230;
-  FormChat.Height := 340;
-
-  FormChat.Left := Trunc(Screen.WorkAreaWidth - FormChat.Width);
-  FormChat.Top := Trunc(Screen.WorkAreaHeight - FormChat.Height);
-
-  FormChat.lstMensagens.Clear;
-
-  if (FormChat.Visible) then
-    FormChat.Close;
-end;
-
-procedure TFormConexao.tmrClipboardTimer(Sender: TObject);
-var
-  Svc: IFMXClipboardService;
-  vlClip: TValue;
-begin
-  try
-    tmrClipboard.Enabled := Conexao.Visualizador;
-    if TPlatformServices.Current.SupportsPlatformService
-      (IFMXClipboardService, Svc) then
-    begin
-      vlClip := Svc.GetClipboard;
-      if not(vlClip.IsEmpty) and (vlClip.IsType<string>) and
-        (Conexao.OldClipboardText <> vlClip.ToString) then
-      begin
-        Conexao.OldClipboardText := vlClip.ToString;
-        Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CLIPBOARD|>' +
-          Conexao.OldClipboardText + '<|END|>');
-      end;
-    end;
-  except
-  end;
+Procedure TFormConexao.tmrClipboardTimer(Sender: TObject);
+Var
+ Svc    : IFMXClipboardService;
+ vlClip : TValue;
+Begin
+ Try
+  tmrClipboard.Enabled := Conexao.Visualizador;
+  If TPlatformServices.Current.SupportsPlatformService
+    (IFMXClipboardService, Svc) then
+   Begin
+    vlClip := Svc.GetClipboard;
+    If Not(vlClip.IsEmpty)          And
+          (vlClip.IsType<String>)   And
+          (Conexao.OldClipboardText <>
+           vlClip.ToString)         Then
+     Begin
+      Conexao.OldClipboardText := vlClip.ToString;
+      Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CLIPBOARD|>' + Conexao.OldClipboardText + '<|END|>');
+     End;
+   End;
+ Except
+ End;
 end;
 
 procedure TFormConexao.FormClose(Sender: TObject; var Action: TCloseAction);
