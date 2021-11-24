@@ -12,22 +12,22 @@ uses
   uFormConexao in 'View\uFormConexao.pas' {FormConexao},
   uFormTelaRemota in 'View\uFormTelaRemota.pas' {FormTelaRemota},
   uFormChat in 'View\uFormChat.pas' {FormChat},
-  uFrameMensagemChat in 'Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
   uDM_Styles in 'Styles\uDM_Styles.pas' {DM_Styles: TDataModule},
   uFormArquivos in 'View\uFormArquivos.pas' {FormArquivos},
-  uFrameArquivo in 'Frame\uFrameArquivo.pas' {FrameArquivo: TFrame},
   uCtrl_Threads in 'Control\uCtrl_Threads.pas',
   uLibClass in 'Lib\uLibClass.pas',
   uSendKeyClass in 'Lib\uSendKeyClass.pas',
   StreamManager in 'Lib\StreamManager.pas',
-  uConstants in 'Structure\uConstants.pas',
   uFormSenha in 'View\uFormSenha.pas' {FormSenha},
   uCtrl_Conexao in 'Control\uCtrl_Conexao.pas',
   uHttpClass in 'Lib\uHttpClass.pas',
   Bcrypt in 'Lib\Bcrypt.pas',
-  uLocaleFunctions in 'Locale\uLocaleFunctions.pas',
   uFormConfig in 'View\uFormConfig.pas' {fConfig},
-  UFuncoes in 'Functions\UFuncoes.pas';
+  uFrameArquivo in 'View\Frame\uFrameArquivo.pas' {FrameArquivo: TFrame},
+  uFrameMensagemChat in 'View\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
+  uConstants in 'Lib\uConstants.pas',
+  UFuncoes in 'Lib\UFuncoes.pas',
+  uLocaleFunctions in 'Lib\uLocaleFunctions.pas';
 
 {$R *.res}
 

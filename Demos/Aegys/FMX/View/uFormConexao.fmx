@@ -18,7 +18,6 @@ object FormConexao: TFormConexao
   OnCreate = FormCreate
   OnClose = FormClose
   OnDestroy = FormDestroy
-  OnShow = FormShow
   DesignerMasterStyle = 0
   object tmrIntervalo: TTimer
     Enabled = False
@@ -399,7 +398,7 @@ object FormConexao: TFormConexao
           end
         end
       end
-      object lResolution: TLayout
+      object lyResolution: TLayout
         Align = Top
         Margins.Top = 10.000000000000000000
         Position.Y = 242.000000000000000000
@@ -415,7 +414,7 @@ object FormConexao: TFormConexao
           Stroke.Kind = None
           XRadius = 10.000000000000000000
           YRadius = 10.000000000000000000
-          object Label1: TLabel
+          object LlyResolutionCaption: TLabel
             Align = Client
             StyledSettings = [Style]
             Size.Width = 314.000000000000000000
@@ -432,11 +431,9 @@ object FormConexao: TFormConexao
           Align = Center
           Locked = True
           Items.Strings = (
-            'P/B'
             'Baixa'
-            'Alta'
-            'Real')
-          ItemIndex = 2
+            'Alta')
+          ItemIndex = 1
           Size.Width = 89.000000000000000000
           Size.Height = 30.000000000000000000
           Size.PlatformDefault = False
@@ -498,7 +495,6 @@ object FormConexao: TFormConexao
             TextPrompt = '___-___-___'
             StyledSettings = [Style]
             OnTyping = EGuestIDTyping
-            OnKeyDown = EGuestIDKeyDown
           end
           object sbPasteID: TSpeedButton
             Action = actPasteID

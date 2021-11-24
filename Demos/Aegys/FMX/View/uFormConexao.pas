@@ -19,14 +19,19 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes,
-  System.Variants,
+  System.Variants, System.Actions,
+  System.Win.ScktComp,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, System.Actions,
-  FMX.ActnList, FMX.Ani, uCtrl_Threads, FireDAC.Stan.Intf, System.Win.ScktComp,
+  FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
+  FMX.Ani, FMX.TabControl, FMX.ListBox,
+  Data.DB, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
-  FireDAC.Phys.Intf, FireDAC.DApt.Intf, uDWAbout, uRESTDWPoolerDB, Data.DB,
-  FireDAC.Comp.DataSet, FireDAC.Comp.Client, uDWConstsData, FMX.TabControl,
-  uCtrl_Conexao, uRESTDWServerEvents, uLocaleFunctions, FMX.ListBox;
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Comp.DataSet,
+  FireDAC.Comp.Client,
+  uDWAbout, uRESTDWPoolerDB, uDWConstsData,
+  uCtrl_Threads, uCtrl_Conexao, uLocaleFunctions
+
+    ;
 
 type
   TFormConexao = class(TForm)
@@ -78,13 +83,12 @@ type
     LVersion: TLabel;
     phOptions: TPath;
     sbOptions: TSpeedButton;
-    lResolution: TLayout;
+    lyResolution: TLayout;
     Rectangle1: TRectangle;
-    Label1: TLabel;
+    LlyResolutionCaption: TLabel;
     cbQualidade: TComboBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
-    procedure FormShow(Sender: TObject);
     procedure actPasteIDExecute(Sender: TObject);
     procedure actConnectExecute(Sender: TObject);
     procedure actCopyIDExecute(Sender: TObject);
@@ -92,8 +96,6 @@ type
     procedure tmrClipboardTimer(Sender: TObject);
     procedure tmrReconnectTimer(Sender: TObject);
     procedure tmrIntervaloTimer(Sender: TObject);
-    procedure EGuestIDKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
-      Shift: TShiftState);
     procedure EGuestIDTyping(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure sbOptionsClick(Sender: TObject);
@@ -101,8 +103,6 @@ type
     FHash: string;
     Locale: TLocale;
     function MascaraID(AText, AMascara: string): string;
-    procedure MudarTab(TabItem: TTabItem);
-    procedure VerificarAtualizacao;
     procedure Translate;
     procedure SetColors;
   public
@@ -132,9 +132,10 @@ begin
 
   FormTelaRemota.tCapturarComandos.Enabled := True;
   FormTelaRemota.tCapturarComandos.Enabled := False;
-//  FormTelaRemota.imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
-//  FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
-  FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign(FormTelaRemota.imgTelaInicial.Bitmap);
+  // FormTelaRemota.imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
+  // FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+  FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign
+    (FormTelaRemota.imgTelaInicial.Bitmap);
 
   FormArquivos.btnDownload.Enabled := True;
   FormArquivos.btnUpload.Enabled := True;
@@ -197,8 +198,6 @@ begin
   Locale := TLocale.Create;
   Conexao := TConexao.Create;
   // --------------------------
-//  tcPrincipal.TabPosition := TTabPosition.None;
-//  tcPrincipal.ActiveTab := tabAcesso;
   SetOffline;
   Translate;
 end;
@@ -206,11 +205,6 @@ end;
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
   Locale.DisposeOf;
-end;
-
-procedure TFormConexao.FormShow(Sender: TObject);
-begin
-  VerificarAtualizacao;
 end;
 
 function TFormConexao.MascaraID(AText, AMascara: string): string;
@@ -245,17 +239,11 @@ begin
   LStatus.Text := AMensagem;
 end;
 
-procedure TFormConexao.MudarTab(TabItem: TTabItem);
-begin
-//  actTabChange.Tab := TabItem;
-//  actTabChange.ExecuteTarget(self);
-end;
-
 procedure TFormConexao.sbOptionsClick(Sender: TObject);
 begin
   Application.CreateForm(TfConfig, fConfig);
   fConfig.show;
-  fConfig.CallBackLang := Translate;
+  fConfig.CallBackConfig := Translate;
 end;
 
 procedure TFormConexao.actPasteIDExecute(Sender: TObject);
@@ -277,7 +265,8 @@ begin
       else
       begin
         LbtnConectar.Enabled := False;
-        Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text + '<|END|>');
+        Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text +
+          '<|END|>');
         btnConectar.Enabled := False;
         MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
       end;
@@ -309,6 +298,7 @@ begin
   LlyMachineIDCaption.Text := Locale.GetLocale(FRMS, 'MainMachineID');
   LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'MainPassword');
   LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
+  LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
   LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
   Conexao.ReconectarSocket(True);
 end;
@@ -338,26 +328,10 @@ begin
   LbtnConectar.Enabled := btnConectar.Enabled;
 end;
 
-procedure TFormConexao.EGuestIDKeyDown(Sender: TObject; var Key: Word;
-  var KeyChar: Char; Shift: TShiftState);
-begin
-  // Dica: propriedade ShortCut da Action
-  // if Key = vkReturn then
-  // begin
-  // actConnectExecute(Sender);
-  // Key := vkNone;
-  // end;
-
-  // Dica: propriedade FilterChar do TEdit no FMX já faz esse controle
-  // if not CharInSet(KeyChar, ['0' .. '9']) then
-  // KeyChar := #0;
-end;
-
 procedure TFormConexao.EGuestIDTyping(Sender: TObject);
 begin
   TEdit(Sender).Text := MascaraID(TEdit(Sender).Text, '999-999-999');
   TEdit(Sender).GoToTextEnd;
-  // TEdit(Sender).SelStart := Length(TEdit(Sender).Text);
 end;
 
 procedure TFormConexao.tmrIntervaloTimer(Sender: TObject);
@@ -374,47 +348,6 @@ begin
     end;
   end;
   Conexao.Intervalo := Conexao.Intervalo + 1;
-end;
-
-procedure TFormConexao.VerificarAtualizacao;
-var
-  xMessage, xLink, xFile: string;
-  sl: TStringList;
-begin
-  // auto atualizador
-  // bloqueei para não ficar rodando essa função sem necessidade no Aegys
-  // xMessage := 'Foi encontrada uma versão mais atual disponível para download.' + sLineBreak +
-  // 'Deseja atualizar agora?';
-  //
-  // xLink := ARQUIVO_SITE;
-  // xFile := 'AegysSuporteCliente.exe';
-  //
-  // try
-  // if (DateOf(TRDHttp.DataArquivo(xLink)) > DateOf(TFile.GetLastWriteTime(ParamStr(0))))
-  // and (MessageDlg(xMessage, TMsgDlgType.mtInformation, [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], 0) = mrYes) then
-  // begin
-  // aniDownload.Enabled := True;
-  // recDownload.Visible := True;
-  // TTask.Run(
-  // procedure
-  // begin
-  // RenameFile(ParamStr(0), TPath.Combine(ExtractFilePath(ParamStr(0)), 'OLD_' + xFile));
-  // if TRDHttp.Download(TPath.Combine(ExtractFilePath(ParamStr(0)), xFile), xLink, nil) then
-  // begin
-  // ShellExecute(
-  // WindowHandleToPlatform(Handle).Wnd,
-  // 'open',
-  // PChar(TPath.Combine(ExtractFilePath(ParamStr(0)), xFile)),
-  // '',
-  // '',
-  // SW_SHOWNORMAL);
-  // Application.Terminate;
-  // end;
-  // end);
-  // end;
-  // except
-  // ShowMessage('Não foi possível atualizar o Executável.');
-  // end;
 end;
 
 end.
