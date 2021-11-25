@@ -1,4 +1,4 @@
-unit UFuncoes;
+﻿unit UFuncoes;
 
 interface
 uses

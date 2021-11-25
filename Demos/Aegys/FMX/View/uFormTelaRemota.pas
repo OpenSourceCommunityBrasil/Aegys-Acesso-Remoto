@@ -1,4 +1,4 @@
-unit uFormTelaRemota;
+ï»¿unit uFormTelaRemota;
 
 {
   Project Aegys Remote Support.
@@ -9,7 +9,7 @@ unit uFormTelaRemota;
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
-  Rai Duarte Jales (Raí Duarte) (Aegys Server Developer)
+  Rai Duarte Jales (RaÃ­ Duarte) (Aegys Server Developer)
   Roniery Santos Cardoso (Aegys Developer)
   Alexandre Carlos Silva Abade (Aegys Developer)
   Mobius One (Aegys Developer)
@@ -206,7 +206,7 @@ begin
           145:
             SendSocketKeys('{SCROLLLOCK}');
 
-          // Numbers: 1 2 3 4 5 6 7 8 9 and ! @ # $ % ¨& * ( )
+          // Numbers: 1 2 3 4 5 6 7 8 9 and ! @ # $ % Â¨& * ( )
           48:
             if (GetKeyState(VK_SHIFT) < 0) then
               SendSocketKeys(')')
@@ -294,9 +294,9 @@ begin
 
           186:
             if (GetKeyState(VK_SHIFT) < 0) then
-              SendSocketKeys('Ç')
+              SendSocketKeys('Ã‡')
             else
-              SendSocketKeys('ç');
+              SendSocketKeys('Ã§');
           187:
             if (GetKeyState(VK_SHIFT) < 0) then
               SendSocketKeys('+')
@@ -336,7 +336,7 @@ begin
             if (GetKeyState(VK_SHIFT) < 0) then
               SendSocketKeys('`')
             else
-              SendSocketKeys('´');
+              SendSocketKeys('Â´');
           220:
             if (GetKeyState(VK_SHIFT) < 0) then
               SendSocketKeys('}')

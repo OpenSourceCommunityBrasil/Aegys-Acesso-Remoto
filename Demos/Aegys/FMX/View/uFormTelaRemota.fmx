@@ -11893,7 +11893,6 @@ object FormTelaRemota: TFormTelaRemota
       Size.Width = 177.000000000000000000
       Size.Height = 41.000000000000000000
       Size.PlatformDefault = False
-      Visible = True
       object Path3: TPath
         Align = Left
         Data.Path = {
@@ -11939,7 +11938,6 @@ object FormTelaRemota: TFormTelaRemota
       Size.Width = 102.000000000000000000
       Size.Height = 41.000000000000000000
       Size.PlatformDefault = False
-      Visible = True
       object Path1: TPath
         Align = Left
         Data.Path = {
@@ -11986,7 +11984,6 @@ object FormTelaRemota: TFormTelaRemota
       Size.Width = 153.000000000000000000
       Size.Height = 41.000000000000000000
       Size.PlatformDefault = False
-      Visible = True
       object Path2: TPath
         Align = Left
         Data.Path = {

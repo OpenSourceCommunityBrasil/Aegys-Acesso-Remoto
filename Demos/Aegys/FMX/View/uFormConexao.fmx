@@ -227,7 +227,7 @@ object FormConexao: TFormConexao
       object lyMachineID: TLayout
         Align = Top
         Margins.Top = 10.000000000000000000
-        Position.Y = 176.000000000000000000
+        Position.Y = 110.000000000000000000
         Size.Width = 314.000000000000000000
         Size.Height = 56.000000000000000000
         Size.PlatformDefault = False
@@ -283,93 +283,6 @@ object FormConexao: TFormConexao
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
             object PhMachineIDCopy: TPath
-              Align = Client
-              Data.Path = {
-                2000000000000000000098410000A84101000000000000410000A84101000000
-                000000410000E04001000000000098410000E04000000000000098410000A040
-                01000000000000410000A040020000005EA7DC400000A040020000000000C040
-                5EA7BC40020000000000C0400000E040010000000000C0400000A84102000000
-                0000C04029D6B041020000005EA7DC400000B84102000000000000410000B841
-                01000000000098410000B8410200000029D6A0410000B841020000000000A841
-                29D6B041020000000000A8410000A841010000000000A8410000E04002000000
-                0000A8415EA7BC400200000029D6A0410000A04002000000000098410000A040
-                00000000000080410000803F01000000000080400000803F02000000BC4E3940
-                0000803F0200000000000040779DF23F02000000000000400000404001000000
-                0000004000008841010000000000804000008841010000000000804000004040
-                01000000000080410000404001000000000080410000803F0300000000008041
-                0000803F}
-              Fill.Color = xFF424242
-              HitTest = False
-              Margins.Top = 8.000000000000000000
-              Margins.Bottom = 8.000000000000000000
-              Size.Width = 36.000000000000000000
-              Size.Height = 20.000000000000000000
-              Size.PlatformDefault = False
-              Stroke.Kind = None
-              WrapMode = Fit
-            end
-          end
-        end
-      end
-      object lyPassword: TLayout
-        Align = Top
-        Margins.Top = 10.000000000000000000
-        Position.Y = 110.000000000000000000
-        Size.Width = 314.000000000000000000
-        Size.Height = 56.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 31
-        object RPassword: TRectangle
-          Align = Top
-          Size.Width = 314.000000000000000000
-          Size.Height = 20.000000000000000000
-          Size.PlatformDefault = False
-          Stroke.Kind = None
-          XRadius = 10.000000000000000000
-          YRadius = 10.000000000000000000
-          object LlyPasswordCaption: TLabel
-            Align = Client
-            StyledSettings = [Style]
-            Size.Width = 314.000000000000000000
-            Size.Height = 20.000000000000000000
-            Size.PlatformDefault = False
-            TextSettings.Font.Family = 'Quicksand'
-            TextSettings.Font.Size = 15.000000000000000000
-            TextSettings.FontColor = xFF424242
-            TextSettings.HorzAlign = Center
-            Text = 'Sua senha'
-          end
-        end
-        object Layout8: TLayout
-          Align = Client
-          Size.Width = 314.000000000000000000
-          Size.Height = 36.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 1
-          object LPassword: TLabel
-            Align = Client
-            StyledSettings = [Style]
-            Margins.Left = 46.000000000000000000
-            Size.Width = 222.000000000000000000
-            Size.Height = 36.000000000000000000
-            Size.PlatformDefault = False
-            TextSettings.Font.Family = 'Quicksand'
-            TextSettings.Font.Size = 30.000000000000000000
-            TextSettings.FontColor = xFF424242
-            TextSettings.HorzAlign = Center
-            Text = 'transparentedit'
-          end
-          object sbPasswordCopy: TSpeedButton
-            Action = actCopyPassword
-            Align = Right
-            Enabled = True
-            ImageIndex = -1
-            Margins.Left = 10.000000000000000000
-            Position.X = 278.000000000000000000
-            Size.Width = 36.000000000000000000
-            Size.Height = 36.000000000000000000
-            Size.PlatformDefault = False
-            object PhPasswordCopy: TPath
               Align = Client
               Data.Path = {
                 2000000000000000000098410000A84101000000000000410000A84101000000
@@ -621,6 +534,93 @@ object FormConexao: TFormConexao
           TextSettings.FontColor = xFF424242
         end
       end
+      object lyPassword: TLayout
+        Align = Top
+        Margins.Top = 10.000000000000000000
+        Position.Y = 176.000000000000000000
+        Size.Width = 314.000000000000000000
+        Size.Height = 56.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 31
+        object RPassword: TRectangle
+          Align = Top
+          Size.Width = 314.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 10.000000000000000000
+          YRadius = 10.000000000000000000
+          object LlyPasswordCaption: TLabel
+            Align = Client
+            StyledSettings = [Style]
+            Size.Width = 314.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 15.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Text = 'Sua senha'
+          end
+        end
+        object Layout8: TLayout
+          Align = Client
+          Size.Width = 314.000000000000000000
+          Size.Height = 36.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          object LPassword: TLabel
+            Align = Client
+            StyledSettings = [Style]
+            Margins.Left = 46.000000000000000000
+            Size.Width = 222.000000000000000000
+            Size.Height = 36.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Quicksand'
+            TextSettings.Font.Size = 30.000000000000000000
+            TextSettings.FontColor = xFF424242
+            TextSettings.HorzAlign = Center
+            Text = 'transparentedit'
+          end
+          object sbPasswordCopy: TSpeedButton
+            Action = actCopyPassword
+            Align = Right
+            Enabled = True
+            ImageIndex = -1
+            Margins.Left = 10.000000000000000000
+            Position.X = 278.000000000000000000
+            Size.Width = 36.000000000000000000
+            Size.Height = 36.000000000000000000
+            Size.PlatformDefault = False
+            object PhPasswordCopy: TPath
+              Align = Client
+              Data.Path = {
+                2000000000000000000098410000A84101000000000000410000A84101000000
+                000000410000E04001000000000098410000E04000000000000098410000A040
+                01000000000000410000A040020000005EA7DC400000A040020000000000C040
+                5EA7BC40020000000000C0400000E040010000000000C0400000A84102000000
+                0000C04029D6B041020000005EA7DC400000B84102000000000000410000B841
+                01000000000098410000B8410200000029D6A0410000B841020000000000A841
+                29D6B041020000000000A8410000A841010000000000A8410000E04002000000
+                0000A8415EA7BC400200000029D6A0410000A04002000000000098410000A040
+                00000000000080410000803F01000000000080400000803F02000000BC4E3940
+                0000803F0200000000000040779DF23F02000000000000400000404001000000
+                0000004000008841010000000000804000008841010000000000804000004040
+                01000000000080410000404001000000000080410000803F0300000000008041
+                0000803F}
+              Fill.Color = xFF424242
+              HitTest = False
+              Margins.Top = 8.000000000000000000
+              Margins.Bottom = 8.000000000000000000
+              Size.Width = 36.000000000000000000
+              Size.Height = 20.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Kind = None
+              WrapMode = Fit
+            end
+          end
+        end
+      end
     end
   end
   object ActionList1: TActionList
@@ -640,76 +640,5 @@ object FormConexao: TFormConexao
     object actPasteID: TAction
       OnExecute = actPasteIDExecute
     end
-  end
-  object RDQuery: TRESTDWClientSQL
-    Active = False
-    Filtered = False
-    FieldDefs = <>
-    IndexDefs = <>
-    FetchOptions.AssignedValues = [evMode]
-    FetchOptions.Mode = fmAll
-    ResourceOptions.AssignedValues = [rvSilentMode]
-    ResourceOptions.SilentMode = True
-    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
-    UpdateOptions.CheckRequired = False
-    UpdateOptions.AutoCommitUpdates = True
-    StoreDefs = True
-    BinaryCompatibleMode = False
-    MasterCascadeDelete = True
-    BinaryRequest = True
-    Datapacks = -1
-    DataCache = False
-    MassiveType = mtMassiveCache
-    Params = <>
-    DataBase = RESTDWDataBase1
-    CacheUpdateRecords = True
-    AutoCommitData = False
-    AutoRefreshAfterCommit = False
-    RaiseErrors = True
-    ActionCursor = crSQLWait
-    ReflectChanges = False
-    Left = 56
-    Top = 64
-  end
-  object RESTDWDataBase1: TRESTDWDataBase
-    Active = False
-    Compression = True
-    CriptOptions.Use = False
-    CriptOptions.Key = 'RDWBASEKEY256'
-    AuthenticationOptions.AuthorizationOption = rdwAOBasic
-    AuthenticationOptions.OptionParams.AuthDialog = True
-    AuthenticationOptions.OptionParams.CustomDialogAuthMessage = 'Protected Space...'
-    AuthenticationOptions.OptionParams.Custom404TitleMessage = '(404) The address you are looking for does not exist'
-    AuthenticationOptions.OptionParams.Custom404BodyMessage = '404'
-    AuthenticationOptions.OptionParams.Custom404FooterMessage = 'Take me back to <a href="./">Home REST Dataware'
-    AuthenticationOptions.OptionParams.Username = 'redsis'
-    AuthenticationOptions.OptionParams.Password = 'C9F4ACBC-6B6A-4CA5-95E2-83164BC91C09'
-    Proxy = False
-    ProxyOptions.Port = 8888
-    PoolerService = 'www.redsisssl.com.br'
-    PoolerPort = 8088
-    PoolerName = 'TDM_Server.RESTDWPoolerDBRedsis'
-    StateConnection.AutoCheck = False
-    StateConnection.InTime = 1000
-    RequestTimeOut = 3000
-    ConnectTimeOut = 3000
-    EncodeStrings = True
-    Encoding = esUtf8
-    Context = 'redsisdw'
-    StrsTrim = False
-    StrsEmpty2Null = False
-    StrsTrim2Len = True
-    HandleRedirects = False
-    RedirectMaximum = 0
-    ParamCreate = True
-    FailOver = False
-    FailOverConnections = <>
-    FailOverReplaceDefaults = False
-    ClientConnectionDefs.Active = False
-    UserAgent = 
-      'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, l' +
-      'ike Gecko) Chrome/41.0.2227.0 Safari/537.36'
-    Left = 56
-    Top = 8
   end
 end

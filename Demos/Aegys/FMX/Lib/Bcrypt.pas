@@ -1,4 +1,4 @@
-unit Bcrypt;
+ï»¿unit Bcrypt;
 
 (*
 	Sample Usage
@@ -477,7 +477,7 @@ const
 {
 	TODO: bcrypt with SHA256 pre-hashing
 
-	passlib.hash.bcrypt_sha256 - BCrypt+SHA256¶
+	passlib.hash.bcrypt_sha256 - BCrypt+SHA256Â¶
 	https://passlib.readthedocs.io/en/stable/lib/passlib.hash.bcrypt_sha256.html
 
 	BCrypt was developed to replace md5_crypt for BSD systems. It uses a modified version of the Blowfish stream cipher.
@@ -1914,8 +1914,8 @@ begin
 
 		SASLprep (rfc4013), like StringPrep (rfc3454) both specified NFKC:
 
-			Before: Noe¨l
-			After:  Noël
+			Before: NoeÂ¨l
+			After:  NoÃ«l
 
 		Spaces
 		======
@@ -2425,20 +2425,20 @@ const
 			//http://stackoverflow.com/a/7031942/12597
 begin
 	{
-		Before: A + ¨ + fi + n
+		Before: A + Â¨ + fi + n
 				A:  U+0041
-				¨:  U+0308 Combining Diaeresis
+				Â¨:  U+0308 Combining Diaeresis
 				fi: U+FB01 Latin Small Ligature Fi
 				n:  U+006E
 
-		Normalized:  Ä + f + i + n
-				Ä:  U+00C4  Latin Capital Letter A with Diaeresis
+		Normalized:  Ã„ + f + i + n
+				Ã„:  U+00C4  Latin Capital Letter A with Diaeresis
 				f:  U+0066
 				i:  U+0069
 				n:  U+006E
 
 		Final UTF-8:
-				Ä:  0xC3 0x84
+				Ã„:  0xC3 0x84
 				f:  0x66
 				i:  0x69
 				n:  0x6E
@@ -2488,12 +2488,12 @@ begin
 
 		Original
 				A:  U+0041
-				¨:  U+0308 Combining Diaeresis
+				Â¨:  U+0308 Combining Diaeresis
 				fi: U+FB01 Latin Small Ligature Fi
 				n:  U+006E
 
-		Normalized:  Ä + f + i + n
-				Ä:  U+00C4  Latin Capital Letter A with Diaeresis
+		Normalized:  Ã„ + f + i + n
+				Ã„:  U+00C4  Latin Capital Letter A with Diaeresis
 				f:  U+0066
 				i:  U+0069
 				n:  U+006E

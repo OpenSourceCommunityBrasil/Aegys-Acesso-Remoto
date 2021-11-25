@@ -24,12 +24,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
   FMX.Ani, FMX.TabControl, FMX.ListBox,
-  Data.DB, FireDAC.Stan.Intf,
-  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
-  FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Comp.DataSet,
-  FireDAC.Comp.Client,
-  uDWAbout, uRESTDWPoolerDB, uDWConstsData,
-  uCtrl_Threads, uCtrl_Conexao, uLocaleFunctions,UFuncoes
+  uCtrl_Threads, uCtrl_Conexao, uLocaleFunctions, UFuncoes
 
     ;
 
@@ -48,13 +43,6 @@ type
     Layout6: TLayout;
     PhMachineIDCopy: TPath;
     sbMachineIDCopy: TSpeedButton;
-    lyPassword: TLayout;
-    RPassword: TRectangle;
-    LlyPasswordCaption: TLabel;
-    Layout8: TLayout;
-    LPassword: TLabel;
-    sbPasswordCopy: TSpeedButton;
-    PhPasswordCopy: TPath;
     lyGuestID: TLayout;
     RGuestID: TRectangle;
     LlyGuestIDCaption: TLabel;
@@ -75,8 +63,6 @@ type
     actCopyID: TAction;
     actCopyPassword: TAction;
     Layout4: TLayout;
-    RDQuery: TRESTDWClientSQL;
-    RESTDWDataBase1: TRESTDWDataBase;
     sbPasteID: TSpeedButton;
     PhPasteID: TPath;
     actPasteID: TAction;
@@ -87,6 +73,13 @@ type
     Rectangle1: TRectangle;
     LlyResolutionCaption: TLabel;
     cbQualidade: TComboBox;
+    lyPassword: TLayout;
+    RPassword: TRectangle;
+    LlyPasswordCaption: TLabel;
+    Layout8: TLayout;
+    LPassword: TLabel;
+    sbPasswordCopy: TSpeedButton;
+    PhPasswordCopy: TPath;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure actPasteIDExecute(Sender: TObject);

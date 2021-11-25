@@ -1,4 +1,4 @@
-unit uLocaleFunctions;
+﻿unit uLocaleFunctions;
 
 {
   Project Aegys Remote Support.
@@ -9,7 +9,7 @@ unit uLocaleFunctions;
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
-  Rai Duarte Jales (Ra� Duarte) (Aegys Server Developer)
+  Rai Duarte Jales (Raí Duarte) (Aegys Server Developer)
   Roniery Santos Cardoso (Aegys Developer)
   Alexandre Carlos Silva Abade (Aegys Developer)
   Mobius One (Aegys Developer)
@@ -56,7 +56,7 @@ Var
 Begin
   Locale := TIniFile.Create(FLocaleFileName);
   Try
-    Result := Locale.ReadString(section, variable, '');
+    Result := UTF8Decode(Locale.ReadString(section, variable, ''));
     Result := StringReplace(Result, '|n', sLineBreak, [rfReplaceAll]);
   Finally
     Locale.DisposeOf;
