@@ -1,7 +1,7 @@
 object DM_Styles: TDM_Styles
+  OldCreateOrder = True
   Height = 150
   Width = 215
-  PixelsPerInch = 96
   object DesktopStyle: TStyleBook
     Styles = <
       item

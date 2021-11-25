@@ -18,8 +18,21 @@
 interface
 
 uses
-  System.Classes, FMX.Graphics, Vcl.Graphics, FMX.Forms, Winapi.Windows,
-  FMX.Objects;
+  System.Classes,
+  System.Types,
+  FMX.Forms,
+  FMX.Objects
+
+  {$IF DEFINED (ANDROID) || (IOS)}
+  ,FMX.Types
+  ,FMX.Graphics
+  ,FMX.Platform
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  ,Vcl.Graphics
+  ,Winapi.Windows
+  {$ENDIF}
+  ;
 
 Const
   TNeutroColor = 255;
@@ -35,9 +48,17 @@ Type
   PRGBTripleArray = ^TRGBTripleArray;
   TRGBTripleArray = Array [0 .. 4095] of TRGBTriple;
 
+{$IF DEFINED (ANDROID) || (IOS)}
+procedure GetScreenToMemoryStream(DrawCur            : Boolean;
+                                  TargetMemoryStream : TMemoryStream;
+                                  PixelFormat        : TPixelFormat = TPixelFormat.None);
+{$ENDIF}
+{$IF DEFINED (MSWINDOWS)}
 procedure GetScreenToMemoryStream(DrawCur            : Boolean;
                                   TargetMemoryStream : TMemoryStream;
                                   PixelFormat        : TPixelFormat = pfDevice);
+{$ENDIF}
+
 
 Function CompareStream(Var MyFirstStream,
                         MySecondStream,
@@ -64,18 +85,37 @@ uses
 
 procedure ResizeBmp(AImage: TImage; AStream: TMemoryStream; AWidth, AHeight: Single);
 var
+  {$IF DEFINED (ANDROID) || (IOS)}
+  bmpSrc, bmpDest: FMX.Graphics.TBitmap;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
   bmpSrc, bmpDest: Vcl.Graphics.TBitmap;
+  {$ENDIF}
+
   msImage: TMemoryStream;
 begin
   try
     msImage := TMemoryStream.Create;
     msImage.Clear;
+    {$IF DEFINED (ANDROID) || (IOS)}
+    bmpSrc := FMX.Graphics.TBitmap.Create;
+    bmpDest := FMX.Graphics.TBitmap.Create;
+    {$ENDIF}
+    {$IF DEFINED (MSWINDOWS)}
     bmpSrc := Vcl.Graphics.TBitmap.Create;
     bmpDest := Vcl.Graphics.TBitmap.Create;
+    {$ENDIF}
+
     AStream.Position := 0;
     bmpSrc.LoadFromStream(AStream);
     bmpDest.Width := Trunc(AWidth);
     bmpDest.Height := Trunc(AHeight);
+
+    {$IF DEFINED (ANDROID) || (IOS)}
+     bmpDest  :=  bmpSrc;
+     bmpDest.Resize(AWidth, AHeight);
+    {$ENDIF}
+    {$IF DEFINED (MSWINDOWS)}
     SetStretchBltMode(bmpDest.Canvas.Handle, HALFTONE);
     StretchBlt(
       bmpDest.Canvas.Handle,
@@ -89,6 +129,8 @@ begin
       bmpSrc.Width,
       bmpSrc.Height,
       SRCCOPY);
+    {$ENDIF}
+
     bmpDest.SaveToStream(msImage);
     msImage.Position := 0;
     AImage.Bitmap.LoadFromStream(msImage);
@@ -99,34 +141,70 @@ begin
   end;
 end;
 
+{$IF DEFINED (ANDROID) || (IOS)}
+procedure GetScreenToMemoryStream(DrawCur            : Boolean;
+                                  TargetMemoryStream : TMemoryStream;
+                                  PixelFormat        : TPixelFormat = TPixelFormat.None);
+{$ENDIF}
+{$IF DEFINED (MSWINDOWS)}
 procedure GetScreenToMemoryStream(DrawCur            : Boolean;
                                   TargetMemoryStream : TMemoryStream;
                                   PixelFormat        : TPixelFormat = pfDevice);
+{$ENDIF}
+
 Const
  CAPTUREBLT = $40000000;
 Var
- Mybmp: Vcl.Graphics.TBitmap;
- Cursorx, Cursory: Integer;
- dc: hdc;
- R: TRect;
- DrawPos: TPoint;
- MyCursor: TIcon;
- hld: hwnd;
- Threadld: dword;
- mp: TPoint;
- pIconInfo: TIconInfo;
- Procedure MakeGrey(Bitmap: Vcl.Graphics.TBitmap);
- Var
+  {$IF DEFINED (ANDROID) || (IOS)}
+  Mybmp: FMX.Graphics.TBitmap;
+  dc: Cardinal;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  Mybmp: Vcl.Graphics.TBitmap;
+  dc: hdc;
+  hld: hwnd;
+  pIconInfo: TIconInfo;
+  MyCursor: TIcon;
+  {$ENDIF}
+
+  R: TRect;
+  mp: TPoint;
+  DrawPos: TPoint;
+  Threadld: dword;
+
+
+  Cursorx, Cursory: Integer;
+
+  {$IF DEFINED (ANDROID) || (IOS)}
+  Procedure MakeGrey(Bitmap: FMX.Graphics.TBitmap);
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  Procedure MakeGrey(Bitmap: Vcl.Graphics.TBitmap);
+  {$ENDIF}
+
+  Var
    w, h, y, x: Integer;
    sl: PRGBTripleArray;
    grey: Byte;
- Begin
-   Bitmap.PixelFormat := pf32bit;
-   w := Bitmap.Width;
-   h := Bitmap.Height;
-   For y := 0 To h - 1 Do
-   Begin
-     sl := Bitmap.ScanLine[y];
+  Begin
+    {$IF DEFINED (ANDROID) || (IOS)}
+    Bitmap.PixelFormat := TPixelFormat.RGBA32F;
+    {$ENDIF}
+    {$IF DEFINED (MSWINDOWS)}
+    Bitmap.PixelFormat := pf32bit;
+    {$ENDIF}
+
+    w := Bitmap.Width;
+    h := Bitmap.Height;
+    For y := 0 To h - 1 Do
+    Begin
+      {$IF DEFINED (ANDROID) || (IOS)}
+//       sl := Bitmap.ScanLine[y];
+      {$ENDIF}
+      {$IF DEFINED (MSWINDOWS)}
+      sl := Bitmap.ScanLine[y];
+      {$ENDIF}
+
      For x := 0 To w - 1 Do
      Begin
        With sl[x] Do
@@ -137,48 +215,89 @@ Var
          R := grey;
        End;
      End;
-   End;
- End;
-Begin
- Mybmp := Vcl.Graphics.TBitmap.Create;
- dc := GetWindowDC(0);
- Try
-  R := Rect(0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
-  Mybmp.Width := R.Right;
-  Mybmp.Height := R.Bottom;
-  BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, dc, 0, 0, SRCCOPY or CAPTUREBLT);
- Finally
-  ReleaseDC(0, dc);
- End;
- If DrawCur Then
-  Begin
-   GetCursorPos(DrawPos);
-   MyCursor := TIcon.Create;
-   GetCursorPos(mp);
-   hld := WindowFromPoint(mp);
-   Threadld := GetWindowThreadProcessId(hld, nil);
-   AttachThreadInput(GetCurrentThreadId, Threadld, True);
-   MyCursor.Handle := Getcursor();
-   AttachThreadInput(GetCurrentThreadId, Threadld, False);
-   GetIconInfo(MyCursor.Handle, pIconInfo);
-   Cursorx := DrawPos.x - round(pIconInfo.xHotspot);
-   Cursory := DrawPos.y - round(pIconInfo.yHotspot);
-   Mybmp.Canvas.Draw(Cursorx, Cursory, MyCursor);
-   DeleteObject(pIconInfo.hbmColor);
-   DeleteObject(pIconInfo.hbmMask);
-   MyCursor.ReleaseHandle;
-   MyCursor.Free;
+    End;
   End;
- TargetMemoryStream.Clear;
- If PixelFormat = pf4bit Then
+Begin
+  {$IF DEFINED (ANDROID) || (IOS)}
+  Mybmp := FMX.Graphics.TBitmap.Create;
+  dc := FMX.Forms.Screen.Forms[0].Handle;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  Mybmp := Vcl.Graphics.TBitmap.Create;
+  dc := GetWindowDC(0);
+  {$ENDIF}
+
+  Try
+    {$IF DEFINED (ANDROID) || (IOS)}
+    R := FMX.Forms.Screen.DesktopRect;
+    {$ENDIF}
+    {$IF DEFINED (MSWINDOWS)}
+    R := Rect(0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+    {$ENDIF}
+
+    Mybmp.Width := R.Right;
+    Mybmp.Height := R.Bottom;
+    {$IF DEFINED (ANDROID) || (IOS)}
+//    BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, dc, 0, 0, SRCCOPY or CAPTUREBLT);
+    {$ENDIF}
+    {$IF DEFINED (MSWINDOWS)}
+    BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, dc, 0, 0, SRCCOPY or CAPTUREBLT);
+    {$ENDIF}
+
+  Finally
+    {$IF DEFINED (ANDROID) || (IOS)}
+    FMX.Forms.Screen.Forms[0].ReleaseCapture;
+    {$ENDIF}
+    {$IF DEFINED (MSWINDOWS)}
+    ReleaseDC(0, dc);
+    {$ENDIF}
+  End;
+  If DrawCur Then
   Begin
-   Mybmp.PixelFormat := pf16bit;
-   MakeGrey(Mybmp);
+    {$IF DEFINED (ANDROID) || (IOS)}
+    DrawPos :=  FMX.Forms.Screen.MousePos;
+    {$ENDIF}
+    {$IF DEFINED (MSWINDOWS)}
+     GetCursorPos(DrawPos);
+     MyCursor := TIcon.Create;
+     GetCursorPos(mp);
+     hld := WindowFromPoint(mp);
+     Threadld := GetWindowThreadProcessId(hld, nil);
+     AttachThreadInput(GetCurrentThreadId, Threadld, True);
+     MyCursor.Handle := Getcursor();
+     AttachThreadInput(GetCurrentThreadId, Threadld, False);
+     GetIconInfo(MyCursor.Handle, pIconInfo);
+     Cursorx := DrawPos.x - round(pIconInfo.xHotspot);
+     Cursory := DrawPos.y - round(pIconInfo.yHotspot);
+     Mybmp.Canvas.Draw(Cursorx, Cursory, MyCursor);
+     DeleteObject(pIconInfo.hbmColor);
+     DeleteObject(pIconInfo.hbmMask);
+     MyCursor.ReleaseHandle;
+     MyCursor.Free;
+    {$ENDIF}
+
+  End;
+  TargetMemoryStream.Clear;
+  {$IF DEFINED (ANDROID) || (IOS)}
+  If PixelFormat = TPixelFormat.RGB Then
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  If PixelFormat = pf4bit Then
+  {$ENDIF}
+  Begin
+    {$IF DEFINED (ANDROID) || (IOS)}
+    Mybmp.PixelFormat := TPixelFormat.RGBA16;
+    {$ENDIF}
+    {$IF DEFINED (MSWINDOWS)}
+    Mybmp.PixelFormat := pf16bit;
+    {$ENDIF}
+
+    MakeGrey(Mybmp);
   End
- Else
+  Else
   Mybmp.PixelFormat := PixelFormat;
- Mybmp.SaveToStream(TargetMemoryStream);
- Mybmp.Free;
+  Mybmp.SaveToStream(TargetMemoryStream);
+  Mybmp.Free;
 End;
 
 Function CompareStreamASM(Const s, d: Pointer; Var c: Pointer) : Integer; Assembler;

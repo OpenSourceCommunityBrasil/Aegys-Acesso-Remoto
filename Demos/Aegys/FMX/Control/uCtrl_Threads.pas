@@ -18,34 +18,73 @@
 interface
 
 uses
-  System.Classes, System.Win.ScktComp, uLocaleFunctions, Vcl.Graphics;
+  System.Classes,
+
+  IdBaseComponent,
+  IdComponent, IdUDPBase, IdUDPClient, IdCustomTCPServer, IdSocksServer
+
+  {$IF DEFINED (ANDROID) || (IOS)}
+  ,Fmx.Graphics
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  ,System.Win.ScktComp
+  ,Vcl.Graphics
+  {$ENDIF}
+
+  ,uLocaleFunctions, FMX.Types
+  ;
 
 type
   TThreadConexaoPrincipal = class(TThread)
+  {$IF DEFINED (ANDROID) || (IOS)}
+    Socket: IdUDPClient;
+    constructor Create(ASocket: IdUDPClient); overload;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
     Socket: TCustomWinSocket;
     constructor Create(ASocket: TCustomWinSocket); overload;
+  {$ENDIF}
+
     procedure Execute; override;
     procedure ThreadTerminate(ASender: TObject);
 
   end;
 
   TThreadConexaoAreaRemota = class(TThread)
+  {$IF DEFINED (ANDROID) || (IOS)}
+    Socket: IdUDPClient;
+    constructor Create(ASocket: IdUDPClient); overload;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
     Socket: TCustomWinSocket;
     constructor Create(ASocket: TCustomWinSocket); overload;
+  {$ENDIF}
     procedure Execute; override;
     procedure ThreadTerminate(ASender: TObject);
   end;
 
   TThreadConexaoTeclado = class(TThread)
+  {$IF DEFINED (ANDROID) || (IOS)}
+    Socket: IdUDPClient;
+    constructor Create(ASocket: IdUDPClient); overload;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
     Socket: TCustomWinSocket;
     constructor Create(ASocket: TCustomWinSocket); overload;
+  {$ENDIF}
     procedure Execute; override;
     procedure ThreadTerminate(ASender: TObject);
   end;
 
   TThreadConexaoArquivos = class(TThread)
+  {$IF DEFINED (ANDROID) || (IOS)}
+    Socket: IdUDPClient;
+    constructor Create(ASocket: IdUDPClient); overload;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
     Socket: TCustomWinSocket;
     constructor Create(ASocket: TCustomWinSocket); overload;
+  {$ENDIF}
     procedure Execute; override;
     procedure ThreadTerminate(ASender: TObject);
   end;
@@ -54,14 +93,30 @@ implementation
 
 { TConexaoPrincipal }
 
-uses uFormArquivos, Winapi.Windows, uFormChat, uFormConexao, uFormTelaRemota,
+uses uFormArquivos,  uFormChat, uFormConexao, uFormTelaRemota,
   FMX.Forms,
-  FMX.ListView.Types, System.SysUtils, uLibClass, uFormSenha, FMX.Platform.Win,
+  FMX.ListView.Types, System.SysUtils, uLibClass, uFormSenha,
   uSendKeyClass,
-  System.Rtti, FMX.Platform, FMX.Surfaces, StreamManager, FMX.Graphics,
-  uConstants;
+  System.Rtti, FMX.Platform, FMX.Surfaces, StreamManager,
+  uConstants
 
+  {$IF DEFINED (ANDROID) || (IOS)}
+
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  ,Winapi.Windows,
+    FMX.Platform.Win
+  {$ENDIF}
+  ;
+
+
+
+{$IF DEFINED (ANDROID) || (IOS)}
+constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
+{$ENDIF}
+{$IF DEFINED (MSWINDOWS)}
 constructor TThreadConexaoPrincipal.Create(ASocket: TCustomWinSocket);
+{$ENDIF}
 begin
   inherited Create(True);
   Socket := ASocket;
@@ -82,7 +137,13 @@ var
   FoldersAndFiles: TStringList;
   L: TListItem;
   FileToUpload: TFileStream;
+
+  {$IF DEFINED (ANDROID) || (IOS)}
+
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
   hDesktop: HDESK;
+  {$ENDIF}
   Svc: IFMXClipboardService;
   Locale: TLocale;
 
@@ -92,8 +153,13 @@ begin
 
   FoldersAndFiles := nil;
   FileToUpload := nil;
-
+  {$IF DEFINED (ANDROID) || (IOS)}
   while (Socket.Connected) and (not Terminated) do
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  while (Socket.Connected) and (not Terminated) do
+  {$ENDIF}
+
   begin
     Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
 
@@ -572,8 +638,12 @@ begin
 end;
 
 { TConexaoAreaRemota }
-
+{$IF DEFINED (ANDROID) || (IOS)}
+constructor TThreadConexaoAreaRemota.Create(ASocket: IdUDPClient);
+{$ENDIF}
+{$IF DEFINED (MSWINDOWS)}
 constructor TThreadConexaoAreaRemota.Create(ASocket: TCustomWinSocket);
+{$ENDIF}
 begin
   inherited Create(True);
   Socket := ASocket;
@@ -584,7 +654,13 @@ end;
 
 procedure TThreadConexaoAreaRemota.Execute;
 var
+  {$IF DEFINED (ANDROID) || (IOS)}
   PixelFormat   : TPixelFormat;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+  PixelFormat   : Vcl.Graphics.TPixelFormat;
+  {$ENDIF}
+
   Position      : Integer;
   xValue,
   Buffer,
@@ -628,16 +704,29 @@ begin
       Position := Pos('<|GETFULLSCREENSHOT|>', Buffer);
       if Position > 0 then
       begin
-       PixelFormat := TPixelFormat(0);
+      {$IF DEFINED (ANDROID) || (IOS)}
+      PixelFormat   := TPixelFormat(0);
+      {$ENDIF}
+      {$IF DEFINED (MSWINDOWS)}
+      PixelFormat   := Vcl.Graphics.TPixelFormat(0);
+      {$ENDIF}
        xValue := Buffer;
        If Pos('<|BESTQ|>', xValue) > 0 Then
         Begin
          xValue := Copy(xValue, Pos('<|BESTQ|>', xValue) + 9, 1);
          Case StrToInt(xValue) Of
+          {$IF DEFINED (ANDROID) || (IOS)}
+          0 : PixelFormat := TPixelFormat.RGB;
+          1 : PixelFormat := TPixelFormat.RGBA16;
+          2 : PixelFormat := TPixelFormat.RGBA32F;
+          3 : PixelFormat := TPixelFormat.None;
+          {$ENDIF}
+          {$IF DEFINED (MSWINDOWS)}
           0 : PixelFormat := pf4bit;
           1 : PixelFormat := pf8bit;
           2 : PixelFormat := pf15bit;
           3 : PixelFormat := pfDevice;
+          {$ENDIF}
          End;
         End;
         Delete(Buffer, 1, Position + 20);
@@ -655,7 +744,13 @@ begin
 //        Synchronize(
 //          procedure
 //          begin
+        {$IF DEFINED (ANDROID) || (IOS)}
+
+        {$ENDIF}
+        {$IF DEFINED (MSWINDOWS)}
         GetScreenToMemoryStream(Conexao.MostrarMouse, TMemoryStream(MyFirstBmp), PixelFormat);
+        {$ENDIF}
+
 //          end);
 //
         MyFirstBmp.Position := 0;
@@ -834,8 +929,12 @@ begin
 end;
 
 { TConexaoTeclado }
-
+{$IF DEFINED (ANDROID) || (IOS)}
+constructor TThreadConexaoTeclado.Create(ASocket: IdUDPClient);
+{$ENDIF}
+{$IF DEFINED (MSWINDOWS)}
 constructor TThreadConexaoTeclado.Create(ASocket: TCustomWinSocket);
+{$ENDIF}
 begin
   inherited Create(True);
   Socket := ASocket;
@@ -929,7 +1028,12 @@ end;
 
 { TConexaoArquivos }
 
+{$IF DEFINED (ANDROID) || (IOS)}
+constructor TThreadConexaoArquivos.Create(ASocket: IdUDPClient);
+{$ENDIF}
+{$IF DEFINED (MSWINDOWS)}
 constructor TThreadConexaoArquivos.Create(ASocket: TCustomWinSocket);
+{$ENDIF}
 begin
   inherited Create(True);
   Socket := ASocket;
@@ -1033,7 +1137,7 @@ begin
         FreeAndNil(FileStream);
 
         if (FileExists(FormArquivos.DirectoryToSaveFile)) then
-          DeleteFile(FormArquivos.DirectoryToSaveFile);
+          DeleteFile(PWideChar(FormArquivos.DirectoryToSaveFile));
 
         RenameFile(FormArquivos.DirectoryToSaveFile + '.tmp',
           FormArquivos.DirectoryToSaveFile);
