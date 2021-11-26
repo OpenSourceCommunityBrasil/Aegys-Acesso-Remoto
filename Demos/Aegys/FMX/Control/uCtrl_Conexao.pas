@@ -19,7 +19,7 @@ interface
 
 uses
   System.Classes, System.Threading, uCtrl_Threads, System.Win.ScktComp,
-  uConstants, uLocaleFunctions, Winapi.Windows, UFuncoes;
+  uConstants, uFunctions, Winapi.Windows;
 
 type
   TConexao = class
@@ -49,6 +49,7 @@ type
       ErrorEvent: TErrorEvent; var ErrorCode: Integer);
   private
     Locale: TLocale;
+    CFG: TCFGINI;
     FAcessando: Boolean;
     FID: string;
     FIntervalo: Integer;
@@ -136,6 +137,7 @@ var
   iPort: Integer;
 begin
   Locale := TLocale.Create;
+  CFG := TCFGINI.Create;
   if (ParamStr(1) <> '') then
     xHost := ParamStr(1)
   else
@@ -237,6 +239,7 @@ begin
   if Assigned(FThreadArquivos) then
     LimparThread(ttArquivos);
   Locale.DisposeOf;
+  CFG.DisposeOf;
   inherited;
 end;
 
@@ -510,18 +513,16 @@ End;
 procedure TConexao.SocketPrincipalConnect(Sender: TObject;
   Socket: TCustomWinSocket);
 Var
- vHD,
- vMAC,
- vSenha : String;
+  vHD, vMAC, vSenha: String;
 begin
   FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Connected'));
   Intervalo := 0;
   FormConexao.tmrIntervalo.Enabled := True;
   vMAC := MacAddress;
-  vHD  := SerialNumHardDisk(SystemDrive);
-  vSenha := lercfg('cfg','ini','CFG','pass',false);
-  Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' + vHD + '<|>'+'<|SENHADEFINIDA|>'+
-  vSenha+'<|>');
+  vHD := SerialNumHardDisk(SystemDrive);
+  vSenha := Cfg.LerCfg('cfg', 'ini', 'CFG', 'pass', false);
+  Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' + vHD +
+    '<|>' + '<|SENHADEFINIDA|>' + vSenha + '<|>');
   CriarThread(ttPrincipal, Socket);
 end;
 

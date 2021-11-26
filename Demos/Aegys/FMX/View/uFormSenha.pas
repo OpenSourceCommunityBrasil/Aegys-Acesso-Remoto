@@ -22,7 +22,7 @@ uses
   System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Edit,
   FMX.Objects, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Ani, FMX.Layouts,
-  System.Actions, FMX.ActnList, uLocaleFunctions;
+  System.Actions, FMX.ActnList, uFunctions;
 
 type
   TFormSenha = class(TForm)

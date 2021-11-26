@@ -23,7 +23,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, System.Actions,
   FMX.ActnList, Winapi.Messages, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo,
-  uLocaleFunctions;
+  uFunctions;
 
 type
   TFormTelaRemota = class(TForm)

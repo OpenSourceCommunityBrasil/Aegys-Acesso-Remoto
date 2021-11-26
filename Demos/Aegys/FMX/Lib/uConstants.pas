@@ -1,11 +1,11 @@
 ﻿unit uConstants;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -19,21 +19,27 @@ interface
 
 type
   IDThreadType = (ttPrincipal, ttAreaRemota, ttTeclado, ttArquivos);
+  TComboTypes = (tcbQuality, tcbLanguage);
 
 const
   PORTA = 3898;
   FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '201.73.143.69';//Svr: Razios '201.4.250.4' //Svr:Embratel '201.73.143.69';
+  SERVIDOR = '201.4.250.4';
+  // Svr: Razios '201.4.250.4' //Svr:Embratel '201.73.143.69';
   INTERVALOCONEXAO = 60;
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
   PRIMARY_COLOR = $FF0070BA;
 
   // Locale consts
-  APP = 'APPLICATION';
+  MAIN = 'SYSTEMINFO';
   MSGS = 'MESSAGES';
   FRMS = 'FORMS';
   DLGS = 'DIALOGS';
   CHAT = 'CHAT';
+  CBQUAL = 'CBQUALITY';
+  CBLANG = 'CBLANGUAGE';
+
+  CBLANGUAGEKEYS = '';
 
 implementation
 

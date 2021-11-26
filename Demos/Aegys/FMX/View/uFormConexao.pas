@@ -24,7 +24,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
   FMX.Ani, FMX.TabControl, FMX.ListBox,
-  uCtrl_Threads, uCtrl_Conexao, uLocaleFunctions, UFuncoes
+  uCtrl_Threads, uCtrl_Conexao, uFunctions
 
     ;
 
@@ -95,6 +95,7 @@ type
   private
     FHash: string;
     Locale: TLocale;
+    CFG: TCFGINI;
     function MascaraID(AText, AMascara: string): string;
     procedure Translate;
     procedure SetColors;
@@ -120,52 +121,54 @@ uses uFormTelaRemota, uFormArquivos, uFormChat, FMX.Clipboard,
 
 Procedure TFormConexao.LimparConexao;
 Begin
- Conexao.ResolucaoLargura                 := 986;
- Conexao.ResolucaoAltura                  := 600;
- FormTelaRemota.tCapturarComandos.Enabled := True;
- FormTelaRemota.tCapturarComandos.Enabled := False;
- // FormTelaRemota.imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
- // FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
- FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign(FormTelaRemota.imgTelaInicial.Bitmap);
- FormArquivos.btnDownload.Enabled         := True;
- FormArquivos.btnUpload.Enabled           := True;
- FormArquivos.pgbDownload.Value           := 0;
- FormArquivos.pgbUpload.Value             := 0;
- FormArquivos.LDownloadSize.Text          := Locale.GetLocale(APP, 'Size');
- FormArquivos.LUploadSize.Text            := Locale.GetLocale(APP, 'Size');
- FormArquivos.EFolder.Text                := 'C:\';
- FormArquivos.lstArquivos.Items.Clear;
- If (FormArquivos.Visible) Then FormArquivos.Close;
- FormChat.Width                           := 230;
- FormChat.Height                          := 340;
- FormChat.Left                            := Trunc(Screen.WorkAreaWidth - FormChat.Width);
- FormChat.Top                             := Trunc(Screen.WorkAreaHeight - FormChat.Height);
- FormChat.lstMensagens.Clear;
- If (FormChat.Visible)     Then FormChat.Close;
+  Conexao.ResolucaoLargura := 986;
+  Conexao.ResolucaoAltura := 600;
+  FormTelaRemota.tCapturarComandos.Enabled := True;
+  FormTelaRemota.tCapturarComandos.Enabled := False;
+  // FormTelaRemota.imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
+  // FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+  FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign
+    (FormTelaRemota.imgTelaInicial.Bitmap);
+  FormArquivos.btnDownload.Enabled := True;
+  FormArquivos.btnUpload.Enabled := True;
+  FormArquivos.pgbDownload.Value := 0;
+  FormArquivos.pgbUpload.Value := 0;
+  FormArquivos.LDownloadSize.Text := Locale.GetLocale(MAIN, 'Size');
+  FormArquivos.LUploadSize.Text := Locale.GetLocale(MAIN, 'Size');
+  FormArquivos.EFolder.Text := 'C:\';
+  FormArquivos.lstArquivos.Items.Clear;
+  If (FormArquivos.Visible) Then
+    FormArquivos.Close;
+  FormChat.Width := 230;
+  FormChat.Height := 340;
+  FormChat.Left := Trunc(Screen.WorkAreaWidth - FormChat.Width);
+  FormChat.Top := Trunc(Screen.WorkAreaHeight - FormChat.Height);
+  FormChat.lstMensagens.Clear;
+  If (FormChat.Visible) Then
+    FormChat.Close;
 End;
 
 Procedure TFormConexao.tmrClipboardTimer(Sender: TObject);
 Var
- Svc    : IFMXClipboardService;
- vlClip : TValue;
+  Svc: IFMXClipboardService;
+  vlClip: TValue;
 Begin
- Try
-  tmrClipboard.Enabled := Conexao.Visualizador;
-  If TPlatformServices.Current.SupportsPlatformService
-    (IFMXClipboardService, Svc) then
-   Begin
-    vlClip := Svc.GetClipboard;
-    If Not(vlClip.IsEmpty)          And
-          (vlClip.IsType<String>)   And
-          (Conexao.OldClipboardText <>
-           vlClip.ToString)         Then
-     Begin
-      Conexao.OldClipboardText := vlClip.ToString;
-      Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CLIPBOARD|>' + Conexao.OldClipboardText + '<|END|>');
-     End;
-   End;
- Except
- End;
+  Try
+    tmrClipboard.Enabled := Conexao.Visualizador;
+    If TPlatformServices.Current.SupportsPlatformService
+      (IFMXClipboardService, Svc) then
+    Begin
+      vlClip := Svc.GetClipboard;
+      If Not(vlClip.IsEmpty) And (vlClip.IsType<String>) And
+        (Conexao.OldClipboardText <> vlClip.ToString) Then
+      Begin
+        Conexao.OldClipboardText := vlClip.ToString;
+        Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CLIPBOARD|>' +
+          Conexao.OldClipboardText + '<|END|>');
+      End;
+    End;
+  Except
+  End;
 end;
 
 procedure TFormConexao.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -179,6 +182,7 @@ procedure TFormConexao.FormCreate(Sender: TObject);
 begin
   // inicializando os objetos
   Locale := TLocale.Create;
+  CFG := TCFGINI.Create;
   Conexao := TConexao.Create;
   // --------------------------
   SetOffline;
@@ -264,10 +268,10 @@ end;
 
 procedure TFormConexao.actCopyPasswordExecute(Sender: TObject);
 begin
- if lercfg('cfg', 'ini', 'CFG', 'pass', false) = '' then
-  TRDLib.CopiarTexto(LPassword.Text)
+  if CFG.LerCfg('cfg', 'ini', 'CFG', 'pass', False) = '' then
+    TRDLib.CopiarTexto(LPassword.Text)
   else
-  TRDLib.CopiarTexto(lercfg('cfg', 'ini', 'CFG', 'pass', false));
+    TRDLib.CopiarTexto(CFG.LerCfg('cfg', 'ini', 'CFG', 'pass', False));
 end;
 
 procedure TFormConexao.tmrReconnectTimer(Sender: TObject);
@@ -279,13 +283,14 @@ procedure TFormConexao.Translate;
 begin
   self.Caption := Locale.GetLocale(FRMS, 'MainTitle');
   LSubTitle.Text := Locale.GetLocale(FRMS, 'MainSubTitle');
-  LVersion.Text := Format(Locale.GetLocale(APP, 'Version'),
+  LVersion.Text := Format(Locale.GetLocale(MAIN, 'Version'),
     [TRDLib.GetAppVersionStr]);
   LlyMachineIDCaption.Text := Locale.GetLocale(FRMS, 'MainMachineID');
   LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'MainPassword');
   LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
   LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
   LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
+  Locale.GetLocale(cbQualidade, tcbQuality);
   Conexao.ReconectarSocket(True);
 end;
 
@@ -309,8 +314,10 @@ end;
 procedure TFormConexao.SetOnline;
 begin
   LMachineID.Text := Conexao.ID;
-  if lercfg('cfg', 'ini', 'CFG', 'pass', false) = '' then
-  LPassword.Text := Conexao.Senha else LPassword.Text := '*****';
+  if CFG.LerCfg('cfg', 'ini', 'CFG', 'pass', False) = '' then
+    LPassword.Text := Conexao.Senha
+  else
+    LPassword.Text := '*****';
   btnConectar.Enabled := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
 end;

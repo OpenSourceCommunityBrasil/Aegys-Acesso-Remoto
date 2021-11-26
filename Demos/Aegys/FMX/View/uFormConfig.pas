@@ -3,13 +3,14 @@
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes,
-  System.Variants, System.Classes,
+  System.SysUtils, System.Types, System.UITypes, System.Variants,
+  System.Classes, System.Actions, System.ImageList,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ListBox,
   FMX.Objects, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
-  FMX.Ani, uCtrl_Conexao, UFuncoes,
-  uLocaleFunctions, uConstants, System.Actions, FMX.ActnList, System.ImageList,
-  FMX.ImgList;
+  FMX.Ani, FMX.ActnList, FMX.ImgList,
+  uCtrl_Conexao, uFunctions, uConstants
+
+    ;
 
 type
   TCallBack = procedure of object;
@@ -49,8 +50,8 @@ type
   private
     { Private declarations }
     Locale: TLocale;
+    Cfg: TCFGINI;
     FCallBack: TCallBack;
-    procedure FillComboLanguages(aCombo: TComboBox);
     procedure SetColors;
   public
     { Public declarations }
@@ -66,17 +67,6 @@ implementation
 
 {$R *.fmx}
 
-procedure TfConfig.FillComboLanguages(aCombo: TComboBox);
-begin
-  // aCombo.Items.Clear;
-  // aCombo.Items.Add('PT_BR');
-  // aCombo.Items.Add('EN_US');
-  // aCombo.Items.Add('ES_ES');
-  // aCombo.Items.Add('IT_IT');
-  // aCombo.Items.Add('CN_TR');
-  // temporário, forma mais elegante em breve
-end;
-
 procedure TfConfig.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Action := TCloseAction.caFree;
@@ -84,9 +74,9 @@ end;
 
 procedure TfConfig.FormCreate(Sender: TObject);
 begin
-  EPassword.Text := lercfg('cfg', 'ini', 'CFG', 'pass', false);
   Locale := TLocale.Create;
-  FillComboLanguages(cbLanguages);
+  Cfg := TCFGINI.Create;
+  EPassword.Text := Cfg.LerCfg('cfg', 'ini', 'CFG', 'pass', false);
   Translate;
 end;
 
@@ -107,7 +97,7 @@ begin
     Translate;
   end;
 
-  salvarcfg('cfg', 'ini', 'CFG', 'pass', EPassword.Text, false);
+  Cfg.SalvarCfg('cfg', 'ini', 'CFG', 'pass', EPassword.Text, false);
 
   if Assigned(FCallBack) then
     FCallBack;
@@ -142,6 +132,7 @@ begin
   LApplyButton.Text := Locale.GetLocale(FRMS, 'ConfigApplyButton');
   LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'ConfigPassword');
   EPassword.TextPrompt := Locale.GetLocale(FRMS, 'ConfigPassword');
+  Locale.GetLocale(cbLanguages, tcbLanguage);
 end;
 
 end.

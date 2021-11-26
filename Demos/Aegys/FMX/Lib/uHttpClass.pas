@@ -18,7 +18,7 @@
 interface
 
 uses
-  System.Net.URLClient, System.Net.HTTPClient, uLocaleFunctions;
+  System.Net.URLClient, System.Net.HTTPClient, uFunctions;
 
 type
   TRDHttpProgress = procedure(AStartPosition, AEndPosition, AReadCount: Int64)

@@ -22,7 +22,7 @@ uses
   System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, FMX.Objects,
-  FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uLocaleFunctions,
+  FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uFunctions,
   System.Actions, FMX.ActnList, MMSystem, uConstants;
 
 type
@@ -114,20 +114,17 @@ var
   resource: TResourceStream;
 begin
   if not FileExists(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav') then
-  begin
-    resource := TResourceStream.Create(HInstance, 'MESSAGE_BEEP', RT_RCDATA);
     try
-      resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav');
-    finally
-      FreeAndNil(resource);
-    end;
-  end;
-  try
-    if FileExists(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav') then
+      resource := TResourceStream.Create(HInstance, 'MESSAGE_BEEP', RT_RCDATA);
+      try
+        resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav');
+      finally
+        FreeAndNil(resource);
+      end;
       sndPlaySound(pwchar(ExtractFilePath(ParamStr(0)) + '\MessageBeep.wav'),
         SND_ASYNC);
-  except
-  end;
+    except
+    end;
 end;
 
 procedure TFormChat.FormCreate(Sender: TObject);

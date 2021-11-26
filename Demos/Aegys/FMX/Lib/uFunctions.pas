@@ -1,4 +1,4 @@
-﻿unit uLocaleFunctions;
+﻿unit uFunctions;
 
 {
   Project Aegys Remote Support.
@@ -17,15 +17,20 @@
 
 interface
 
-Uses System.SysUtils, System.Types, System.Classes;
+Uses
+  System.SysUtils, System.Types, System.Classes,
+  FMX.ListBox,
+  IniFiles, uConstants;
 
 type
   TLocale = class
   private
+    Locale: TIniFile;
     FLocaleFileName: string;
     procedure SetLocaleFileName(const Value: string);
   public
-    function GetLocale(section, variable: string): string;
+    function GetLocale(section, variable: string): string; overload;
+    procedure GetLocale(aCombo: TComboBox; comboType: TComboTypes); overload;
     function GetLocaleDlg(section, variable: string): PWideChar;
     procedure Initialize;
     constructor Create;
@@ -33,10 +38,17 @@ type
       write SetLocaleFileName;
   end;
 
-implementation
+  TCFGINI = class
+  private
 
-uses
-  IniFiles;
+  public
+    function LerCfg(Arquivo, Ext, Secao, Campo: String;
+      Criptografado: boolean): String;
+    procedure SalvarCfg(Arquivo, Ext, Secao, Campo, Valor: String;
+      Criptografado: boolean);
+  end;
+
+implementation
 
 { TLocale }
 
@@ -51,8 +63,6 @@ begin
 end;
 
 Function TLocale.GetLocale(section, variable: string): string;
-Var
-  Locale: TIniFile;
 Begin
   Locale := TIniFile.Create(FLocaleFileName);
   Try
@@ -62,6 +72,37 @@ Begin
     Locale.DisposeOf;
   End;
 End;
+
+procedure TLocale.GetLocale(aCombo: TComboBox; comboType: TComboTypes);
+var
+  Items: TStringList;
+  currIndex: integer;
+begin
+  Items := TStringList.Create;
+  Locale := TIniFile.Create(FLocaleFileName);
+  currIndex := aCombo.ItemIndex;
+  try
+    case comboType of
+      tcbQuality:
+        Locale.ReadSectionValues(CBQUAL, Items);
+      tcbLanguage:
+        Locale.ReadSectionValues(CBLANG, Items);
+    end;
+
+    aCombo.Items.Clear;
+    for var I := 0 to pred(Items.count) do
+    begin
+      aCombo.ListBox.Items.Add('');
+      aCombo.ListItems[I].ItemData.Detail := Items.KeyNames[I];
+      aCombo.ListItems[I].ItemData.Text := UTF8Decode(Items.ValueFromIndex[I]);
+      aCombo.ListItems[I].ImageIndex := I;
+    end;
+    aCombo.ItemIndex := currIndex;
+  finally
+    Items.DisposeOf;
+    Locale.DisposeOf;
+  end;
+end;
 
 function TLocale.GetLocaleDlg(section, variable: string): PWideChar;
 begin
@@ -100,6 +141,34 @@ end;
 procedure TLocale.SetLocaleFileName(const Value: string);
 begin
   FLocaleFileName := Value;
+end;
+
+{ TCFGINI }
+
+function TCFGINI.LerCfg(Arquivo, Ext, Secao, Campo: String;
+  Criptografado: boolean): String;
+var
+  Ini: TIniFile;
+begin
+  Ini := TIniFile.Create(ExtractFilePath(ParamStr(0)) + Arquivo + '.' + Ext);
+  if Criptografado = true then
+    Result := Ini.ReadString(Secao, Campo, '')
+  else
+    Result := Ini.ReadString(Secao, Campo, '');
+  Ini.Free;
+end;
+
+procedure TCFGINI.SalvarCfg(Arquivo, Ext, Secao, Campo, Valor: String;
+  Criptografado: boolean);
+Var
+  Ini: TIniFile;
+begin
+  Ini := TIniFile.Create(ExtractFilePath(ParamStr(0)) + Arquivo + '.' + Ext);
+  if Criptografado = true then
+    Ini.WriteString(Secao, Campo, Valor)
+  else
+    Ini.WriteString(Secao, Campo, Valor);
+  Ini.Free;
 end;
 
 end.

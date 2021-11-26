@@ -27,7 +27,7 @@ uses
   uFrameMensagemChat in 'View\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
   uConstants in 'Lib\uConstants.pas',
   UFuncoes in 'Lib\UFuncoes.pas',
-  uLocaleFunctions in 'Lib\uLocaleFunctions.pas';
+  uFunctions in 'Lib\uFunctions.pas';
 
 {$R *.res}
 
@@ -102,7 +102,7 @@ begin
     DeleteFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
   end;
 {$ENDIF}
-  Application.Title := Locale.GetLocale(APP, 'Title');
+  Application.Title := Locale.GetLocale(MAIN, 'Title');
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM_Styles, DM_Styles);
   Application.CreateForm(TFormChat, FormChat);

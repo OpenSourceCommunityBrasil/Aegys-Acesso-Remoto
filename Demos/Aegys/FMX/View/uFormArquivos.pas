@@ -24,7 +24,7 @@ uses
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.Objects, FMX.Layouts, FMX.ListView, FMX.StdCtrls, System.Actions,
   FMX.ActnList, FMX.Ani, FMX.Edit, FMX.Controls.Presentation, FMX.ListBox,
-  Winapi.Messages, uLocaleFunctions;
+  Winapi.Messages, uFunctions;
 
 type
   TFormArquivos = class(TForm)
@@ -318,9 +318,9 @@ procedure TFormArquivos.Translate;
 begin
   LFolder.Text := Locale.GetLocale(FRMS, 'FileFolder');
   LDownloadProgress.Text := Locale.GetLocale(FRMS, 'FileDownloadProgress');
-  LDownloadSize.Text := Format(Locale.GetLocale(APP, 'Size'), ['0 B', '0 B']);
+  LDownloadSize.Text := Format(Locale.GetLocale(MAIN, 'Size'), ['0 B', '0 B']);
   LUploadProgress.Text := Locale.GetLocale(FRMS, 'FileUploadProgress');
-  LUploadSize.Text := Format(Locale.GetLocale(APP, 'Size'), ['0 B', '0 B']);
+  LUploadSize.Text := Format(Locale.GetLocale(MAIN, 'Size'), ['0 B', '0 B']);
   btnDownload.Text := Locale.GetLocale(FRMS, 'FileDownloadButton');
   btnUpload.Text := Locale.GetLocale(FRMS, 'FileUploadButton');
 end;
