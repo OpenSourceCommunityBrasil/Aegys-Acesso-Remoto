@@ -69,6 +69,7 @@ type
     FThreadPrincipal: TThreadConexaoPrincipal;
     FThreadTeclado: TThreadConexaoTeclado;
     FVisualizador: Boolean;
+    FBlockInputs: boolean;
     procedure SetAcessando(const Value: Boolean);
     procedure SetID(const Value: string);
     procedure SetIntervalo(const Value: Integer);
@@ -88,6 +89,7 @@ type
     procedure SetThreadPrincipal(const Value: TThreadConexaoPrincipal);
     procedure SetThreadTeclado(const Value: TThreadConexaoTeclado);
     procedure SetVisualizador(const Value: Boolean);
+    procedure SetBlockInputs(const Value: boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -126,6 +128,7 @@ type
     property ThreadTeclado: TThreadConexaoTeclado read FThreadTeclado
       write SetThreadTeclado;
     property Visualizador: Boolean read FVisualizador write SetVisualizador;
+    property BlockInputs:boolean read FBlockInputs write SetBlockInputs;
   end;
 
 implementation
@@ -333,6 +336,18 @@ end;
 procedure TConexao.SetAcessando(const Value: Boolean);
 begin
   FAcessando := Value;
+end;
+
+procedure TConexao.SetBlockInputs(const Value: boolean);
+var
+ xSend :String;
+begin
+  FBlockInputs := Value;
+  if Conexao.Visualizador then
+  begin
+    xSend := IfThen(Value, '<|BLOCKINPUT|>', '<|UNBLOCKINPUT|>');
+    SocketPrincipal.Socket.SendText('<|REDIRECT|>' + xSend);
+  end;
 end;
 
 procedure TConexao.SetID(const Value: string);

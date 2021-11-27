@@ -23,7 +23,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, System.Actions,
   FMX.ActnList, Winapi.Messages, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo,
-  uFunctions;
+  uFunctions,System.UIConsts,System.StrUtils;
 
 type
   TFormTelaRemota = class(TForm)
@@ -46,6 +46,10 @@ type
     PROC_MOUSE: TAction;
     pControles: TPanel;
     imgTelaRemota: TRectangle;
+    sbBlockInput: TSpeedButton;
+    Path4: TPath;
+    lblockinput: TLabel;
+    PROC_BLOCKINPUT: TAction;
     procedure PROC_ARQUIVOSExecute(Sender: TObject);
     procedure PROC_CHATExecute(Sender: TObject);
     procedure imgTelaRemotaMouseMove(Sender: TObject; Shift: TShiftState;
@@ -66,6 +70,7 @@ type
       Shift: TShiftState);
     procedure PROC_MOUSEExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure PROC_BLOCKINPUTExecute(Sender: TObject);
   private
     Locale: TLocale;
     procedure RetornaMargem;
@@ -423,11 +428,33 @@ begin
   tCapturarComandos.Enabled := True;
   PROC_REDIMENSIONARExecute(Sender);
   btnMouse.StaysPressed := Conexao.MostrarMouse;
+
+  Path4.Fill.Color:=StringToAlphaColor('#FFFF1E1E');
+  Conexao.BlockInputs:=false;
+  lblockinput.Text    := 'BLOQUEAR CONTROLES';
 end;
 
 procedure TFormTelaRemota.PROC_ARQUIVOSExecute(Sender: TObject);
 begin
   FormArquivos.Show;
+end;
+
+procedure TFormTelaRemota.PROC_BLOCKINPUTExecute(Sender: TObject);
+begin
+  if Path4.Fill.Color=StringToAlphaColor('#FFFF1E1E') then
+  begin
+    //block
+    Path4.Fill.Color:=StringToAlphaColor('#FF166600');
+    Conexao.BlockInputs := true;
+    lblockinput.Text    := 'DESBLOQUEAR CONTROLES';
+  end else
+  begin
+    Path4.Fill.Color:=StringToAlphaColor('#FFFF1E1E');
+    //unblock
+    Conexao.BlockInputs:=false;
+    lblockinput.Text    := 'BLOQUEAR CONTROLES';
+  end;
+
 end;
 
 procedure TFormTelaRemota.PROC_CHATExecute(Sender: TObject);
@@ -491,9 +518,11 @@ procedure TFormTelaRemota.imgTelaRemotaMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
+  Sblockinput:String;
 begin
   if not Active then
     Exit;
+  Sblockinput:= IfThen(Conexao.BlockInputs,'<|BLOCKINPUT|>','') ;
 
   iX := Trunc(X * Conexao.ResolucaoLargura) div Trunc(imgTelaRemota.Width);
   iY := Trunc(Y * Conexao.ResolucaoAltura) div Trunc(imgTelaRemota.Height);
@@ -502,18 +531,18 @@ begin
   begin
     Conexao.SocketPrincipal.Socket.SendText
       ('<|REDIRECT|><|SETMOUSELEFTCLICKDOWN|>' + IntToStr(iX) + '<|>' +
-      IntToStr(iY) + '<|END|>');
+      IntToStr(iY) + '<|END|>'+Sblockinput);
   end
   else if (Button = TMouseButton.mbRight) then
   begin
     Conexao.SocketPrincipal.Socket.SendText
       ('<|REDIRECT|><|SETMOUSERIGHTCLICKDOWN|>' + IntToStr(iX) + '<|>' +
-      IntToStr(iY) + '<|END|>');
+      IntToStr(iY) + '<|END|>'+Sblockinput);
   end
   else
   begin
     Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEDOWN|>'
-      + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+      + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>'+Sblockinput);
   end;
 end;
 
@@ -521,24 +550,27 @@ procedure TFormTelaRemota.imgTelaRemotaMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
+   Sblockinput:String;
 begin
   if not Active then
     Exit;
 
   iX := Trunc(X * Conexao.ResolucaoLargura) div Trunc(imgTelaRemota.Width);
   iY := Trunc(Y * Conexao.ResolucaoAltura) div Trunc(imgTelaRemota.Height);
-
+  Sblockinput:= IfThen(Conexao.BlockInputs,'<|BLOCKINPUT|>','') ;
   Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEPOS|>' +
-    IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+    IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>'+Sblockinput);
 end;
 
 procedure TFormTelaRemota.imgTelaRemotaMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
+  Sblockinput:string;
 begin
   if not Active then
     Exit;
+  Sblockinput:= IfThen(Conexao.BlockInputs,'<|BLOCKINPUT|>','') ;
 
   iX := Trunc(X * Conexao.ResolucaoLargura) div Trunc(imgTelaRemota.Width);
   iY := Trunc(Y * Conexao.ResolucaoAltura) div Trunc(imgTelaRemota.Height);
@@ -546,24 +578,28 @@ begin
   begin
     Conexao.SocketPrincipal.Socket.SendText
       ('<|REDIRECT|><|SETMOUSELEFTCLICKUP|>' + IntToStr(iX) + '<|>' +
-      IntToStr(iY) + '<|END|>');
+      IntToStr(iY) + '<|END|>'+Sblockinput);
   end
   else if (Button = TMouseButton.mbRight) then
   begin
     Conexao.SocketPrincipal.Socket.SendText
       ('<|REDIRECT|><|SETMOUSERIGHTCLICKUP|>' + IntToStr(iX) + '<|>' +
-      IntToStr(iY) + '<|END|>');
+      IntToStr(iY) + '<|END|>'+Sblockinput);
   end
   else
   begin
     Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEUP|>' +
-      IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>');
+      IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>'+Sblockinput);
   end;
 end;
 
+
 procedure TFormTelaRemota.SendSocketKeys(AKeys: string);
+var
+  Sblockinput:string;
 begin
-  Conexao.SocketTeclado.Socket.SendText(AKeys);
+  Sblockinput:= IfThen(Conexao.BlockInputs,'<|BLOCKINPUT|>','') ;
+  Conexao.SocketTeclado.Socket.SendText(AKeys+Sblockinput);
 end;
 
 procedure TFormTelaRemota.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);

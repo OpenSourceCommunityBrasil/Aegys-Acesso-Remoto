@@ -139,7 +139,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 {$ENDIF}
     Svc: IFMXClipboardService;
     Locale: TLocale;
-
+    BInputsBlock:Boolean;
   begin
     inherited;
     Locale := TLocale.Create;
@@ -321,7 +321,22 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
         if Buffer.Contains('<|HIDEMOUSE|>') then
           Conexao.MostrarMouse := False;
+        if Buffer.Contains('<|BLOCKINPUT|>') then
+        Synchronize(
+            procedure
+            begin
+               BInputsBlock :=true;
+               Blockinput(true);
+            end);
 
+
+        if Buffer.Contains('<|UNBLOCKINPUT|>') then
+        Synchronize(
+            procedure
+            begin
+               BInputsBlock :=false;
+               Blockinput(false);
+            end);
         // Desktop Remote
         Position := Pos('<|RESOLUTION|>', Buffer);
         if Position > 0 then
@@ -345,8 +360,20 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Position := Pos('<|>', BufferTemp);
           MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY :=
-            StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
+          MousePosY := StrToInt(Copy(BufferTemp, 1,
+            Pos('<|END|>', BufferTemp) - 1));
+
+          if Buffer.Contains('<|BLOCKINPUT|>') then
+          begin
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+              SetCursorPos(MousePosX, MousePosY);
+              application.ProcessMessages;
+              BlockInput(true);
+            end);
+          end else
           SetCursorPos(MousePosX, MousePosY);
         end;
 
@@ -358,10 +385,24 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Position := Pos('<|>', BufferTemp);
           MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY :=
-            StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
-          SetCursorPos(MousePosX, MousePosY);
-          Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+          MousePosY := StrToInt(Copy(BufferTemp, 1,
+            Pos('<|END|>', BufferTemp) - 1));
+          if Buffer.Contains('<|BLOCKINPUT|>') then
+          begin
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+              SetCursorPos(MousePosX, MousePosY);
+              Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+              application.ProcessMessages;
+              BlockInput(true);
+            end);
+          end else
+          begin
+            SetCursorPos(MousePosX, MousePosY);
+            Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+          end;
         end;
 
         Position := Pos('<|SETMOUSELEFTCLICKUP|>', Buffer);
@@ -372,10 +413,25 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Position := Pos('<|>', BufferTemp);
           MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY :=
-            StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
-          SetCursorPos(MousePosX, MousePosY);
-          Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+          MousePosY := StrToInt(Copy(BufferTemp, 1,
+            Pos('<|END|>', BufferTemp) - 1));
+          if Buffer.Contains('<|BLOCKINPUT|>') then
+          begin
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+              SetCursorPos(MousePosX, MousePosY);
+              Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+              application.ProcessMessages;
+              blockinput(true);
+            end);
+          end else
+          begin
+            SetCursorPos(MousePosX, MousePosY);
+            Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+          end;
+
         end;
 
         Position := Pos('<|SETMOUSERIGHTCLICKDOWN|>', Buffer);
@@ -386,25 +442,55 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Position := Pos('<|>', BufferTemp);
           MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY :=
-            StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
-          SetCursorPos(MousePosX, MousePosY);
-          Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0,
-            0, 0, 0);
+          MousePosY := StrToInt(Copy(BufferTemp, 1,
+            Pos('<|END|>', BufferTemp) - 1));
+          if Buffer.Contains('<|BLOCKINPUT|>') then
+          begin
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+              SetCursorPos(MousePosX, MousePosY);
+              Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+              application.ProcessMessages;
+              Blockinput(true);
+            end);
+          end else
+          begin
+            SetCursorPos(MousePosX, MousePosY);
+            Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+          end;
+
         end;
 
         Position := Pos('<|SETMOUSERIGHTCLICKUP|>', Buffer);
         if Position > 0 then
         begin
+
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 23);
           Position := Pos('<|>', BufferTemp);
           MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY :=
-            StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
-          SetCursorPos(MousePosX, MousePosY);
-          Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+          MousePosY := StrToInt(Copy(BufferTemp, 1,
+            Pos('<|END|>', BufferTemp) - 1));
+          if Buffer.Contains('<|BLOCKINPUT|>') then
+          begin
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+              SetCursorPos(MousePosX, MousePosY);
+              Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+              application.ProcessMessages;
+              BlockInput(true);
+            end);
+          end else
+          begin
+            SetCursorPos(MousePosX, MousePosY);
+            Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+          end;
+
         end;
 
         Position := Pos('<|SETMOUSEMIDDLEDOWN|>', Buffer);
@@ -415,11 +501,25 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Position := Pos('<|>', BufferTemp);
           MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY :=
-            StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
-          SetCursorPos(MousePosX, MousePosY);
-          Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN,
-            0, 0, 0, 0);
+          MousePosY := StrToInt(Copy(BufferTemp, 1,
+            Pos('<|END|>', BufferTemp) - 1));
+          if Buffer.Contains('<|BLOCKINPUT|>') then
+          begin
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+              SetCursorPos(MousePosX, MousePosY);
+              Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+              application.ProcessMessages;
+              BlockInput(true);
+            end);
+          end else
+          begin
+            SetCursorPos(MousePosX, MousePosY);
+            Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+          end;
+
         end;
 
         Position := Pos('<|SETMOUSEMIDDLEUP|>', Buffer);
@@ -430,10 +530,25 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Position := Pos('<|>', BufferTemp);
           MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY :=
-            StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
-          SetCursorPos(MousePosX, MousePosY);
-          Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+          MousePosY := StrToInt(Copy(BufferTemp, 1,
+            Pos('<|END|>', BufferTemp) - 1));
+          if Buffer.Contains('<|BLOCKINPUT|>') then
+          begin
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+              SetCursorPos(MousePosX, MousePosY);
+              Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+              application.ProcessMessages;
+              BlockInput(true);
+            end);
+          end else
+          begin
+            SetCursorPos(MousePosX, MousePosY);
+            Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+          end;
+
         end;
 
         Position := Pos('<|WHEELMOUSE|>', Buffer);
@@ -442,8 +557,24 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 13);
           BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
-          Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(BufferTemp)), 0);
+          if Buffer.Contains('<|BLOCKINPUT|>') then
+          begin
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+              Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(BufferTemp)), 0);
+              application.ProcessMessages;
+              BlockInput(true);
+            end);
+          end else
+          begin
+            Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(BufferTemp)), 0);
+          end;
+
+
         end;
+
 
         // Clipboard Remote
         Position := Pos('<|CLIPBOARD|>', Buffer);
@@ -452,10 +583,30 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 12);
           BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
+
           if TPlatformServices.Current.SupportsPlatformService
             (IFMXClipboardService, Svc) then
+          begin
+            if Buffer.Contains('<|BLOCKINPUT|>') then
+            begin
+              Synchronize(
+              procedure
+              begin
+                BlockInput(false);
+              end);
+            end;
             Svc.SetClipboard(BufferTemp);
+            if Buffer.Contains('<|BLOCKINPUT|>') then
+            begin
+              Synchronize(
+              procedure
+              begin
+                BlockInput(true);
+              end);
+            end;
+          end;
         end;
+
 
         // Chat
         Position := Pos('<|CHAT|>', Buffer);
@@ -952,6 +1103,8 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
       var
         Buffer: string;
         hDesktop: HDESK;
+        Bblockinpunt:boolean;
+        InicioPalavra,tamanhopalavra:integer;
       begin
         while True do
         begin
@@ -973,7 +1126,20 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             SetThreadDesktop(hDesktop);
             CloseHandle(hDesktop);
           end;
-
+           //BLOCKEDINPUTS
+          Bblockinpunt := Buffer.Contains('<|BLOCKINPUT|>');
+          if Bblockinpunt then
+          begin
+            InicioPalavra := pos('<|BLOCKINPUT|>',Buffer);
+            TamanhoPalavra := length(Buffer);
+            if InicioPalavra > 0 then
+            Delete(Buffer,InicioPalavra,TamanhoPalavra);
+            Synchronize(
+            procedure
+            begin
+              BlockInput(false);
+            end);
+          end;
           // Combo Keys
           if Buffer.Contains('<|ALTDOWN|>') then
           begin
@@ -1023,6 +1189,14 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           end
           else
             SendKeys(PWideChar(Buffer), False);
+
+          //before writer keys if blocked them
+          Synchronize(
+          procedure
+          begin
+            BlockInput(Bblockinpunt);
+          end
+          );
         end;
       end;
 

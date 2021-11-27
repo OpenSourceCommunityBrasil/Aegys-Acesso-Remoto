@@ -76,7 +76,7 @@ End;
 procedure TLocale.GetLocale(aCombo: TComboBox; comboType: TComboTypes);
 var
   Items: TStringList;
-  currIndex: integer;
+  currIndex,i: integer;
 begin
   Items := TStringList.Create;
   Locale := TIniFile.Create(FLocaleFileName);
@@ -90,7 +90,7 @@ begin
     end;
 
     aCombo.Items.Clear;
-    for var I := 0 to pred(Items.count) do
+    for  I := 0 to pred(Items.count) do
     begin
       aCombo.ListBox.Items.Add('');
       aCombo.ListItems[I].ItemData.Detail := Items.KeyNames[I];

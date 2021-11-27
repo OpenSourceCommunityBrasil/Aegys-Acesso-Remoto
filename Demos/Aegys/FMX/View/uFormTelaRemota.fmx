@@ -11879,8 +11879,8 @@ object FormTelaRemota: TFormTelaRemota
     Top = 240
   end
   object pControles: TPanel
-    Position.X = 360.000000000000000000
-    Size.Width = 457.000000000000000000
+    Position.X = 200.000000000000000000
+    Size.Width = 665.000000000000000000
     Size.Height = 41.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 3
@@ -11934,7 +11934,7 @@ object FormTelaRemota: TFormTelaRemota
       Enabled = True
       ImageIndex = -1
       Margins.Right = 10.000000000000000000
-      Position.X = 350.000000000000000000
+      Position.X = 566.000000000000000000
       Size.Width = 102.000000000000000000
       Size.Height = 41.000000000000000000
       Size.PlatformDefault = False
@@ -11980,7 +11980,7 @@ object FormTelaRemota: TFormTelaRemota
       Enabled = True
       ImageIndex = -1
       Margins.Right = 10.000000000000000000
-      Position.X = 187.000000000000000000
+      Position.X = 403.000000000000000000
       Size.Width = 153.000000000000000000
       Size.Height = 41.000000000000000000
       Size.PlatformDefault = False
@@ -12019,6 +12019,51 @@ object FormTelaRemota: TFormTelaRemota
         Text = 'Arquivos'
       end
     end
+    object sbBlockInput: TSpeedButton
+      Action = PROC_BLOCKINPUT
+      Align = Left
+      Enabled = True
+      ImageIndex = -1
+      Margins.Right = 10.000000000000000000
+      Position.X = 187.000000000000000000
+      Size.Width = 206.000000000000000000
+      Size.Height = 41.000000000000000000
+      Size.PlatformDefault = False
+      object Path4: TPath
+        Align = Left
+        Data.Path = {
+          150000000000000000003041C3F5883F020000009A99E14014AEC73F02000000
+          00008040A4709D40020000000000804000001041010000000000304100001041
+          0000000000008040000070410200000000008040A2589B4102000000779DF240
+          0000B84102000000000040410000B84102000000A25883410000B84102000000
+          0000A041A2589B41020000000000A04100007041010000000000A04100003041
+          0100000000008040000030410000000000005041C3F5883F0100000000005041
+          00001041010000000000A04100001041020000000000A041A4709D4002000000
+          1F85874114AEC73F0200000000005041C3F5883F0300000000005041C3F5883F}
+        Fill.Color = xFF166600
+        HitTest = False
+        Margins.Top = 10.000000000000000000
+        Margins.Bottom = 10.000000000000000000
+        Position.Y = 10.000000000000000000
+        Size.Width = 35.000000000000000000
+        Size.Height = 21.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        WrapMode = Fit
+      end
+      object lblockinput: TLabel
+        Align = Client
+        StyledSettings = [Style]
+        Margins.Left = 10.000000000000000000
+        Size.Width = 161.000000000000000000
+        Size.Height = 41.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Quicksand'
+        TextSettings.Font.Size = 18.000000000000000000
+        TextSettings.FontColor = xFF424242
+        Text = 'Bloquear Controles'
+      end
+    end
   end
   object ActionList1: TActionList
     Left = 216
@@ -12037,6 +12082,9 @@ object FormTelaRemota: TFormTelaRemota
     end
     object PROC_MOUSE: TAction
       OnExecute = PROC_MOUSEExecute
+    end
+    object PROC_BLOCKINPUT: TAction
+      OnExecute = PROC_BLOCKINPUTExecute
     end
   end
 end
