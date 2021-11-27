@@ -92,7 +92,8 @@ var
  xID,
  xMAC,
  xHD,
- xSenha         : String;
+ xSenha,
+ xSenhaGerada  : String;
  iPosition   : Integer;
 begin
   inherited;
@@ -130,6 +131,11 @@ begin
        Delete(xValue, 1, Pos('<|SENHADEFINIDA|>', xValue)+ 16);
        xSenha := xValue;
        xSenha := Copy(xSenha, 1, Pos('<|>', xSenha) - 1);
+       Delete(xValue, 1, Pos('<|>', xValue) + 2);
+
+       Delete(xValue, 1, Pos('<|SENHAGERADA|>', xValue)+ 14);
+       xSenhaGerada := xValue;
+       xSenhaGerada := Copy(xSenhaGerada, 1, Pos('<|>', xSenha) - 1);
        xValue := '';
        DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle), XMac, XHD, XSenha);
       End;
@@ -301,7 +307,7 @@ var
 begin
   FConexao := DMServer.Conexoes.RetornaItemPorConexao(FProtocolo);
 
-  while scClient.SendText('<|ID|>' + FConexao.ID + '<|>' + FConexao.Senha + '<|END|>') < 0 do
+  while scClient.SendText('<|ID|>' + FConexao.ID + '<|>' + FConexao.Senha + '<|>' + FConexao.SenhaGerada + '<|END|>') < 0 do
     Sleep(FOLGAPROCESSAMENTO);
 
   while True do

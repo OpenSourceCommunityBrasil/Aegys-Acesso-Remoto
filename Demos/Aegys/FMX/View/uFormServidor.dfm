@@ -51,6 +51,12 @@ object FormServidor: TFormServidor
       end
       item
         Expanded = False
+        FieldName = 'SENHA2'
+        Title.Caption = 'Senha Gerada'
+        Visible = True
+      end
+      item
+        Expanded = False
         FieldName = 'LATENCIA'
         Title.Caption = 'Lat'#234'ncia'
         Width = 60
@@ -81,6 +87,11 @@ object FormServidor: TFormServidor
         Size = 20
       end
       item
+        Name = 'SENHA2'
+        DataType = ftString
+        Size = 20
+      end
+      item
         Name = 'LATENCIA'
         DataType = ftString
         Size = 10
@@ -106,6 +117,9 @@ object FormServidor: TFormServidor
     end
     object QryConexoesSENHA: TStringField
       FieldName = 'SENHA'
+    end
+    object QryConexoesSENHA2: TStringField
+      FieldName = 'SENHA2'
     end
     object QryConexoesLATENCIA: TStringField
       FieldName = 'LATENCIA'

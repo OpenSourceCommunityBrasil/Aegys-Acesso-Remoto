@@ -34,6 +34,7 @@ type
     QryConexoesID: TStringField;
     QryConexoesLATENCIA: TStringField;
     QryConexoesSENHA: TStringField;
+    QryConexoesSENHA2: TStringField;
     procedure tReloadTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -76,6 +77,7 @@ begin
     QryConexoesPROTOCOLO.Value := Conexao.Protocolo;
     QryConexoesID.Value := Conexao.ID;
     QryConexoesSENHA.Value := Conexao.Senha;
+    QryConexoesSENHA2.Value := Conexao.SenhaGerada;
     QryConexoesLATENCIA.Value := Conexao.Latencia;
     QryConexoes.Post;
   end;

@@ -29,7 +29,8 @@ type
     FHD,
     FLatencia,
     FProtocolo,
-    FSenha            : String;
+    FSenha,
+    FSenhaGerada  : String;
     FThreadAreaRemota : TThreadConexaoAreaRemota;
     FThreadArquivos   : TThreadConexaoArquivos;
     FThreadPrincipal  : TThreadConexaoPrincipal;
@@ -40,6 +41,7 @@ type
     procedure SetLatencia(const Value: string);
     procedure SetProtocolo(const Value: string);
     procedure SetSenha(const Value: string);
+    procedure SetSenhaGerada(const Value: string);
     procedure SetThreadAreaRemota(const Value: TThreadConexaoAreaRemota);
     procedure SetThreadArquivos(const Value: TThreadConexaoArquivos);
     procedure SetThreadPrincipal(const Value: TThreadConexaoPrincipal);
@@ -60,6 +62,7 @@ type
     property PingInicial: Int64 read FPingInicial write SetPingInicial;
     property Protocolo: string read FProtocolo write SetProtocolo;
     property Senha: string read FSenha write SetSenha;
+    property SenhaGerada: string read FSenhaGerada write SetSenhaGerada;
     property ThreadAreaRemota: TThreadConexaoAreaRemota read FThreadAreaRemota write SetThreadAreaRemota;
     property ThreadArquivos: TThreadConexaoArquivos read FThreadArquivos write SetThreadArquivos;
     property ThreadPrincipal: TThreadConexaoPrincipal read FThreadPrincipal write SetThreadPrincipal;
@@ -237,6 +240,11 @@ begin
   FSenha := Value;
 end;
 
+procedure TConexao.SetSenhaGerada(const Value: string);
+begin
+ FSenhaGerada := Value;
+end;
+
 procedure TConexao.SetThreadAreaRemota(const Value: TThreadConexaoAreaRemota);
 begin
   FThreadAreaRemota := Value;
@@ -271,6 +279,7 @@ Begin
  FListaConexoes[i].HD        := HD;
  FListaConexoes[i].ID        := GenerateID(MAC, HD);
  FListaConexoes[i].Senha     := GerarSenha(DSenha);
+ FListaConexoes[i].SenhaGerada := GerarSenha('');
 End;
 
 //procedure TConexoes.AdicionarConexao(AProtocolo: string);
@@ -501,7 +510,7 @@ begin
   Result := False;
   for Conexao in FListaConexoes do
   begin
-    if (Conexao.ID = AID) and (Conexao.Senha = ASenha) then
+    if (Conexao.ID = AID) and (Conexao.Senha = ASenha) or (Conexao.ID = AID) and (Conexao.SenhaGerada = ASenha) then
     begin
       Result := True;
       Break;

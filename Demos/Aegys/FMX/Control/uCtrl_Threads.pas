@@ -184,7 +184,10 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Position := Pos('<|>', BufferTemp);
           Conexao.ID := Copy(BufferTemp, 1, Position - 1);
           Delete(BufferTemp, 1, Position + 2);
-          Conexao.Senha := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
+          Position := Pos('<|>', BufferTemp);
+          Conexao.Senha := Copy(BufferTemp, 1, Position - 1);
+          Delete(BufferTemp, 1, Position + 2);
+          Conexao.SenhaGerada := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
           Synchronize(FormConexao.SetOnline);
 
           // If this Socket are connected, then connect the Desktop Socket, Keyboard Socket, File Download Socket and File Upload Socket

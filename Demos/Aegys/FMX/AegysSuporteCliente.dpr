@@ -26,7 +26,6 @@ uses
   uFrameArquivo in 'View\Frame\uFrameArquivo.pas' {FrameArquivo: TFrame},
   uFrameMensagemChat in 'View\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
   uConstants in 'Lib\uConstants.pas',
-  UFuncoes in 'Lib\UFuncoes.pas',
   uFunctions in 'Lib\uFunctions.pas';
 
 {$R *.res}

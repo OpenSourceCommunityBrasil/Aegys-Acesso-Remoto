@@ -59,6 +59,7 @@ type
     FResolucaoAltura: Integer;
     FResolucaoLargura: Integer;
     FSenha: string;
+    FSenhaGerada: string;
     FSocketAreaRemota: TClientSocket;
     FSocketArquivos: TClientSocket;
     FSocketPrincipal: TClientSocket;
@@ -77,6 +78,7 @@ type
     procedure SetResolucaoAltura(const Value: Integer);
     procedure SetResolucaoLargura(const Value: Integer);
     procedure SetSenha(const Value: string);
+    procedure SetSenhaGerada(const Value: string);
     procedure SetSocketAreaRemota(const Value: TClientSocket);
     procedure SetSocketArquivos(const Value: TClientSocket);
     procedure SetSocketPrincipal(const Value: TClientSocket);
@@ -106,6 +108,7 @@ type
     property ResolucaoLargura: Integer read FResolucaoLargura
       write SetResolucaoLargura;
     property Senha: string read FSenha write SetSenha;
+    property SenhaGerada: string read FSenhaGerada write SetSenhaGerada;
     property SocketAreaRemota: TClientSocket read FSocketAreaRemota
       write SetSocketAreaRemota;
     property SocketArquivos: TClientSocket read FSocketArquivos
@@ -374,6 +377,11 @@ begin
   FSenha := Value;
 end;
 
+procedure TConexao.SetSenhaGerada(const Value: string);
+begin
+ FSenhaGerada := Value;
+end;
+
 procedure TConexao.SetSocketAreaRemota(const Value: TClientSocket);
 begin
   FSocketAreaRemota := Value;
@@ -513,16 +521,17 @@ End;
 procedure TConexao.SocketPrincipalConnect(Sender: TObject;
   Socket: TCustomWinSocket);
 Var
-  vHD, vMAC, vSenha: String;
+  vHD, vMAC, vSenha, vSenhaGerada: String;
 begin
   FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Connected'));
   Intervalo := 0;
   FormConexao.tmrIntervalo.Enabled := True;
   vMAC := MacAddress;
   vHD := SerialNumHardDisk(SystemDrive);
+  vSenhaGerada := SenhaGerada;
   vSenha := Cfg.LerCfg('cfg', 'ini', 'CFG', 'pass', false);
   Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' + vHD +
-    '<|>' + '<|SENHADEFINIDA|>' + vSenha + '<|>');
+    '<|>' + '<|SENHADEFINIDA|>' + vSenha + '<|>' + '<|SENHAGERADA|>' + vSenhaGerada + '<|>');
   CriarThread(ttPrincipal, Socket);
 end;
 

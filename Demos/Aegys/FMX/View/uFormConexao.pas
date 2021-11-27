@@ -268,10 +268,7 @@ end;
 
 procedure TFormConexao.actCopyPasswordExecute(Sender: TObject);
 begin
-  if CFG.LerCfg('cfg', 'ini', 'CFG', 'pass', False) = '' then
     TRDLib.CopiarTexto(LPassword.Text)
-  else
-    TRDLib.CopiarTexto(CFG.LerCfg('cfg', 'ini', 'CFG', 'pass', False));
 end;
 
 procedure TFormConexao.tmrReconnectTimer(Sender: TObject);
@@ -314,10 +311,7 @@ end;
 procedure TFormConexao.SetOnline;
 begin
   LMachineID.Text := Conexao.ID;
-  if CFG.LerCfg('cfg', 'ini', 'CFG', 'pass', False) = '' then
-    LPassword.Text := Conexao.Senha
-  else
-    LPassword.Text := '*****';
+  LPassword.Text := Conexao.SenhaGerada;
   btnConectar.Enabled := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
 end;
