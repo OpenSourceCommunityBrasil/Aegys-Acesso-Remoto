@@ -23,7 +23,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, System.Actions,
   FMX.ActnList, Winapi.Messages, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo,
-  uFunctions,System.UIConsts,System.StrUtils;
+  uFunctions, System.UIConsts, System.StrUtils;
 
 type
   TFormTelaRemota = class(TForm)
@@ -429,9 +429,9 @@ begin
   PROC_REDIMENSIONARExecute(Sender);
   btnMouse.StaysPressed := Conexao.MostrarMouse;
 
-  Path4.Fill.Color:=StringToAlphaColor('#FFFF1E1E');
-  Conexao.BlockInputs:=false;
-  lblockinput.Text    := 'BLOQUEAR CONTROLES';
+  Path4.Fill.Color := StringToAlphaColor('#FFFF1E1E');
+  Conexao.BlockInputs := False;
+  lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteBlock');
 end;
 
 procedure TFormTelaRemota.PROC_ARQUIVOSExecute(Sender: TObject);
@@ -441,18 +441,19 @@ end;
 
 procedure TFormTelaRemota.PROC_BLOCKINPUTExecute(Sender: TObject);
 begin
-  if Path4.Fill.Color=StringToAlphaColor('#FFFF1E1E') then
+  if Path4.Fill.Color = StringToAlphaColor('#FFFF1E1E') then
   begin
-    //block
-    Path4.Fill.Color:=StringToAlphaColor('#FF166600');
-    Conexao.BlockInputs := true;
-    lblockinput.Text    := 'DESBLOQUEAR CONTROLES';
-  end else
+    // block
+    Path4.Fill.Color := StringToAlphaColor('#FF166600');
+    Conexao.BlockInputs := True;
+    lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteRelease');
+  end
+  else
   begin
-    Path4.Fill.Color:=StringToAlphaColor('#FFFF1E1E');
-    //unblock
-    Conexao.BlockInputs:=false;
-    lblockinput.Text    := 'BLOQUEAR CONTROLES';
+    Path4.Fill.Color := StringToAlphaColor('#FFFF1E1E');
+    // unblock
+    Conexao.BlockInputs := False;
+    lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteBlock');
   end;
 
 end;
@@ -470,9 +471,9 @@ end;
 
 procedure TFormTelaRemota.PROC_REDIMENSIONARExecute(Sender: TObject);
 begin
-//  imgTelaRemota.Align                := TAlignLayout.Client;
-//  imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
-//  imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
+  // imgTelaRemota.Align                := TAlignLayout.Client;
+  // imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
+  // imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
   pControles.Position.X := (Self.Width / 2) - (pControles.Width / 2);
   RetornaMargem;
 end;
@@ -508,21 +509,21 @@ begin
     iMarginH := iMarginH / 2;
   end;
 
-//  imgTelaRemota.Margins.Left := iMarginW;
-//  imgTelaRemota.Margins.Right := iMarginW;
-//  imgTelaRemota.Margins.Top := iMarginH;
-//  imgTelaRemota.Margins.Bottom := iMarginH;
+  // imgTelaRemota.Margins.Left := iMarginW;
+  // imgTelaRemota.Margins.Right := iMarginW;
+  // imgTelaRemota.Margins.Top := iMarginH;
+  // imgTelaRemota.Margins.Bottom := iMarginH;
 end;
 
 procedure TFormTelaRemota.imgTelaRemotaMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
-  Sblockinput:String;
+  Sblockinput: String;
 begin
   if not Active then
     Exit;
-  Sblockinput:= IfThen(Conexao.BlockInputs,'<|BLOCKINPUT|>','') ;
+  Sblockinput := IfThen(Conexao.BlockInputs, '<|BLOCKINPUT|>', '');
 
   iX := Trunc(X * Conexao.ResolucaoLargura) div Trunc(imgTelaRemota.Width);
   iY := Trunc(Y * Conexao.ResolucaoAltura) div Trunc(imgTelaRemota.Height);
@@ -531,18 +532,18 @@ begin
   begin
     Conexao.SocketPrincipal.Socket.SendText
       ('<|REDIRECT|><|SETMOUSELEFTCLICKDOWN|>' + IntToStr(iX) + '<|>' +
-      IntToStr(iY) + '<|END|>'+Sblockinput);
+      IntToStr(iY) + '<|END|>' + Sblockinput);
   end
   else if (Button = TMouseButton.mbRight) then
   begin
     Conexao.SocketPrincipal.Socket.SendText
       ('<|REDIRECT|><|SETMOUSERIGHTCLICKDOWN|>' + IntToStr(iX) + '<|>' +
-      IntToStr(iY) + '<|END|>'+Sblockinput);
+      IntToStr(iY) + '<|END|>' + Sblockinput);
   end
   else
   begin
     Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEDOWN|>'
-      + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>'+Sblockinput);
+      + IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>' + Sblockinput);
   end;
 end;
 
@@ -550,27 +551,27 @@ procedure TFormTelaRemota.imgTelaRemotaMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
-   Sblockinput:String;
+  Sblockinput: String;
 begin
   if not Active then
     Exit;
 
   iX := Trunc(X * Conexao.ResolucaoLargura) div Trunc(imgTelaRemota.Width);
   iY := Trunc(Y * Conexao.ResolucaoAltura) div Trunc(imgTelaRemota.Height);
-  Sblockinput:= IfThen(Conexao.BlockInputs,'<|BLOCKINPUT|>','') ;
+  Sblockinput := IfThen(Conexao.BlockInputs, '<|BLOCKINPUT|>', '');
   Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEPOS|>' +
-    IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>'+Sblockinput);
+    IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>' + Sblockinput);
 end;
 
 procedure TFormTelaRemota.imgTelaRemotaMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
   iX, iY: Integer;
-  Sblockinput:string;
+  Sblockinput: string;
 begin
   if not Active then
     Exit;
-  Sblockinput:= IfThen(Conexao.BlockInputs,'<|BLOCKINPUT|>','') ;
+  Sblockinput := IfThen(Conexao.BlockInputs, '<|BLOCKINPUT|>', '');
 
   iX := Trunc(X * Conexao.ResolucaoLargura) div Trunc(imgTelaRemota.Width);
   iY := Trunc(Y * Conexao.ResolucaoAltura) div Trunc(imgTelaRemota.Height);
@@ -578,28 +579,27 @@ begin
   begin
     Conexao.SocketPrincipal.Socket.SendText
       ('<|REDIRECT|><|SETMOUSELEFTCLICKUP|>' + IntToStr(iX) + '<|>' +
-      IntToStr(iY) + '<|END|>'+Sblockinput);
+      IntToStr(iY) + '<|END|>' + Sblockinput);
   end
   else if (Button = TMouseButton.mbRight) then
   begin
     Conexao.SocketPrincipal.Socket.SendText
       ('<|REDIRECT|><|SETMOUSERIGHTCLICKUP|>' + IntToStr(iX) + '<|>' +
-      IntToStr(iY) + '<|END|>'+Sblockinput);
+      IntToStr(iY) + '<|END|>' + Sblockinput);
   end
   else
   begin
     Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEUP|>' +
-      IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>'+Sblockinput);
+      IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>' + Sblockinput);
   end;
 end;
 
-
 procedure TFormTelaRemota.SendSocketKeys(AKeys: string);
 var
-  Sblockinput:string;
+  Sblockinput: string;
 begin
-  Sblockinput:= IfThen(Conexao.BlockInputs,'<|BLOCKINPUT|>','') ;
-  Conexao.SocketTeclado.Socket.SendText(AKeys+Sblockinput);
+  Sblockinput := IfThen(Conexao.BlockInputs, '<|BLOCKINPUT|>', '');
+  Conexao.SocketTeclado.Socket.SendText(AKeys + Sblockinput);
 end;
 
 procedure TFormTelaRemota.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);

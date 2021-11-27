@@ -18,7 +18,7 @@
 interface
 
 Uses
-  System.SysUtils, System.Types, System.Classes,
+  System.SysUtils, System.Types, System.Classes, System.TypInfo,
   FMX.ListBox,
   IniFiles, uConstants;
 
@@ -76,7 +76,7 @@ End;
 procedure TLocale.GetLocale(aCombo: TComboBox; comboType: TComboTypes);
 var
   Items: TStringList;
-  currIndex,i: integer;
+  currIndex, i: integer;
 begin
   Items := TStringList.Create;
   Locale := TIniFile.Create(FLocaleFileName);
@@ -90,12 +90,13 @@ begin
     end;
 
     aCombo.Items.Clear;
-    for  I := 0 to pred(Items.count) do
+    for i := 0 to pred(Items.count) do
     begin
       aCombo.ListBox.Items.Add('');
-      aCombo.ListItems[I].ItemData.Detail := Items.KeyNames[I];
-      aCombo.ListItems[I].ItemData.Text := UTF8Decode(Items.ValueFromIndex[I]);
-      aCombo.ListItems[I].ImageIndex := I;
+      aCombo.ListItems[i].ItemData.Detail := Items.KeyNames[i];
+      aCombo.ListItems[i].ItemData.Text := UTF8Decode(Items.ValueFromIndex[i]);
+      aCombo.ListItems[i].ImageIndex := GetEnumValue(TypeInfo(TLanguageImage),
+        Items.KeyNames[i]);
     end;
     aCombo.ItemIndex := currIndex;
   finally
@@ -126,6 +127,24 @@ begin
       11274, 16394, 13322, 9226, 5130, 7178, 12298, 17418, 4106, 18442, 2058,
         19466, 6154, 15370, 10250, 20490, 14346, 8202, 1034:
         Res := TResourceStream.Create(HInstance, 'ES_ES', RT_RCDATA);
+      1028:
+        Res := TResourceStream.Create(HInstance, 'ZH_TW', RT_RCDATA);
+      2052:
+        Res := TResourceStream.Create(HInstance, 'ZH_CN', RT_RCDATA);
+      1025:
+        Res := TResourceStream.Create(HInstance, 'AR_SA', RT_RCDATA);
+      1031:
+        Res := TResourceStream.Create(HInstance, 'DE_DE', RT_RCDATA);
+      1036:
+        Res := TResourceStream.Create(HInstance, 'FR_FR', RT_RCDATA);
+      1040:
+        Res := TResourceStream.Create(HInstance, 'IT_IT', RT_RCDATA);
+      1041:
+        Res := TResourceStream.Create(HInstance, 'JA_JA', RT_RCDATA);
+      1042:
+        Res := TResourceStream.Create(HInstance, 'KO_KO', RT_RCDATA);
+      1049:
+        Res := TResourceStream.Create(HInstance, 'RU_RU', RT_RCDATA);
     else
       Res := TResourceStream.Create(HInstance, 'EN_US', RT_RCDATA);
     end;

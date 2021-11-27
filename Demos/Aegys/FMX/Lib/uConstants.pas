@@ -20,6 +20,8 @@ interface
 type
   IDThreadType = (ttPrincipal, ttAreaRemota, ttTeclado, ttArquivos);
   TComboTypes = (tcbQuality, tcbLanguage);
+  TLanguageImage = (AR_SA, DE_DE, EN_US, ES_ES, FR_FR, IT_IT, JA_JA, KO_KO, PT_BR,
+    RU_RU, ZH_CN, ZH_TW);
 
 const
   PORTA = 3898;
