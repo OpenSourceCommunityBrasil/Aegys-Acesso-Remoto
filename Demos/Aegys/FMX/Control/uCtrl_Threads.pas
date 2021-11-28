@@ -102,7 +102,7 @@ uses uFormArquivos, uFormChat, uFormConexao, uFormTelaRemota,
     , Winapi.Windows,
   Fmx.Platform.Win
 {$ENDIF}
-    ;
+    , CCR.Clipboard;
 
 {$IF DEFINED (ANDROID) || (IOS)}
 
@@ -1231,6 +1231,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           BufferTemp: string;
           FileStream: TFileStream;
           Locale: TLocale;
+          FileName:string;
         begin
           inherited;
           Locale := TLocale.Create;
@@ -1258,7 +1259,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
                 Delete(BufferTemp, 1, Position + 18);
                 Position := Pos('<|>', BufferTemp);
                 BufferTemp := Copy(BufferTemp, 1, Position - 1);
-                FormArquivos.DirectoryToSaveFile := BufferTemp;
+                FileName := BufferTemp;
               end;
 
               Position := Pos('<|SIZE|>', Buffer);
@@ -1269,8 +1270,12 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
                 BufferTemp := Copy(BufferTemp, 1,
                   Pos('<|END|>', BufferTemp) - 1);
                 FileSize := StrToInt(BufferTemp);
+
+                if FileExists(GetEnvironmentVariable('TEMP')+'\'+FileName) then
+                DeleteFile(PWideChar(GetEnvironmentVariable('TEMP')+'\'+FileName));
+
                 FileStream := TFileStream.Create
-                  (FormArquivos.DirectoryToSaveFile + '.tmp',
+                  (GetEnvironmentVariable('TEMP')+'\'+FileName,
                   fmCreate or fmOpenReadWrite);
 
                 if (Conexao.Visualizador) then
@@ -1319,13 +1324,19 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
               if (FileStream.Size = FileSize) then
               begin
                 FreeAndNil(FileStream);
+                Synchronize(
+                procedure
+                begin
+                  try
+                  Clipboard.Open;
+                  Clipboard.AssignFile(pwchar(GetEnvironmentVariable('TEMP')+'\'+FileName));
+                  except
+                  end;
+                  Clipboard.close;
+                end
+                );
 
-                if (FileExists(FormArquivos.DirectoryToSaveFile)) then
-                  DeleteFile(PWideChar(FormArquivos.DirectoryToSaveFile));
-
-                RenameFile(FormArquivos.DirectoryToSaveFile + '.tmp',
-                  FormArquivos.DirectoryToSaveFile);
-
+                //DeleteFile(pwchar(GetEnvironmentVariable('TEMP')+'\'+FileName));
                 if not(Conexao.Visualizador) then
                   Conexao.SocketPrincipal.Socket.SendText
                     ('<|REDIRECT|><|UPLOADCOMPLETE|>')

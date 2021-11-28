@@ -26,7 +26,17 @@ uses
   uFrameArquivo in 'View\Frame\uFrameArquivo.pas' {FrameArquivo: TFrame},
   uFrameMensagemChat in 'View\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
   uConstants in 'Lib\uConstants.pas',
-  uFunctions in 'Lib\uFunctions.pas';
+  uFunctions in 'Lib\uFunctions.pas',
+  CCR.Clipboard.Apple.Helpers in 'Lib\ClipBoard\CCR.Clipboard.Apple.Helpers.pas',
+  CCR.Clipboard.Apple in 'Lib\ClipBoard\CCR.Clipboard.Apple.pas',
+  CCR.Clipboard.Consts in 'Lib\ClipBoard\CCR.Clipboard.Consts.pas',
+  CCR.Clipboard.FMX.iOS in 'Lib\ClipBoard\CCR.Clipboard.FMX.iOS.pas',
+  CCR.Clipboard.FMX.Mac in 'Lib\ClipBoard\CCR.Clipboard.FMX.Mac.pas',
+  CCR.Clipboard.FMX in 'Lib\ClipBoard\CCR.Clipboard.FMX.pas',
+  CCR.Clipboard.FMX.Win in 'Lib\ClipBoard\CCR.Clipboard.FMX.Win.pas',
+  CCR.Clipboard in 'Lib\ClipBoard\CCR.Clipboard.pas',
+  CCR.Clipboard.VCL in 'Lib\ClipBoard\CCR.Clipboard.VCL.pas',
+  CCR.Clipboard.Win in 'Lib\ClipBoard\CCR.Clipboard.Win.pas';
 
 {$R *.res}
 

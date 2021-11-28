@@ -24,9 +24,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
   FMX.Ani, FMX.TabControl, FMX.ListBox,
-  uCtrl_Threads, uCtrl_Conexao, uFunctions
-
-    ;
+  uCtrl_Threads, uCtrl_Conexao, uFunctions,  CCR.Clipboard;
 
 type
   TFormConexao = class(TForm)
@@ -99,6 +97,7 @@ type
     function MascaraID(AText, AMascara: string): string;
     procedure Translate;
     procedure SetColors;
+    function ClipboardGetAsFile: string;
   public
     procedure LimparConexao;
     procedure MudarStatusConexao(AStatus: Integer; AMensagem: string);
@@ -109,13 +108,14 @@ type
 var
   FormConexao: TFormConexao;
   Conexao: TConexao;
+  CF_FILE: Integer;
 
 implementation
 
 {$R *.fmx}
 
 uses uFormTelaRemota, uFormArquivos, uFormChat, FMX.Clipboard,
-  System.IOUtils, FMX.Platform, System.Rtti, uLibClass,
+  System.IOUtils,  System.Rtti, uLibClass,
   Winapi.Windows, uConstants, BCrypt, System.DateUtils, uHttpClass,
   System.Threading, Winapi.ShellAPI, FMX.Platform.Win, uFormConfig;
 
@@ -150,25 +150,42 @@ End;
 
 Procedure TFormConexao.tmrClipboardTimer(Sender: TObject);
 Var
-  Svc: IFMXClipboardService;
-  vlClip: TValue;
+
+  FileStream: TFileStream;
+  s,FileName:string;
+  ClipFormat: TClipboardFormat;
 Begin
-  Try
-    tmrClipboard.Enabled := Conexao.Visualizador;
-    If TPlatformServices.Current.SupportsPlatformService
-      (IFMXClipboardService, Svc) then
-    Begin
-      vlClip := Svc.GetClipboard;
-      If Not(vlClip.IsEmpty) And (vlClip.IsType<String>) And
-        (Conexao.OldClipboardText <> vlClip.ToString) Then
+  tmrClipboard.Enabled := Conexao.Visualizador;
+  try
+
+    if Clipboard.HasText then
+    begin
+      if (Conexao.OldClipboardText <> Clipboard.AsText) Then
       Begin
-        Conexao.OldClipboardText := vlClip.ToString;
+        Conexao.OldClipboardText := Clipboard.AsText;
         Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CLIPBOARD|>' +
           Conexao.OldClipboardText + '<|END|>');
       End;
-    End;
-  Except
-  End;
+    end else
+    begin
+      for s in Clipboard.GetFileNames do
+      begin
+        if (Conexao.OldClipboardFile <> s) Then
+        begin
+          FileStream := TFileStream.Create(s, fmOpenRead);
+          FileName := ExtractFileName(s);
+          Conexao.OldClipboardFile :=s;
+          Conexao.SocketArquivos.Socket.SendText('<|DIRECTORYTOSAVE|>'
+            + FileName + '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
+          FileStream.Position := 0;
+          Conexao.SocketArquivos.Socket.SendStream(FileStream);
+        end;
+      end;
+    end ;
+  except on E:Exception do
+    ShowMessage(e.Message);
+  end;
+
 end;
 
 procedure TFormConexao.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -180,6 +197,7 @@ end;
 
 procedure TFormConexao.FormCreate(Sender: TObject);
 begin
+  CF_FILE := RegisterClipboardFormat('FileName');
   // inicializando os objetos
   Locale := TLocale.Create;
   CFG := TCFGINI.Create;
@@ -237,6 +255,22 @@ procedure TFormConexao.actPasteIDExecute(Sender: TObject);
 begin
   EGuestID.Text := MascaraID(TRDLib.ColarTexto, '999-999-999');
   EGuestID.GoToTextEnd;
+end;
+
+function TFormConexao.ClipboardGetAsFile: string;
+var
+  Data: THandle;
+begin
+  Clipboard.Open;
+  Data := GetClipboardData(CF_FILE);
+  try
+    if Data <> 0 then
+      Result := PChar(GlobalLock(Data)) else
+      Result := '';
+  finally
+    if Data <> 0 then GlobalUnlock(Data);
+    Clipboard.Close;
+  end;
 end;
 
 procedure TFormConexao.actConnectExecute(Sender: TObject);

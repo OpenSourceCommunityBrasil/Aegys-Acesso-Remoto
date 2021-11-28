@@ -70,6 +70,7 @@ type
     FThreadTeclado: TThreadConexaoTeclado;
     FVisualizador: Boolean;
     FBlockInputs: boolean;
+    FOldClipboardFile: String;
     procedure SetAcessando(const Value: Boolean);
     procedure SetID(const Value: string);
     procedure SetIntervalo(const Value: Integer);
@@ -90,6 +91,7 @@ type
     procedure SetThreadTeclado(const Value: TThreadConexaoTeclado);
     procedure SetVisualizador(const Value: Boolean);
     procedure SetBlockInputs(const Value: boolean);
+    procedure SetOldClipboardFile(const Value: String);
   public
     constructor Create;
     destructor Destroy; override;
@@ -129,6 +131,7 @@ type
       write SetThreadTeclado;
     property Visualizador: Boolean read FVisualizador write SetVisualizador;
     property BlockInputs:boolean read FBlockInputs write SetBlockInputs;
+    property OldClipboardFile:String read FOldClipboardFile write SetOldClipboardFile;
   end;
 
 implementation
@@ -370,6 +373,11 @@ begin
     xSend := IfThen(Value, '<|SHOWMOUSE|>', '<|HIDEMOUSE|>');
     SocketPrincipal.Socket.SendText('<|REDIRECT|>' + xSend);
   end;
+end;
+
+procedure TConexao.SetOldClipboardFile(const Value: String);
+begin
+  FOldClipboardFile := Value;
 end;
 
 procedure TConexao.SetOldClipboardText(const Value: string);

@@ -54,7 +54,7 @@ implementation
 
 constructor TLocale.Create;
 begin
-{$IFDEF Debug}
+{$IFDEF DEBUG}
   SetLocaleFileName(ExtractFilePath(ParamStr(0)) + 'locale.ini');
 {$ELSE}
   SetLocaleFileName(ExtractFilePath(ParamStr(0)) + 'locale.dat');
