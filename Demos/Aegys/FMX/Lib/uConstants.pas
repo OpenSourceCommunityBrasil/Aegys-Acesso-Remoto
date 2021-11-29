@@ -26,11 +26,12 @@ type
 const
   PORTA = 3898;
   FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '201.4.250.4';
+  SERVIDOR = '192.168.0.181';
   // Svr: Razios '201.4.250.4' //Svr:Embratel '201.73.143.69';
   INTERVALOCONEXAO = 60;
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
   PRIMARY_COLOR = $FF0070BA;
+  SECONDARY_COLOR = $FFC4E8FF;
 
   // Locale consts
   MAIN = 'SYSTEMINFO';

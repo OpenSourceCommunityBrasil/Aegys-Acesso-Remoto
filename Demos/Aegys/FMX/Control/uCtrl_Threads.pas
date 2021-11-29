@@ -31,30 +31,49 @@ uses
 {$ENDIF}
     , uFunctions, Fmx.Types;
 
-type
-  TThreadConexaoPrincipal = class(TThread)
-{$IF DEFINED (ANDROID) || (IOS)}
-    Socket: IdUDPClient;
-    constructor Create(ASocket: IdUDPClient); overload;
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
-    Socket: TCustomWinSocket;
-    constructor Create(ASocket: TCustomWinSocket); overload;
-{$ENDIF}
-    procedure Execute; override;
-    procedure ThreadTerminate(ASender: TObject);
-
-  end;
+Type
+ TThreadConexaoPrincipal = class(TThread)
+ Private
+  {$IF DEFINED (ANDROID) || (IOS)}
+   Socket: IdUDPClient;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+   Socket: TCustomWinSocket;
+  {$ENDIF}
+  Function GetMonitorCount : Integer;
+ Public
+  {$IF DEFINED (ANDROID) || (IOS)}
+   Constructor Create(ASocket : IdUDPClient);    Overload;
+  {$ENDIF}
+  {$IF DEFINED (MSWINDOWS)}
+   Constructor Create(ASocket : TCustomWinSocket);Overload;
+  {$ENDIF}
+  Procedure Execute; Override;
+  Procedure ThreadTerminate(ASender : TObject);
+ End;
 
   TThreadConexaoAreaRemota = class(TThread)
-{$IF DEFINED (ANDROID) || (IOS)}
+  Private
+   vBreak   : Boolean;
+   vInitbuffer,
+   vMonitor : String;
+   {$IF DEFINED (ANDROID) || (IOS)}
     Socket: IdUDPClient;
-    constructor Create(ASocket: IdUDPClient); overload;
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
+   {$ENDIF}
+   {$IF DEFINED (MSWINDOWS)}
     Socket: TCustomWinSocket;
-    constructor Create(ASocket: TCustomWinSocket); overload;
-{$ENDIF}
+   {$ENDIF}
+   Procedure SetMonitor(Value : String);
+  Public
+   {$IF DEFINED (ANDROID) || (IOS)}
+    Constructor Create(ASocket: IdUDPClient); overload;
+   {$ENDIF}
+   {$IF DEFINED (MSWINDOWS)}
+    Constructor Create(ASocket: TCustomWinSocket); overload;
+   {$ENDIF}
+    Property  Capture    : Boolean Read vBreak      Write vBreak;
+    Property  Monitor    : String  Read vMonitor    Write SetMonitor;
+    Property  Initbuffer : String  Read vInitbuffer Write vInitbuffer;
     procedure Execute; override;
     procedure ThreadTerminate(ASender: TObject);
   end;
@@ -104,6 +123,14 @@ uses uFormArquivos, uFormChat, uFormConexao, uFormTelaRemota,
 {$ENDIF}
     , CCR.Clipboard;
 
+
+
+Function TThreadConexaoPrincipal.GetMonitorCount : Integer;
+Begin
+ Screen.UpdateDisplayInformation;
+ Result := Screen.DisplayCount;
+End;
+
 {$IF DEFINED (ANDROID) || (IOS)}
 
 constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
@@ -121,9 +148,10 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
   procedure TThreadConexaoPrincipal.Execute;
   var
-    Buffer: string;
-    BufferTemp: string;
-    Extension: string;
+    Buffer,
+    BufferTemp,
+    aTempID,
+    Extension   : string;
     i: Integer;
     Position: Integer;
     MousePosX: Integer;
@@ -281,6 +309,46 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
         if Buffer.Contains('<|ACCESSGRANTED|>') then
         begin
+          Synchronize(Procedure
+                      Begin
+                       FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Granted'));
+                       Socket.SendText('<|GETMONITORCOUNT|>' + Conexao.ID + '<|>' +
+                                       FormConexao.EGuestID.Text + '<|END|>');
+                      End);
+        end;
+        if Buffer.Contains('<|GETMONITORCOUNT|>') then
+        begin
+          BufferTemp := Buffer;
+          Delete(BufferTemp, 1, Position + Length('<|GETMONITORCOUNT|>'));
+          Position := Pos('<|END|>', BufferTemp);
+          aTempID  := Copy(BufferTemp, 1, Position -1);
+          Synchronize(
+            procedure
+            begin
+              Socket.SendText('<|MONITORS|>' + aTempID + '<|>' + IntToStr(GetMonitorCount) + '<|END|>');
+            end);
+        end;
+        if Buffer.Contains('<|CHANGEMONITOR|>') then
+        begin
+          BufferTemp := Buffer;
+          Delete(BufferTemp, 1, Position + Length('<|CHANGEMONITOR|>'));
+          Position := Pos('<|END|>', BufferTemp);
+          aTempID  := Copy(BufferTemp, 1, Position -1);
+          Conexao.ThreadAreaRemota.Capture := False;
+          If Not Conexao.ThreadAreaRemota.Finished Then
+           Conexao.ThreadAreaRemota.Terminate;
+          Conexao.ThreadAreaRemota := Nil;
+          Conexao.ThreadAreaRemota := TThreadConexaoAreaRemota.Create(Conexao.SocketAreaRemota.Socket);
+          Conexao.ThreadAreaRemota.Monitor := aTempID;
+          Conexao.ThreadAreaRemota.Initbuffer := '<|GETFULLSCREENSHOT|>';
+          Conexao.ThreadAreaRemota.Resume;
+        end;
+        if Buffer.Contains('<|MONITORS|>') then
+        begin
+          BufferTemp := Buffer;
+          Delete(BufferTemp, 1, Position + Length('<|MONITORS|>'));
+          Position := Pos('<|END|>', BufferTemp);
+          aTempID  := Copy(BufferTemp, 1, Position -1);
           Synchronize(
             procedure
             begin
@@ -289,6 +357,9 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
               Conexao.Visualizador := True;
               FormConexao.tmrClipboard.Enabled := True;
               FormConexao.LimparConexao;
+              FormTelaRemota.ActualScreen      := '0';
+              FormTelaRemota.ActualIDConnected := FormConexao.EGuestID.Text;
+              FormTelaRemota.AddItems(StrToInt(aTempID));
               FormTelaRemota.Show;
               FormConexao.Hide;
               Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' +
@@ -801,7 +872,9 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
       Socket := ASocket;
       FreeOnTerminate := True;
       OnTerminate := ThreadTerminate;
-      Resume;
+      vBreak      := True;
+      vInitbuffer := '';
+      vMonitor    := '0';
     end;
 
     procedure TThreadConexaoAreaRemota.Execute;
@@ -817,12 +890,14 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
       PackStream, MyTempStream, UnPackStream: TMemoryStream;
       MyFirstBmp, MyCompareBmp, MySecondBmp: TStream;
       hDesktop: HDESK;
-      bFirst: Boolean;
+      bFirst,
+      bFirstMon : Boolean;
       Locale: TLocale;
       vBitmap: TBitmap;
     begin
       inherited;
       Locale := TLocale.Create;
+      bFirstMon := False;
       try
         MyFirstBmp := TMemoryStream.Create;
         UnPackStream := TMemoryStream.Create;
@@ -832,18 +907,25 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         PackStream := TMemoryStream.Create;
         bFirst := True;
 
-        while True do
+        while vBreak do
         begin
           Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
-
-          if (Socket = nil) or not(Socket.Connected) or (Terminated) then
-            Break;
-
-          if (Socket.ReceiveLength < 1) and
-            (Pos('<|GETFULLSCREENSHOT|>', Buffer) <= 0) then
-            Continue;
-
-          Buffer := Buffer + Socket.ReceiveText;
+          If vInitBuffer = '' Then
+           Begin
+            if (Socket = nil) or not(Socket.Connected) or (Terminated) then
+              Break;
+            if (Socket.ReceiveLength < 1) and
+              (Pos('<|GETFULLSCREENSHOT|>', Buffer) <= 0) then
+              Continue;
+           End;
+          if vInitbuffer <> '' then
+           Begin
+            Buffer := vInitBuffer;
+            vInitBuffer := '';
+            bFirstMon := True;
+           End
+          Else
+           Buffer := Buffer + Socket.ReceiveText;
           // Accommodates in memory all images that are being received and not processed. This helps in smoothing and mapping so that changes in the wrong places do not occur.
 
           Position := Pos('<|GETFULLSCREENSHOT|>', Buffer);
@@ -883,10 +965,8 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
               End;
             End;
             Delete(Buffer, 1, Position + 20);
-            Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>'
-              + IntToStr(Trunc(Screen.Width)) + '<|>' +
-              IntToStr(Trunc(Screen.Height)) + '<|END|>');
-
+            If Not bFirstMon Then
+             Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' + IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height)) + '<|END|>');
             TMemoryStream(MyFirstBmp).Clear;
             UnPackStream.Clear;
             MyTempStream.Clear;
@@ -909,10 +989,9 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             PackStream.LoadFromStream(MyFirstBmp);
             TRDLib.CompressStreamWithZLib(PackStream);
             PackStream.Position := 0;
-            Socket.SendText('<|FIRSTIMAGE|>' + TRDLib.MemoryStreamToString
-              (PackStream) + '<|END|>');
-
-            while True do
+            Socket.SendText('<|FIRSTIMAGE|>' + TRDLib.MemoryStreamToString(PackStream) + '<|END|>');
+            bFirstMon := False;
+            while vBreak do
             begin
               Sleep(FOLGAPROCESSAMENTO);
 
@@ -1020,7 +1099,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
                     // FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.PixelFormat := PixelFormat;
                     FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.
                       LoadFromStream(MyFirstBmp); // := vBitmap;
-                    FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
+                    FormTelaRemota.Caption := FormTelaRemota.ActualIDConnected + ' - ' + Format(Locale.GetLocaleDlg(FRMS,
                       'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
                   except
                     on e: exception do
@@ -1049,7 +1128,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
                     // FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.PixelFormat := PixelFormat;
                     FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.
                       LoadFromStream(MySecondBmp); // := vBitmap;
-                    FormTelaRemota.Caption := Format(Locale.GetLocaleDlg(FRMS,
+                    FormTelaRemota.Caption := FormTelaRemota.ActualIDConnected + ' - ' + Format(Locale.GetLocaleDlg(FRMS,
                       'RemoteTitle'), [IntToStr(Conexao.Latencia)]);
                   Except
                     on e: exception do
@@ -1078,7 +1157,12 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
       end;
     end;
 
-    procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
+Procedure TThreadConexaoAreaRemota.SetMonitor(Value : String);
+Begin
+ vMonitor := Value;
+End;
+
+procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
     begin
       if (Assigned(Conexao)) and (not Terminated) then
         Conexao.LimparThread(ttAreaRemota);

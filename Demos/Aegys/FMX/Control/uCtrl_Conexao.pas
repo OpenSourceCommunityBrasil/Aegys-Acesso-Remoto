@@ -24,6 +24,7 @@ uses
 type
   TConexao = class
   private
+   //aRemoteSocket : TCustomWinSocket;
     procedure SocketAreaRemotaConnect(Sender: TObject;
       Socket: TCustomWinSocket);
     procedure SocketAreaRemotaDisconnect(Sender: TObject;
@@ -215,6 +216,7 @@ begin
       begin
         LimparThread(ttAreaRemota);
         FThreadAreaRemota := TThreadConexaoAreaRemota.Create(ASocket);
+        FThreadAreaRemota.Resume;
       end;
     ttTeclado:
       begin
@@ -458,8 +460,8 @@ end;
 procedure TConexao.SocketAreaRemotaConnect(Sender: TObject;
   Socket: TCustomWinSocket);
 begin
-  Socket.SendText('<|DESKTOPSOCKET|>' + ID + '<|END|>');
-  CriarThread(ttAreaRemota, Socket);
+ Socket.SendText('<|DESKTOPSOCKET|>' + ID + '<|END|>');
+ CriarThread(ttAreaRemota, Socket);
 end;
 
 procedure TConexao.SocketAreaRemotaDisconnect(Sender: TObject;

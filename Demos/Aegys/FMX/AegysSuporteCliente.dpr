@@ -36,7 +36,8 @@ uses
   CCR.Clipboard.FMX.Win in 'Lib\ClipBoard\CCR.Clipboard.FMX.Win.pas',
   CCR.Clipboard in 'Lib\ClipBoard\CCR.Clipboard.pas',
   CCR.Clipboard.VCL in 'Lib\ClipBoard\CCR.Clipboard.VCL.pas',
-  CCR.Clipboard.Win in 'Lib\ClipBoard\CCR.Clipboard.Win.pas';
+  CCR.Clipboard.Win in 'Lib\ClipBoard\CCR.Clipboard.Win.pas',
+  ufrMonitorItem in 'View\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame};
 
 {$R *.res}
 

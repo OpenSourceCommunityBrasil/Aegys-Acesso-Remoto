@@ -210,6 +210,7 @@ end;
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
   Locale.DisposeOf;
+  CFG.DisposeOf;
 end;
 
 function TFormConexao.MascaraID(AText, AMascara: string): string;

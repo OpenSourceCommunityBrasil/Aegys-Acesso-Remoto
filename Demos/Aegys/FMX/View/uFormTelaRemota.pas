@@ -23,16 +23,15 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, System.Actions,
   FMX.ActnList, Winapi.Messages, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo,
-  uFunctions, System.UIConsts, System.StrUtils;
+  uFunctions, System.UIConsts, System.StrUtils, System.DateUtils, FMX.ListBox,
+  System.ImageList, FMX.ImgList, ufrMonitorItem;
+
+Type
+  TTagEffect = (te_Open, te_Close);
+  TExecuteProc = Reference to Procedure;
 
 type
   TFormTelaRemota = class(TForm)
-    sbChat: TSpeedButton;
-    Path1: TPath;
-    LChat: TLabel;
-    sbArquivos: TSpeedButton;
-    Path2: TPath;
-    LFiles: TLabel;
     ActionList1: TActionList;
     PROC_ARQUIVOS: TAction;
     PROC_CHAT: TAction;
@@ -40,16 +39,37 @@ type
     imgTelaInicial: TImage;
     PROC_REDIMENSIONAR: TAction;
     PROC_LOG: TAction;
-    btnMouse: TSpeedButton;
+    sbMouse: TSpeedButton;
     Path3: TPath;
     LMouse: TLabel;
     PROC_MOUSE: TAction;
-    pControles: TPanel;
     imgTelaRemota: TRectangle;
     sbBlockInput: TSpeedButton;
     Path4: TPath;
     lblockinput: TLabel;
     PROC_BLOCKINPUT: TAction;
+    lyToolBar: TLayout;
+    flToolBar: TFlowLayout;
+    vsbPopupMonitor: TVertScrollBox;
+    rPopupMonitor: TRectangle;
+    frMonitorItem1: TfrMonitorItem;
+    frMonitorItem2: TfrMonitorItem;
+    rrToolBarToggle: TRoundRect;
+    LToolBarToggle: TLabel;
+    rToolBar: TRectangle;
+    Line1: TLine;
+    sbChat: TSpeedButton;
+    Path1: TPath;
+    LChat: TLabel;
+    sbFiles: TSpeedButton;
+    Path2: TPath;
+    LFiles: TLabel;
+    Line2: TLine;
+    rMenuButton: TRectangle;
+    irMenuButton: TImage;
+    LirMenuButton: TLabel;
+    rDDMonitor: TRectangle;
+    LDDMonitor: TLabel;
     procedure PROC_ARQUIVOSExecute(Sender: TObject);
     procedure PROC_CHATExecute(Sender: TObject);
     procedure imgTelaRemotaMouseMove(Sender: TObject; Shift: TShiftState;
@@ -71,15 +91,28 @@ type
     procedure PROC_MOUSEExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure PROC_BLOCKINPUTExecute(Sender: TObject);
+    procedure rDDMonitorClick(Sender: TObject);
+    procedure rrToolBarToggleClick(Sender: TObject);
+    procedure SetColors;
   private
+    vLastMon, vActualIDConnected: String;
     Locale: TLocale;
+    MenuDirection: TTagEffect;
+    cShowForm, FCollapsed: Boolean;
     procedure RetornaMargem;
     procedure SendSocketKeys(AKeys: string);
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
     procedure Translate;
+    Procedure Wait(Value: Integer);
+    procedure MonitorFrameClick(Sender: TObject);
+    procedure ToggleDropDown;
   public
     CtrlPressed, ShiftPressed, AltPressed, IgnoreKey: Boolean;
+    Procedure AddItems(MoniNum: Integer);
+    Property ActualIDConnected: String Read vActualIDConnected
+      Write vActualIDConnected;
+    Property ActualScreen: String Read vLastMon Write vLastMon;
   end;
 
 var
@@ -92,9 +125,63 @@ implementation
 uses uFormArquivos, uFormChat, uFormConexao, Winapi.Windows, uDM_Styles,
   FMX.Platform.Win, uConstants;
 
+Procedure TFormTelaRemota.Wait(Value: Integer);
+Var
+  vActual: TDateTime;
+  vTempWait: LongWord;
+Begin
+  vActual := Now;
+  vTempWait := System.DateUtils.MilliSecondsBetween(Now, vActual);
+  While (Value >= vTempWait) Do
+  Begin
+    vTempWait := System.DateUtils.MilliSecondsBetween(Now, vActual);
+    sleep(1); // Application.ProcessMessages;
+  End;
+End;
+
+procedure TFormTelaRemota.rrToolBarToggleClick(Sender: TObject);
+begin
+  if FCollapsed then
+  begin
+    rrToolBarToggle.Position.Y := lyToolBar.Height;
+    LToolBarToggle.RotationAngle := 0;
+    lyToolBar.Visible := true;
+    FCollapsed := not FCollapsed;
+  end
+  else
+  begin
+    rrToolBarToggle.Position.Y := 0;
+    LToolBarToggle.RotationAngle := 180;
+    lyToolBar.Visible := false;
+    FCollapsed := not FCollapsed;
+  end;
+end;
+
+Procedure TFormTelaRemota.AddItems(MoniNum: Integer);
+Var
+  I: Integer;
+  dummyframe: TfrMonitorItem;
+Begin
+  if MoniNum < 3 then
+    rPopupMonitor.Height := MoniNum * 50
+  else
+    rPopupMonitor.Height := 100;
+
+  vsbPopupMonitor.Clear;
+  vsbPopupMonitor.BeginUpdate;
+  for I := 0 to pred(MoniNum) do
+  begin
+    dummyframe := TfrMonitorItem.Create(nil);
+    dummyframe.LiPopupMonitor.Text := (I + 1).ToString;
+    dummyframe.OnClick := MonitorFrameClick;
+    vsbPopupMonitor.AddObject(dummyframe);
+  end;
+  vsbPopupMonitor.EndUpdate;
+End;
+
 procedure TFormTelaRemota.tCapturarComandosTimer(Sender: TObject);
 var
-  i: Byte;
+  I: Byte;
 begin
   if Self <> Screen.ActiveForm then
     Exit;
@@ -107,7 +194,7 @@ begin
     begin
       if (GetKeyState(VK_MENU) < 0) then
       begin
-        AltPressed := True;
+        AltPressed := true;
         SendSocketKeys('<|ALTDOWN|>');
       end;
     end
@@ -115,7 +202,7 @@ begin
     begin
       if (GetKeyState(VK_MENU) > -1) then
       begin
-        AltPressed := False;
+        AltPressed := false;
         SendSocketKeys('<|ALTUP|>');
       end;
     end;
@@ -125,7 +212,7 @@ begin
     begin
       if (GetKeyState(VK_CONTROL) < 0) then
       begin
-        CtrlPressed := True;
+        CtrlPressed := true;
         SendSocketKeys('<|CTRLDOWN|>');
       end;
     end
@@ -133,7 +220,7 @@ begin
     begin
       if (GetKeyState(VK_CONTROL) > -1) then
       begin
-        CtrlPressed := False;
+        CtrlPressed := false;
         SendSocketKeys('<|CTRLUP|>');
       end;
     end;
@@ -143,7 +230,7 @@ begin
     begin
       if (GetKeyState(VK_SHIFT) < 0) then
       begin
-        ShiftPressed := True;
+        ShiftPressed := true;
         SendSocketKeys('<|SHIFTDOWN|>');
       end;
     end
@@ -151,16 +238,16 @@ begin
     begin
       if (GetKeyState(VK_SHIFT) > -1) then
       begin
-        ShiftPressed := False;
+        ShiftPressed := false;
         SendSocketKeys('<|SHIFTUP|>');
       end;
     end;
 
-    for i := 8 to 228 do
+    for I := 8 to 228 do
     begin
-      if (GetAsyncKeyState(i) = -32767) then
+      if (GetAsyncKeyState(I) = -32767) then
       begin
-        case i of
+        case I of
           8:
             SendSocketKeys('{BS}');
           9:
@@ -170,7 +257,7 @@ begin
           27:
             begin
               if IgnoreKey then
-                IgnoreKey := False
+                IgnoreKey := false
               else
                 SendSocketKeys('{ESCAPE}');
             end;
@@ -198,13 +285,13 @@ begin
             SendSocketKeys('{DEL}');
           91:
             begin
-              IgnoreKey := True;
+              IgnoreKey := true;
               Keybd_Event(VK_ESCAPE, 0, 0, 0);
               SendSocketKeys('{LWIN}');
             end;
           92:
             begin
-              IgnoreKey := True;
+              IgnoreKey := true;
               Keybd_Event(VK_ESCAPE, 0, 0, 0);
               SendSocketKeys('{RWIN}');
             end;
@@ -267,18 +354,18 @@ begin
             begin
               if (GetKeyState(VK_CAPITAL) = 1) then
                 if (GetKeyState(VK_SHIFT) < 0) then
-                  SendSocketKeys(LowerCase(Chr(i)))
+                  SendSocketKeys(LowerCase(Chr(I)))
                 else
-                  SendSocketKeys(UpperCase(Chr(i)))
+                  SendSocketKeys(UpperCase(Chr(I)))
               else if (GetKeyState(VK_SHIFT) < 0) then
-                SendSocketKeys(UpperCase(Chr(i)))
+                SendSocketKeys(UpperCase(Chr(I)))
               else
-                SendSocketKeys(LowerCase(Chr(i)))
+                SendSocketKeys(LowerCase(Chr(I)))
 
             end;
 
           96 .. 105: // Numpad 1..9
-            SendSocketKeys(IntToStr(i - 96));
+            SendSocketKeys(IntToStr(I - 96));
 
           106:
             SendSocketKeys('*');
@@ -295,7 +382,7 @@ begin
 
           // F1..F12
           112 .. 123:
-            SendSocketKeys('{F' + IntToStr(i - 111) + '}');
+            SendSocketKeys('{F' + IntToStr(I - 111) + '}');
 
           186:
             if (GetKeyState(VK_SHIFT) < 0) then
@@ -369,6 +456,20 @@ begin
   end;
 end;
 
+procedure TFormTelaRemota.ToggleDropDown;
+begin
+  if not rPopupMonitor.Visible then
+  begin
+    rPopupMonitor.Position.Y := lyToolBar.Height - 10;
+    rPopupMonitor.Position.X := lyToolBar.Width + lyToolBar.Position.X -
+      (rPopupMonitor.Width + 10);
+    LDDMonitor.RotationAngle := 0;
+  end
+  else
+    LDDMonitor.RotationAngle := 180;
+  rPopupMonitor.Visible := not rPopupMonitor.Visible;
+end;
+
 procedure TFormTelaRemota.Translate;
 begin
   LMouse.Text := Locale.GetLocale(FRMS, 'RemoteMouse');
@@ -388,6 +489,12 @@ end;
 procedure TFormTelaRemota.FormCreate(Sender: TObject);
 begin
   Locale := TLocale.Create;
+  lyToolBar.Visible := false;
+  rrToolBarToggle.Position.Y := 0;
+  rPopupMonitor.Visible := false;
+  FCollapsed := true;
+
+  cShowForm := true;
   SetWindowLong(FmxHandleToHWND(Handle), GWL_EXSTYLE, WS_EX_APPWINDOW);
 end;
 
@@ -400,9 +507,7 @@ procedure TFormTelaRemota.FormKeyDown(Sender: TObject; var Key: Word;
   var KeyChar: Char; Shift: TShiftState);
 begin
   if (ssAlt in Shift) and (Key = vkF4) then
-  begin
     Abort;
-  end;
 end;
 
 procedure TFormTelaRemota.FormMouseWheel(Sender: TObject; Shift: TShiftState;
@@ -417,21 +522,22 @@ end;
 
 procedure TFormTelaRemota.FormResize(Sender: TObject);
 begin
-  PROC_REDIMENSIONARExecute(Sender);
+  PROC_REDIMENSIONAR.Execute;
 end;
 
 procedure TFormTelaRemota.FormShow(Sender: TObject);
 begin
-  CtrlPressed := False;
-  ShiftPressed := False;
-  AltPressed := False;
-  tCapturarComandos.Enabled := True;
-  PROC_REDIMENSIONARExecute(Sender);
-  btnMouse.StaysPressed := Conexao.MostrarMouse;
+  CtrlPressed := false;
+  ShiftPressed := false;
+  AltPressed := false;
+  tCapturarComandos.Enabled := true;
+  PROC_REDIMENSIONAR.Execute;
 
+  sbMouse.StaysPressed := Conexao.MostrarMouse;
   Path4.Fill.Color := StringToAlphaColor('#FFFF1E1E');
-  Conexao.BlockInputs := False;
+  Conexao.BlockInputs := false;
   lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteBlock');
+  cShowForm := false;
 end;
 
 procedure TFormTelaRemota.PROC_ARQUIVOSExecute(Sender: TObject);
@@ -445,14 +551,14 @@ begin
   begin
     // block
     Path4.Fill.Color := StringToAlphaColor('#FF166600');
-    Conexao.BlockInputs := True;
+    Conexao.BlockInputs := true;
     lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteRelease');
   end
   else
   begin
     Path4.Fill.Color := StringToAlphaColor('#FFFF1E1E');
     // unblock
-    Conexao.BlockInputs := False;
+    Conexao.BlockInputs := false;
     lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteBlock');
   end;
 
@@ -466,16 +572,20 @@ end;
 procedure TFormTelaRemota.PROC_MOUSEExecute(Sender: TObject);
 begin
   Conexao.MostrarMouse := not Conexao.MostrarMouse;
-  btnMouse.StaysPressed := Conexao.MostrarMouse;
+  sbMouse.StaysPressed := Conexao.MostrarMouse;
 end;
 
 procedure TFormTelaRemota.PROC_REDIMENSIONARExecute(Sender: TObject);
 begin
-  // imgTelaRemota.Align                := TAlignLayout.Client;
-  // imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
-  // imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
-  pControles.Position.X := (Self.Width / 2) - (pControles.Width / 2);
+  lyToolBar.Position.X := (imgTelaRemota.Width / 2) - (lyToolBar.Width / 2);
+  rrToolBarToggle.Position.X := (imgTelaRemota.Width / 2) -
+    (rrToolBarToggle.Width / 2);
   RetornaMargem;
+end;
+
+procedure TFormTelaRemota.rDDMonitorClick(Sender: TObject);
+begin
+  ToggleDropDown;
 end;
 
 procedure TFormTelaRemota.RetornaMargem;
@@ -594,12 +704,35 @@ begin
   end;
 end;
 
+procedure TFormTelaRemota.MonitorFrameClick(Sender: TObject);
+begin
+  LirMenuButton.Text := (Sender as TfrMonitorItem).LiPopupMonitor.Text;
+
+  If Not(cShowForm) Then
+    If vLastMon <> (LirMenuButton.Text.ToInteger - 1).ToString then
+    Begin
+      vLastMon := (LirMenuButton.Text.ToInteger - 1).ToString;
+      Conexao.SocketPrincipal.Socket.SendText('<|CHANGEMONITOR|>' +
+        vActualIDConnected + '<|>' + vLastMon + '<|END|>');
+    End;
+  ToggleDropDown;
+end;
+
 procedure TFormTelaRemota.SendSocketKeys(AKeys: string);
 var
   Sblockinput: string;
 begin
   Sblockinput := IfThen(Conexao.BlockInputs, '<|BLOCKINPUT|>', '');
   Conexao.SocketTeclado.Socket.SendText(AKeys + Sblockinput);
+end;
+
+procedure TFormTelaRemota.SetColors;
+begin
+  rPopupMonitor.Fill.Color := SECONDARY_COLOR;
+  rrToolBarToggle.Fill.Color := SECONDARY_COLOR;
+  rToolBar.Fill.Color := SECONDARY_COLOR;
+  rDDMonitor.Fill.Color := SECONDARY_COLOR;
+  rMenuButton.Fill.Color := SECONDARY_COLOR;
 end;
 
 procedure TFormTelaRemota.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);

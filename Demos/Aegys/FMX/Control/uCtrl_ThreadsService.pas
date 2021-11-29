@@ -372,7 +372,51 @@ begin
           Sleep(FOLGAPROCESSAMENTO);
       end;
     end;
-
+   iPosition := Pos('<|GETMONITORCOUNT|>', xBuffer);
+   if iPosition > 0 then
+    Begin
+     xID := '';
+     xIDAcesso := '';
+     xBufferTemp := xBuffer;
+     Delete(xBufferTemp, 1, iPosition + Length('<|GETMONITORCOUNT|>') -1);
+     iPosition := Pos('<|>', xBufferTemp);
+     xID := Copy(xBufferTemp, 1, iPosition - 1);
+     Delete(xBufferTemp, 1, iPosition + 2);
+     xIDAcesso := Copy(xBufferTemp, 1, Pos('<|END|>', xBufferTemp) - 1);
+     FConexaoAcesso := nil;
+     FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(xIDAcesso);
+     FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|GETMONITORCOUNT|>' + xID + '<|END|>');
+    End;
+   iPosition := Pos('<|CHANGEMONITOR|>', xBuffer);
+   if iPosition > 0 then
+    Begin
+     xID := '';
+     xIDAcesso := '';
+     xBufferTemp := xBuffer;
+     Delete(xBufferTemp, 1, iPosition + Length('<|CHANGEMONITOR|>') -1);
+     iPosition := Pos('<|>', xBufferTemp);
+     xID := Copy(xBufferTemp, 1, iPosition - 1);
+     Delete(xBufferTemp, 1, iPosition + 2);
+     xIDAcesso := Copy(xBufferTemp, 1, Pos('<|END|>', xBufferTemp) - 1);
+     FConexaoAcesso := nil;
+     FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(xIDAcesso);
+     FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|CHANGEMONITOR|>' + xID + '<|END|>');
+    End;
+   iPosition := Pos('<|MONITORS|>', xBuffer);
+   if iPosition > 0 then
+    Begin
+     xID := '';
+     xIDAcesso := '';
+     xBufferTemp := xBuffer;
+     Delete(xBufferTemp, 1, iPosition + Length('<|MONITORS|>') -1);
+     iPosition := Pos('<|>', xBufferTemp);
+     xID := Copy(xBufferTemp, 1, iPosition - 1);
+     Delete(xBufferTemp, 1, iPosition + 2);
+     xIDAcesso := Copy(xBufferTemp, 1, Pos('<|END|>', xBufferTemp) - 1);
+     FConexaoAcesso := nil;
+     FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(xID);
+     FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|MONITORS|>' + xIDAcesso + '<|END|>');
+    End;
     iPosition := Pos('<|RELATION|>', xBuffer);
     if iPosition > 0 then
     begin

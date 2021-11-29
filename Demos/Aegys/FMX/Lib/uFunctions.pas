@@ -19,7 +19,7 @@ interface
 
 Uses
   System.SysUtils, System.Types, System.Classes, System.TypInfo,
-  FMX.ListBox,
+  FMX.ListBox, FMX.Layouts,
   IniFiles, uConstants;
 
 type
@@ -46,6 +46,11 @@ type
       Criptografado: boolean): String;
     procedure SalvarCfg(Arquivo, Ext, Secao, Campo, Valor: String;
       Criptografado: boolean);
+  end;
+
+  TVertScrollBoxHelper = class helper for TVertScrollBox
+  public
+    procedure Clear;
   end;
 
 implementation
@@ -188,6 +193,16 @@ begin
   else
     Ini.WriteString(Secao, Campo, Valor);
   Ini.Free;
+end;
+
+{ TVertScrollBoxHelper }
+
+procedure TVertScrollBoxHelper.Clear;
+var
+  I: integer;
+begin
+  for I := pred(self.Content.ChildrenCount) downto 0 do
+    self.Content.Children.Items[I].DisposeOf;
 end;
 
 end.
