@@ -1,11 +1,11 @@
 ﻿unit uLibClass;
 
 {
- Project Aegys Remote Support.
+  Project Aegys Remote Support.
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+  higly esteemed collaborators:
 
   Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
   Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
@@ -18,7 +18,7 @@
 interface
 
 uses
-  System.Classes;
+  System.Classes, uConstants;
 
 type
   TRDLib = class
@@ -39,7 +39,8 @@ type
 implementation
 
 uses
-  Winapi.Windows, System.SysUtils, FMX.Forms, Registry, System.Rtti, FMX.Platform,
+  Winapi.Windows, System.SysUtils, FMX.Forms, Registry, System.Rtti,
+  FMX.Platform,
   FMX.Surfaces, System.ZLib;
 
 { TRDLib }
@@ -66,7 +67,8 @@ var
   vValue: TValue;
 begin
   Result := '';
-  if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, Svc) then
+  if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, Svc)
+  then
   begin
     vValue := Svc.GetClipboard;
     if (not vValue.IsEmpty) and (vValue.IsType<string>) then
@@ -104,11 +106,13 @@ class procedure TRDLib.CopiarTexto(ATexto: string);
 var
   Svc: IFMXClipboardService;
 begin
-  if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, Svc) then
+  if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, Svc)
+  then
     Svc.SetClipboard(ATexto);
 end;
 
-class function TRDLib.DeCompressStreamWithZLib(SrcStream: TMemoryStream): Boolean;
+class function TRDLib.DeCompressStreamWithZLib
+  (SrcStream: TMemoryStream): Boolean;
 var
   InputStream: TMemoryStream;
   inbuffer: Pointer;
@@ -136,25 +140,30 @@ begin
 end;
 
 class function TRDLib.GetAppVersionStr: string;
-var
-  Exe: string;
-  Size, Handle: DWORD;
-  Buffer: TBytes;
-  FixedPtr: PVSFixedFileInfo;
+// var
+// Exe: string;
+// Size, Handle: DWORD;
+// Buffer: TBytes;
+// FixedPtr: PVSFixedFileInfo;
 begin
-  Exe := ParamStr(0);
-  Size := GetFileVersionInfoSize(PChar(Exe), Handle);
-  if Size = 0 then
-    RaiseLastOSError;
-  SetLength(Buffer, Size);
-  if not GetFileVersionInfo(PChar(Exe), Handle, Size, Buffer) then
-    RaiseLastOSError;
-  if not VerQueryValue(Buffer, '\', Pointer(FixedPtr), Size) then
-    RaiseLastOSError;
-  Result := Format('%d.%d.%d.%d', [LongRec(FixedPtr.dwFileVersionMS).Hi, // major
-    LongRec(FixedPtr.dwFileVersionMS).Lo, // minor
-    LongRec(FixedPtr.dwFileVersionLS).Hi, // release
-    LongRec(FixedPtr.dwFileVersionLS).Lo]) // build
+{$IFDEF Debug}
+  Result := Format('%s-%s.D', [APPVERSION, APPBUILDV]);
+{$ELSE}
+  Result := Format('%s-%s.R', [APPVERSION, APPBUILDV]);
+{$ENDIF}
+  // Exe := ParamStr(0);
+  // Size := GetFileVersionInfoSize(PChar(Exe), Handle);
+  // if Size = 0 then
+  // RaiseLastOSError;
+  // SetLength(Buffer, Size);
+  // if not GetFileVersionInfo(PChar(Exe), Handle, Size, Buffer) then
+  // RaiseLastOSError;
+  // if not VerQueryValue(Buffer, '\', Pointer(FixedPtr), Size) then
+  // RaiseLastOSError;
+  // Result := Format('%d.%d.%d-%d', [LongRec(FixedPtr.dwFileVersionMS).Hi, // major
+  // LongRec(FixedPtr.dwFileVersionMS).Lo, // minor
+  // LongRec(FixedPtr.dwFileVersionLS).Hi, // release
+  // LongRec(FixedPtr.dwFileVersionLS).Lo]) // build
 end;
 
 class function TRDLib.GetSize(bytes: single): string;
