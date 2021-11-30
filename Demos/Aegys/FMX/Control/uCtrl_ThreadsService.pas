@@ -399,8 +399,8 @@ begin
      Delete(xBufferTemp, 1, iPosition + 2);
      xIDAcesso := Copy(xBufferTemp, 1, Pos('<|END|>', xBufferTemp) - 1);
      FConexaoAcesso := nil;
-     FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(xIDAcesso);
-     FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|CHANGEMONITOR|>' + xID + '<|END|>');
+     FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(xID);
+     FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|CHANGEMONITOR|>' + xIDAcesso + '<|END|>');
     End;
    iPosition := Pos('<|MONITORS|>', xBuffer);
    if iPosition > 0 then

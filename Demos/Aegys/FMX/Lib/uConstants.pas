@@ -33,7 +33,11 @@ const
 
   // frescuragem do app
   PRIMARY_COLOR = $FF0070BA;
+  // vermelho = $FFFF2020;
+  // menta = $FF00BA4D;
   SECONDARY_COLOR = $FFC4E8FF;
+  // vermelho = $FFFFD3D3;
+  // menta = $FFC7FFDE;
 
   // Locale consts
   MAIN = 'SYSTEMINFO';

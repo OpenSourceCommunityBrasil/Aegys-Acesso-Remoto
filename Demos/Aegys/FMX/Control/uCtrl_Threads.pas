@@ -878,13 +878,14 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
     procedure TThreadConexaoAreaRemota.Execute;
     var
-{$IF DEFINED (ANDROID) || (IOS)}
+      {$IF DEFINED (ANDROID) || (IOS)}
       PixelFormat: TPixelFormat;
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
+      {$ENDIF}
+      {$IF DEFINED (MSWINDOWS)}
       PixelFormat: Vcl.Graphics.TPixelFormat;
-{$ENDIF}
+      {$ENDIF}
       Position: Integer;
+      vTempText,
       xValue, Buffer, TempBuffer: String;
       PackStream, MyTempStream, UnPackStream: TMemoryStream;
       MyFirstBmp, MyCompareBmp, MySecondBmp: TStream;
@@ -972,22 +973,18 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             TMemoryStream(MySecondBmp).Clear;
             TMemoryStream(MyCompareBmp).Clear;
             PackStream.Clear;
-
-            // Synchronize(
-            // procedure
-            // begin
-{$IF DEFINED (ANDROID) || (IOS)}
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
+            {$IF DEFINED (ANDROID) || (IOS)}
+            {$ENDIF}
+            {$IF DEFINED (MSWINDOWS)}
             GetScreenToMemoryStream(Conexao.MostrarMouse,
-              TMemoryStream(MyFirstBmp), PixelFormat);
-{$ENDIF}
-            // end);
-            //
+                                    TMemoryStream(MyFirstBmp), PixelFormat, vMonitor);
+            {$ENDIF}
             MyFirstBmp.Position := 0;
             PackStream.LoadFromStream(MyFirstBmp);
+            PackStream.Position := 0;
             TRDLib.CompressStreamWithZLib(PackStream);
             PackStream.Position := 0;
+            vTempText := Socket.ReceiveText;
             Socket.SendText('<|FIRSTIMAGE|>' + TRDLib.MemoryStreamToString(PackStream) + '<|END|>');
             bFirstMon := False;
             while vBreak do
@@ -1019,14 +1016,14 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
               // Workaround to run on change from secure desktop to default.
               try
                 GetScreenToMemoryStream(Conexao.MostrarMouse,
-                  TMemoryStream(MySecondBmp), PixelFormat);
+                  TMemoryStream(MySecondBmp), PixelFormat, vMonitor);
                 MySecondBmp.Position := 0;
               except
                 Synchronize(
                   procedure
                   begin
                     GetScreenToMemoryStream(Conexao.MostrarMouse,
-                      TMemoryStream(MySecondBmp), PixelFormat);
+                      TMemoryStream(MySecondBmp), PixelFormat, vMonitor);
                     MySecondBmp.Position := 0;
                   end);
               end;
@@ -1063,7 +1060,10 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             Position := Pos('<|FIRSTIMAGE|>', Buffer);
             if Position > 0 then
             begin
-              Delete(Buffer, 1, Pos('<|FIRSTIMAGE|>', Buffer) + 13);
+              TMemoryStream(MyFirstBmp).Clear;
+              TMemoryStream(MyCompareBmp).Clear;
+              TMemoryStream(MySecondBmp).Clear;
+              Delete(Buffer, 1, Pos('<|FIRSTIMAGE|>', Buffer) + Length('<|FIRSTIMAGE|>') -1);
               bFirst := True;
             end
             else
@@ -1071,14 +1071,17 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
               Delete(Buffer, 1, Pos('<|IMAGE|>', Buffer) + 8);
               bFirst := False;
             end;
-
             Position := Pos('<|END|>', Buffer);
-            TempBuffer := Copy(Buffer, 1, Position - 1);
+            If Position > 0 Then
+             TempBuffer := Copy(Buffer, 1, Position - 1)
+            Else
+             TempBuffer := Buffer;
             MyTempStream.Write(AnsiString(TempBuffer)[1], Length(TempBuffer));
             Delete(Buffer, 1, Position + 6);
             // Clears the memory of the image that was processed.
             MyTempStream.Position := 0;
             UnPackStream.LoadFromStream(MyTempStream);
+            UnPackStream.Position := 0;
             TRDLib.DeCompressStreamWithZLib(UnPackStream);
 
             if (bFirst) and (MyFirstBmp.Size = 0) then

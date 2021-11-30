@@ -194,6 +194,7 @@ Var
   {$IF DEFINED (MSWINDOWS)}
   Mybmp: Vcl.Graphics.TBitmap;
   dc: hdc;
+  vMonitor,
   Left, Top: Integer;
   {$ENDIF}
   DesktopCanvas: TCanvas;
@@ -248,13 +249,15 @@ Begin
   Mybmp := Vcl.Graphics.TBitmap.Create;
 //  dc := GetWindowDC(0);
   {$ENDIF}
-  If ((StrToInt(Monitor) +1) > FMX.Forms.Screen.DisplayCount) then
+  vMonitor := StrToInt(Monitor) +1;
+  If (vMonitor > FMX.Forms.Screen.DisplayCount) then
    Exit;
+  vMonitor := vMonitor -1;
   Try
     DC:= GetDC(0);
     If (DC = 0) Then
      Exit;
-//    If (StrToInt(Monitor) = 0) Then
+//    If (vMonitor = 0) Then
 //     Begin
 //      Mybmp.Width := Screen.DesktopWidth;
 //      Mybmp.Height := Screen.DesktopHeight;
@@ -263,10 +266,10 @@ Begin
 //     End
 //    Else
 //     Begin
-    Mybmp.Width := Screen.Monitors[StrToInt(Monitor)].Width;
-    Mybmp.Height := Screen.Monitors[StrToInt(Monitor)].Height;
-    Left := Screen.Monitors[StrToInt(Monitor)].Left;
-    Top := Screen.Monitors[StrToInt(Monitor)].Top;
+    Mybmp.Width := Screen.Monitors[vMonitor].Width;
+    Mybmp.Height := Screen.Monitors[vMonitor].Height;
+    Left := Screen.Monitors[vMonitor].Left;
+    Top := Screen.Monitors[vMonitor].Top;
 //     End;
     DesktopCanvas := TCanvas.Create;
     Try

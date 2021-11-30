@@ -127,11 +127,11 @@ begin
     zdecompress(inbuffer, count, outbuffer, outcount);
     SrcStream.Clear;
     SrcStream.Write(outbuffer^, outcount);
+    FreeMem(outbuffer, outcount);
     Result := true;
   finally
     FreeAndNil(InputStream);
     FreeMem(inbuffer, count);
-    FreeMem(outbuffer, outcount);
   end;
 end;
 
