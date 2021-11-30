@@ -22,7 +22,7 @@ uses
 
   IdBaseComponent,
   IdComponent, IdUDPBase, IdUDPClient, IdCustomTCPServer, IdSocksServer
-
+  , VCL.Forms
 {$IF DEFINED (ANDROID) || (IOS)}
     , Fmx.Graphics
 {$ENDIF}
@@ -127,8 +127,7 @@ uses uFormArquivos, uFormChat, uFormConexao, uFormTelaRemota,
 
 Function TThreadConexaoPrincipal.GetMonitorCount : Integer;
 Begin
- Screen.UpdateDisplayInformation;
- Result := Screen.DisplayCount;
+ Result := VCL.Forms.Screen.MonitorCount;
 End;
 
 {$IF DEFINED (ANDROID) || (IOS)}
@@ -364,7 +363,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
               FormConexao.Hide;
               Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' +
                 FormConexao.EGuestID.Text + '<|>' + '<|BESTQ|>' +
-                IntToStr(FormConexao.cbQualidade.ItemIndex) + '<|END|>');
+                IntToStr(FormConexao.cbQuality.ItemIndex) + '<|END|>');
             end);
         end;
 

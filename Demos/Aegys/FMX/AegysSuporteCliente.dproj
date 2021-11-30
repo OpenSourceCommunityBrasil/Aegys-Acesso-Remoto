@@ -322,7 +322,6 @@
         <DCCReference Include="Lib\ClipBoard\CCR.Clipboard.Win.pas"/>
         <DCCReference Include="View\Frame\ufrMonitorItem.pas">
             <Form>frMonitorItem</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <RcItem Include="Assets\Resources\RunAsSystem.exe">

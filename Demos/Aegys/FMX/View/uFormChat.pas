@@ -47,6 +47,7 @@ type
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
     procedure ExtractSoundandPlay;
+    procedure SetColors;
   public
     procedure Mensagem(AMensagem: string; AAtendente: Boolean = True);
   end;
@@ -130,7 +131,7 @@ end;
 procedure TFormChat.FormCreate(Sender: TObject);
 begin
   // SetWindowLong(Handle, GWL_EXSTYLE, WS_EX_APPWINDOW);
-  phSendMessage.Fill.Color := PRIMARY_COLOR;
+  SetColors;
   FormChat.Top := Trunc(Screen.WorkAreaHeight - FormChat.Height);
   FormChat.Left := Trunc(Screen.WorkAreaWidth - FormChat.Width);
 end;
@@ -148,6 +149,11 @@ end;
 procedure TFormChat.sbSendMessageClick(Sender: TObject);
 begin
   actSendText.Execute;
+end;
+
+procedure TFormChat.SetColors;
+begin
+  phSendMessage.Fill.Color := PRIMARY_COLOR;
 end;
 
 end.

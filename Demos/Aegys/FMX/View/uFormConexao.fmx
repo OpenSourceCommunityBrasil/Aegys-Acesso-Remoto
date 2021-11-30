@@ -311,7 +311,7 @@ object FormConexao: TFormConexao
           end
         end
       end
-      object lyResolution: TLayout
+      object lyQuality: TLayout
         Align = Top
         Margins.Top = 10.000000000000000000
         Position.Y = 242.000000000000000000
@@ -319,7 +319,7 @@ object FormConexao: TFormConexao
         Size.Height = 55.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 32
-        object Rectangle1: TRectangle
+        object rQuality: TRectangle
           Align = Top
           Size.Width = 314.000000000000000000
           Size.Height = 20.000000000000000000
@@ -340,7 +340,7 @@ object FormConexao: TFormConexao
             Text = 'Qualidade do V'#237'deo'
           end
         end
-        object cbQualidade: TComboBox
+        object cbQuality: TComboBox
           Align = Center
           Locked = True
           Items.Strings = (

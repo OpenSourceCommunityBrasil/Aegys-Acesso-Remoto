@@ -70,6 +70,7 @@ type
     LirMenuButton: TLabel;
     rDDMonitor: TRectangle;
     LDDMonitor: TLabel;
+    lyCloseDropDown: TLayout;
     procedure PROC_ARQUIVOSExecute(Sender: TObject);
     procedure PROC_CHATExecute(Sender: TObject);
     procedure imgTelaRemotaMouseMove(Sender: TObject; Shift: TShiftState;
@@ -94,6 +95,7 @@ type
     procedure rDDMonitorClick(Sender: TObject);
     procedure rrToolBarToggleClick(Sender: TObject);
     procedure SetColors;
+    procedure lyCloseDropDownClick(Sender: TObject);
   private
     vLastMon, vActualIDConnected: String;
     Locale: TLocale;
@@ -106,7 +108,7 @@ type
     procedure Translate;
     Procedure Wait(Value: Integer);
     procedure MonitorFrameClick(Sender: TObject);
-    procedure ToggleDropDown;
+    procedure ToggleDropDown(forceClose: Boolean = false);
   public
     CtrlPressed, ShiftPressed, AltPressed, IgnoreKey: Boolean;
     Procedure AddItems(MoniNum: Integer);
@@ -456,17 +458,21 @@ begin
   end;
 end;
 
-procedure TFormTelaRemota.ToggleDropDown;
+procedure TFormTelaRemota.ToggleDropDown(forceClose: Boolean = false);
 begin
   if not rPopupMonitor.Visible then
   begin
+    lyCloseDropDown.Visible := true;
     rPopupMonitor.Position.Y := lyToolBar.Height - 10;
     rPopupMonitor.Position.X := lyToolBar.Width + lyToolBar.Position.X -
       (rPopupMonitor.Width + 10);
     LDDMonitor.RotationAngle := 0;
   end
   else
+  begin
+    lyCloseDropDown.Visible := false;
     LDDMonitor.RotationAngle := 180;
+  end;
   rPopupMonitor.Visible := not rPopupMonitor.Visible;
 end;
 
@@ -479,6 +485,7 @@ end;
 
 procedure TFormTelaRemota.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  cShowForm := true;
   FormArquivos.Hide;
   FormChat.Hide;
   Conexao.SocketPrincipal.Socket.SendText('<|STOPACCESS|>');
@@ -493,7 +500,6 @@ begin
   rrToolBarToggle.Position.Y := 0;
   rPopupMonitor.Visible := false;
   FCollapsed := true;
-
   cShowForm := true;
   SetWindowLong(FmxHandleToHWND(Handle), GWL_EXSTYLE, WS_EX_APPWINDOW);
 end;
@@ -537,6 +543,11 @@ begin
   Path4.Fill.Color := StringToAlphaColor('#FFFF1E1E');
   Conexao.BlockInputs := false;
   lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteBlock');
+  if cShowForm then
+  Begin
+    FCollapsed := true;
+    rrToolBarToggle.OnClick(rrToolBarToggle);
+  End;
   cShowForm := false;
 end;
 
@@ -702,6 +713,12 @@ begin
     Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|SETMOUSEMIDDLEUP|>' +
       IntToStr(iX) + '<|>' + IntToStr(iY) + '<|END|>' + Sblockinput);
   end;
+end;
+
+procedure TFormTelaRemota.lyCloseDropDownClick(Sender: TObject);
+begin
+  ToggleDropDown(true);
+  lyCloseDropDown.Visible := false;
 end;
 
 procedure TFormTelaRemota.MonitorFrameClick(Sender: TObject);

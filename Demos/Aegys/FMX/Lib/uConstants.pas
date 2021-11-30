@@ -20,16 +20,18 @@ interface
 type
   IDThreadType = (ttPrincipal, ttAreaRemota, ttTeclado, ttArquivos);
   TComboTypes = (tcbQuality, tcbLanguage);
-  TLanguageImage = (AR_SA, DE_DE, EN_US, ES_ES, FR_FR, IT_IT, JA_JA, KO_KO, PT_BR,
-    RU_RU, ZH_CN, ZH_TW);
+  TLanguageImage = (AR_SA, DE_DE, EN_US, ES_ES, FR_FR, IT_IT, JA_JA, KO_KO,
+    PT_BR, RU_RU, ZH_CN, ZH_TW);
 
 const
   PORTA = 3898;
   FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '192.168.0.181';
+  SERVIDOR = '201.73.143.69';
   // Svr: Razios '201.4.250.4' //Svr:Embratel '201.73.143.69';
   INTERVALOCONEXAO = 60;
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
+
+  // frescuragem do app
   PRIMARY_COLOR = $FF0070BA;
   SECONDARY_COLOR = $FFC4E8FF;
 

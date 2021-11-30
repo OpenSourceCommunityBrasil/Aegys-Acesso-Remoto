@@ -25,7 +25,7 @@ type
     LApplyButton: TLabel;
     VSB: TVertScrollBox;
     lyLanguage: TLayout;
-    Rectangle4: TRectangle;
+    RLanguage: TRectangle;
     LLanguageSelector: TLabel;
     Layout10: TLayout;
     lyPassword: TLayout;
@@ -77,6 +77,7 @@ begin
   Locale := TLocale.Create;
   Cfg := TCFGINI.Create;
   EPassword.Text := Cfg.LerCfg('cfg', 'ini', 'CFG', 'pass', false);
+  SetColors;
   Translate;
 end;
 
@@ -120,6 +121,8 @@ end;
 
 procedure TfConfig.SetColors;
 begin
+  RPassword.Fill.Color := SECONDARY_COLOR;
+  RLanguage.Fill.Color := SECONDARY_COLOR;
   rrApply.Fill.Color := PRIMARY_COLOR;
   rrReturn.Fill.Color := PRIMARY_COLOR;
 end;

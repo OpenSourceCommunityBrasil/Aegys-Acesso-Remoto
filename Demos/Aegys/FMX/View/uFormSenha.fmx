@@ -125,7 +125,7 @@ object FormSenha: TFormSenha
       Size.Height = 56.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
-      object Rectangle4: TRectangle
+      object RPassword: TRectangle
         Align = Top
         Size.Width = 278.000000000000000000
         Size.Height = 20.000000000000000000

@@ -35,7 +35,7 @@ type
     LOkButton: TLabel;
     aniBtnLogin: TFloatAnimation;
     Layout9: TLayout;
-    Rectangle4: TRectangle;
+    RPassword: TRectangle;
     LPassword: TLabel;
     Layout10: TLayout;
     EPassword: TEdit;
@@ -58,6 +58,7 @@ type
   private
     { Private declarations }
     Locale: TLocale;
+    procedure SetColors;
   public
     { Public declarations }
   end;
@@ -75,8 +76,7 @@ uses uFormTelaRemota, uFormConexao, uLibClass, uConstants;
 procedure TFormSenha.EPasswordKeyUp(Sender: TObject; var Key: Word;
   var KeyChar: Char; Shift: TShiftState);
 begin
- if (Key = vkReturn) And
-    (EPassword.Text <> '') then
+  if (Key = vkReturn) And (EPassword.Text <> '') then
   begin
     PROC_SENHAExecute(Sender);
     Key := vkNone;
@@ -95,8 +95,7 @@ end;
 procedure TFormSenha.FormCreate(Sender: TObject);
 begin
   Locale := TLocale.Create;
-  btnLogin.Fill.Color := PRIMARY_COLOR;
-  Path1.Fill.Color := PRIMARY_COLOR;
+  SetColors;
   // SetWindowLong(Handle, GWL_EXSTYLE, WS_EX_APPWINDOW);
 end;
 
@@ -123,6 +122,13 @@ begin
     FormConexao.EGuestID.Text + '<|>' + EPassword.Text + '<|END|>');
   Canceled := False;
   Close;
+end;
+
+procedure TFormSenha.SetColors;
+begin
+  RPassword.Fill.Color := SECONDARY_COLOR;
+  Path1.Fill.Color := PRIMARY_COLOR;
+  btnLogin.Fill.Color := PRIMARY_COLOR;
 end;
 
 procedure TFormSenha.EPasswordKeyDown(Sender: TObject; var Key: Word;

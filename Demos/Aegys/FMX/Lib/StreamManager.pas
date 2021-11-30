@@ -254,20 +254,20 @@ Begin
     DC:= GetDC(0);
     If (DC = 0) Then
      Exit;
-    If (StrToInt(Monitor) = 0) Then
-     Begin
-      Mybmp.Width := Screen.DesktopWidth;
-      Mybmp.Height := Screen.DesktopHeight;
-      Left := Screen.DesktopLeft;
-      Top := Screen.DesktopTop;
-     End
-    Else
-     Begin
-      Mybmp.Width := Screen.Monitors[StrToInt(Monitor)].Width;
-      Mybmp.Height := Screen.Monitors[StrToInt(Monitor)].Height;
-      Left := Screen.Monitors[StrToInt(Monitor)].Left;
-      Top := Screen.Monitors[StrToInt(Monitor)].Top;
-     End;
+//    If (StrToInt(Monitor) = 0) Then
+//     Begin
+//      Mybmp.Width := Screen.DesktopWidth;
+//      Mybmp.Height := Screen.DesktopHeight;
+//      Left := Screen.DesktopLeft;
+//      Top := Screen.DesktopTop;
+//     End
+//    Else
+//     Begin
+    Mybmp.Width := Screen.Monitors[StrToInt(Monitor)].Width;
+    Mybmp.Height := Screen.Monitors[StrToInt(Monitor)].Height;
+    Left := Screen.Monitors[StrToInt(Monitor)].Left;
+    Top := Screen.Monitors[StrToInt(Monitor)].Top;
+//     End;
     DesktopCanvas := TCanvas.Create;
     Try
      DesktopCanvas.Handle := DC;

@@ -24,7 +24,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
   FMX.Ani, FMX.TabControl, FMX.ListBox,
-  uCtrl_Threads, uCtrl_Conexao, uFunctions,  CCR.Clipboard;
+  uCtrl_Threads, uCtrl_Conexao, uFunctions, CCR.Clipboard;
 
 type
   TFormConexao = class(TForm)
@@ -67,10 +67,10 @@ type
     LVersion: TLabel;
     phOptions: TPath;
     sbOptions: TSpeedButton;
-    lyResolution: TLayout;
-    Rectangle1: TRectangle;
+    lyQuality: TLayout;
+    rQuality: TRectangle;
     LlyResolutionCaption: TLabel;
-    cbQualidade: TComboBox;
+    cbQuality: TComboBox;
     lyPassword: TLayout;
     RPassword: TRectangle;
     LlyPasswordCaption: TLabel;
@@ -115,7 +115,7 @@ implementation
 {$R *.fmx}
 
 uses uFormTelaRemota, uFormArquivos, uFormChat, FMX.Clipboard,
-  System.IOUtils,  System.Rtti, uLibClass,
+  System.IOUtils, System.Rtti, uLibClass,
   Winapi.Windows, uConstants, BCrypt, System.DateUtils, uHttpClass,
   System.Threading, Winapi.ShellAPI, FMX.Platform.Win, uFormConfig;
 
@@ -152,7 +152,7 @@ Procedure TFormConexao.tmrClipboardTimer(Sender: TObject);
 Var
 
   FileStream: TFileStream;
-  s,FileName:string;
+  s, FileName: string;
   ClipFormat: TClipboardFormat;
 Begin
   tmrClipboard.Enabled := Conexao.Visualizador;
@@ -166,24 +166,27 @@ Begin
         Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CLIPBOARD|>' +
           Conexao.OldClipboardText + '<|END|>');
       End;
-    end else
+    end
+    else
     begin
       for s in Clipboard.GetFileNames do
       begin
-        if (Conexao.OldClipboardFile <> s) Then
+       if s <> '' then
+        if (Conexao.OldClipboardFile <> s) And (FileExists(s)) Then
         begin
           FileStream := TFileStream.Create(s, fmOpenRead);
           FileName := ExtractFileName(s);
-          Conexao.OldClipboardFile :=s;
-          Conexao.SocketArquivos.Socket.SendText('<|DIRECTORYTOSAVE|>'
-            + FileName + '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
+          Conexao.OldClipboardFile := s;
+          Conexao.SocketArquivos.Socket.SendText('<|DIRECTORYTOSAVE|>' +
+            FileName + '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
           FileStream.Position := 0;
           Conexao.SocketArquivos.Socket.SendStream(FileStream);
         end;
       end;
-    end ;
-  except on E:Exception do
-    ShowMessage(e.Message);
+    end;
+  except
+    on E: Exception do
+      ShowMessage(E.Message);
   end;
 
 end;
@@ -203,6 +206,7 @@ begin
   CFG := TCFGINI.Create;
   Conexao := TConexao.Create;
   // --------------------------
+  SetColors;
   SetOffline;
   Translate;
 end;
@@ -266,10 +270,12 @@ begin
   Data := GetClipboardData(CF_FILE);
   try
     if Data <> 0 then
-      Result := PChar(GlobalLock(Data)) else
+      Result := PChar(GlobalLock(Data))
+    else
       Result := '';
   finally
-    if Data <> 0 then GlobalUnlock(Data);
+    if Data <> 0 then
+      GlobalUnlock(Data);
     Clipboard.Close;
   end;
 end;
@@ -303,7 +309,7 @@ end;
 
 procedure TFormConexao.actCopyPasswordExecute(Sender: TObject);
 begin
-    TRDLib.CopiarTexto(LPassword.Text)
+  TRDLib.CopiarTexto(LPassword.Text)
 end;
 
 procedure TFormConexao.tmrReconnectTimer(Sender: TObject);
@@ -322,12 +328,16 @@ begin
   LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
   LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
   LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
-  Locale.GetLocale(cbQualidade, tcbQuality);
+  Locale.GetLocale(cbQuality, tcbQuality);
   Conexao.ReconectarSocket(True);
 end;
 
 procedure TFormConexao.SetColors;
 begin
+  RGuestID.Fill.Color := SECONDARY_COLOR;
+  RMachineID.Fill.Color := SECONDARY_COLOR;
+  rQuality.Fill.Color := SECONDARY_COLOR;
+  RPassword.Fill.Color := SECONDARY_COLOR;
   PhLogo.Fill.Color := PRIMARY_COLOR;
   phOptions.Fill.Color := PRIMARY_COLOR;
   btnConectar.Fill.Color := PRIMARY_COLOR;
