@@ -18,6 +18,7 @@ object FormConexao: TFormConexao
   OnCreate = FormCreate
   OnClose = FormClose
   OnDestroy = FormDestroy
+  OnMouseMove = FormMouseMove
   DesignerMasterStyle = 0
   object tmrIntervalo: TTimer
     Enabled = False
@@ -622,6 +623,18 @@ object FormConexao: TFormConexao
         end
       end
     end
+  end
+  object Pm_systemtray: TPopupMenu
+    Left = 260
+    Top = 333
+    object MenuItem1: TMenuItem
+      Text = 'Abrir'
+    end
+  end
+  object TmrSystemTray: TTimer
+    OnTimer = TmrSystemTrayTimer
+    Left = 292
+    Top = 172
   end
   object ActionList1: TActionList
     Left = 256

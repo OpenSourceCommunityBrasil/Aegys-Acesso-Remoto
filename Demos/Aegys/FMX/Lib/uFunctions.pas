@@ -20,7 +20,7 @@ interface
 Uses
   System.SysUtils, System.Types, System.Classes, System.TypInfo,
   FMX.ListBox, FMX.Layouts,
-  IniFiles, uConstants;
+  IniFiles, uConstants,Registry,Winapi.windows ;
 
 type
   TLocale = class
@@ -52,8 +52,32 @@ type
   public
     procedure Clear;
   end;
-
+  function iif(bcondicao:boolean;vtrue,vfalse:variant):variant;
+  function RunOnStartup(sProgTitle, sCmdLine: string; bRunOnce: boolean):boolean;
 implementation
+
+function RunOnStartup(sProgTitle, sCmdLine: string; bRunOnce: boolean):boolean;
+var
+  sKey: string;
+  reg : TRegIniFile;
+begin
+  if not bRunOnce then
+      sKey := ''
+  else
+    sKey := 'Once';
+  reg := TRegIniFile.Create('');
+  reg.RootKey := HKEY_LOCAL_MACHINE;
+  reg.WriteString('Software\Microsoft\Windows\CurrentVersion\Run'
++ sKey + #0, sProgTitle, sCmdLine);
+  reg.Free;
+end;
+
+function iif(bcondicao:boolean;vtrue,vfalse:variant):variant;
+begin
+  if bcondicao then
+  Result := vtrue else result :=vfalse;
+end;
+
 
 { TLocale }
 

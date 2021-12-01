@@ -24,7 +24,8 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
   FMX.Ani, FMX.TabControl, FMX.ListBox,
-  uCtrl_Threads, uCtrl_Conexao, uFunctions, CCR.Clipboard;
+  uCtrl_Threads, uCtrl_Conexao, uFunctions, CCR.Clipboard,windows,shellapi,
+  System.Messaging,Messages, FMX.Menus;
 
 type
   TFormConexao = class(TForm)
@@ -78,6 +79,9 @@ type
     LPassword: TLabel;
     sbPasswordCopy: TSpeedButton;
     PhPasswordCopy: TPath;
+    Pm_systemtray: TPopupMenu;
+    MenuItem1: TMenuItem;
+    TmrSystemTray: TTimer;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure actPasteIDExecute(Sender: TObject);
@@ -90,14 +94,25 @@ type
     procedure EGuestIDTyping(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure sbOptionsClick(Sender: TObject);
+    procedure TmrSystemTrayTimer(Sender: TObject);
+    procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
   private
     FHash: string;
     Locale: TLocale;
     CFG: TCFGINI;
+    TrayWnd: HWND;
+    TrayIconData: TNotifyIconData;
+    TrayIconAdded: Boolean;
+    systemtray:boolean;
     function MascaraID(AText, AMascara: string): string;
     procedure Translate;
     procedure SetColors;
     function ClipboardGetAsFile: string;
+
+
+    procedure TrayWndProc(var Message: TMessage);
+    procedure ShowAppOnTaskbar();
+    procedure HideApponTaskbar();
   public
     procedure LimparConexao;
     procedure MudarStatusConexao(AStatus: Integer; AMensagem: string);
@@ -109,6 +124,10 @@ var
   FormConexao: TFormConexao;
   Conexao: TConexao;
   CF_FILE: Integer;
+  mx,my:single;
+
+ const
+      WM_ICONTRAY = WM_USER + 1;
 
 implementation
 
@@ -116,8 +135,8 @@ implementation
 
 uses uFormTelaRemota, uFormArquivos, uFormChat, FMX.Clipboard,
   System.IOUtils, System.Rtti, uLibClass,
-  Winapi.Windows, uConstants, BCrypt, System.DateUtils, uHttpClass,
-  System.Threading, Winapi.ShellAPI, FMX.Platform.Win, uFormConfig;
+   uConstants, BCrypt, System.DateUtils, uHttpClass,
+  System.Threading, FMX.Platform.Win, uFormConfig;
 
 Procedure TFormConexao.LimparConexao;
 Begin
@@ -199,6 +218,10 @@ begin
 end;
 
 procedure TFormConexao.FormCreate(Sender: TObject);
+var
+  quicksuporte:boolean;
+
+
 begin
   CF_FILE := RegisterClipboardFormat('FileName');
   // inicializando os objetos
@@ -209,12 +232,56 @@ begin
   SetColors;
   SetOffline;
   Translate;
+  //load confg
+  quicksuporte:= iif( Cfg.LerCfg('cfg', 'ini', 'CFG', 'quicksuporte', false)='true',true,false);
+  systemtray  := iif( Cfg.LerCfg('cfg', 'ini', 'CFG', 'systemtray', false)='true',true,false);
+  lyGuestID.Visible := not quicksuporte;
+  lyConnect.Visible := not quicksuporte;
+
+  if systemtray then
+  begin
+    HideApponTaskbar;
+    TrayWnd := AllocateHWnd(TRayWndProc); // Alocate the wndProc
+    with TrayIconData do
+    begin                // Instaciate
+      cbSize := SizeOf;
+      Wnd := TrayWnd;
+        uID := 1;
+      uFlags := NIF_MESSAGE + NIF_ICON + NIF_TIP;
+      uCallbackMessage := WM_ICONTRAY;
+      hIcon := GetClassLong(FmxHandleToHWND(self.Handle), GCL_HICONSM);
+      StrPCopy(szTip, 'Aegys Remote Acess');
+    end;
+    //creating the icon
+    if not  TrayIconAdded then
+    TrayIconAdded := Shell_NotifyIcon(NIM_ADD, @TrayIconData) ;
+
+  end;
 end;
 
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
   Locale.DisposeOf;
   CFG.DisposeOf;
+end;
+
+procedure TFormConexao.FormMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Single);
+begin
+  Mx := x;
+  My := y;
+end;
+
+procedure TFormConexao.HideApponTaskbar;
+var
+  hAppWnd:HWND ;
+  ExStyle: LONG_PTR;
+begin
+    hAppWnd := Fmx.Platform.Win.ApplicationHWND();
+    ShowWindow(hAppWnd, SW_HIDE);
+    ExStyle := GetWindowLongPtr(hAppWnd, GWL_EXSTYLE);
+    SetWindowLongPtr(hAppWnd, GWL_EXSTYLE, (ExStyle and WS_EX_APPWINDOW) or WS_EX_TOOLWINDOW);
+    //ShowWindow(hAppWnd, SW_SHOW);
 end;
 
 function TFormConexao.MascaraID(AText, AMascara: string): string;
@@ -332,6 +399,31 @@ begin
   Conexao.ReconectarSocket(True);
 end;
 
+procedure TFormConexao.TrayWndProc(var Message: TMessage);
+begin
+
+
+  if Message.MSG = WM_ICONTRAY then
+  begin
+      case Message.LParam of
+                     WM_LBUTTONDOWN:
+                     begin
+                       FormConexao.Show;//If u use some frmMain.hide
+                       SetForegroundWindow(FmxHandleToHWND(FormConexao.Handle));
+                       if TrayIconAdded then
+                       begin
+                        //Shell_NotifyIcon(NIM_DELETE, @TrayIconData);
+                        TrayIconAdded := false;
+                        ShowAppOnTaskbar;
+                       end;
+                     end;
+       //WM_RBUTTONDOWN: ShowMessage('RolePlay , but can be a PopUpMenu');
+      end;
+     end
+  else
+    Message.Result := DefWindowProc(TrayWnd, Message.Msg, Message.WParam, Message.LParam);
+end;
+
 procedure TFormConexao.SetColors;
 begin
   RGuestID.Fill.Color := SECONDARY_COLOR;
@@ -359,6 +451,25 @@ begin
   LPassword.Text := Conexao.SenhaGerada;
   btnConectar.Enabled := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
+end;
+
+procedure TFormConexao.ShowAppOnTaskbar;
+var
+ hAppWnd : HWND;
+ ExStyle: LONG_PTR;
+begin
+  hAppWnd := Fmx.Platform.Win.ApplicationHWND();
+  ShowWindow(hAppWnd, SW_HIDE);
+  ExStyle := GetWindowLongPtr(hAppWnd, GWL_EXSTYLE);
+  SetWindowLongPtr(hAppWnd, GWL_EXSTYLE, (ExStyle and WS_EX_TOOLWINDOW) or WS_EX_APPWINDOW);
+  ShowWindow(hAppWnd, SW_SHOW);
+end;
+
+procedure TFormConexao.TmrSystemTrayTimer(Sender: TObject);
+begin
+  TmrSystemTray.Enabled:=false;
+  if systemtray then
+  self.Hide;
 end;
 
 procedure TFormConexao.EGuestIDTyping(Sender: TObject);

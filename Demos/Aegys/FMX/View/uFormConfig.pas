@@ -40,6 +40,15 @@ type
     ListBoxItem3: TListBoxItem;
     ListBoxItem4: TListBoxItem;
     ListBoxItem5: TListBoxItem;
+    swrun_startup: TSwitch;
+    lyrunonstartup: TLayout;
+    Lrunonstartup: TLabel;
+    lyquicksuporte: TLayout;
+    Swquicksuporte: TSwitch;
+    Lquicksuporte: TLabel;
+    lysystemtray: TLayout;
+    swsystem_tray: TSwitch;
+    Lrunonsystemtray: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure rrReturnClick(Sender: TObject);
@@ -76,7 +85,14 @@ procedure TfConfig.FormCreate(Sender: TObject);
 begin
   Locale := TLocale.Create;
   Cfg := TCFGINI.Create;
-  EPassword.Text := Cfg.LerCfg('cfg', 'ini', 'CFG', 'pass', false);
+  EPassword.Text           := Cfg.LerCfg('cfg', 'ini', 'CFG', 'pass', false);
+  swrun_startup.IsChecked  :=
+  iif( Cfg.LerCfg('cfg', 'ini', 'CFG', 'runonstartup', false)='true',true,false);
+  Swquicksuporte.IsChecked  :=
+  iif( Cfg.LerCfg('cfg', 'ini', 'CFG', 'quicksuporte', false)='true',true,false);
+  swsystem_tray.IsChecked  :=
+  iif( Cfg.LerCfg('cfg', 'ini', 'CFG', 'systemtray', false)='true',true,false);
+
   SetColors;
   Translate;
 end;
@@ -99,9 +115,15 @@ begin
   end;
 
   Cfg.SalvarCfg('cfg', 'ini', 'CFG', 'pass', EPassword.Text, false);
+  Cfg.salvarCFG('cfg', 'ini', 'CFG', 'runonstartup', iif( swrun_startup.IsChecked ,'true','false'),false);
+  Cfg.salvarCFG('cfg', 'ini', 'CFG', 'quicksuporte', iif( Swquicksuporte.IsChecked ,'true','false'),false);
+  Cfg.salvarCFG('cfg', 'ini', 'CFG', 'systemtray', iif( swsystem_tray.IsChecked ,'true','false'),false);
+
+
+  RunOnStartup('AEGYS Remote Acess', Application.Name, swrun_startup.IsChecked);
 
   if Assigned(FCallBack) then
-    FCallBack;
+   FCallBack;
 end;
 
 procedure TfConfig.rrApplyMouseEnter(Sender: TObject);
