@@ -4,11 +4,14 @@ interface
 
 uses
   FireDAC.Comp.Client,
-{$IF CompilerVersion > 33}
+{$IF CompilerVersion > 33.0}
   FireDAC.phys.SQLite,
 {$ENDIF}
-{$IF CompilerVersion > 34}
+{$IF (CompilerVersion > 34.0) or (CompilerVersion = 31.0)}
   FireDAC.Stan.Def, FireDAC.DApt, FireDAC.FMXUI.Wait, FireDAC.Stan.Async,
+{$ENDIF}
+{$IF CompilerVersion = 31.0}
+  FireDAC.Stan.StorageJSON, FireDAC.Stan.StorageBin, FireDAC.Phys.SQLite,
 {$ENDIF}
   System.JSON, System.SysUtils,
   uConstants;

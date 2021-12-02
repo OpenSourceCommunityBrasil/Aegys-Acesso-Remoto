@@ -20,12 +20,12 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes,
   System.Variants, System.Actions,
-  System.Win.ScktComp,
+  System.Win.ScktComp, System.Messaging,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
-  FMX.Ani, FMX.TabControl, FMX.ListBox,
+  FMX.Ani, FMX.TabControl, FMX.ListBox, FMX.Menus,
   uCtrl_Threads, uCtrl_Conexao, uFunctions, CCR.Clipboard, windows, shellapi,
-  System.Messaging, Messages, FMX.Menus, uSQLiteConfig;
+  Messages, uSQLiteConfig;
 
 type
   TFormConexao = class(TForm)

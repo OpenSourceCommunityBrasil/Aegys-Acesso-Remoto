@@ -33,7 +33,7 @@ const
 
   //Controle de Versão
   APPVERSION = '2.0.1';
-  APPBUILDV = '68';
+  APPBUILDV = '71';
 
   // frescuragem do app
   PRIMARY_COLOR = $FF0070BA;
