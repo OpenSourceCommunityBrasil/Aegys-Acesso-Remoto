@@ -19,6 +19,7 @@ object FormConexao: TFormConexao
   OnClose = FormClose
   OnDestroy = FormDestroy
   OnMouseMove = FormMouseMove
+  OnShow = FormShow
   DesignerMasterStyle = 0
   object tmrIntervalo: TTimer
     Enabled = False

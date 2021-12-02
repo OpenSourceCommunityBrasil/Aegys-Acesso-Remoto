@@ -38,16 +38,6 @@ type
       write SetLocaleFileName;
   end;
 
-  TCFGINI = class
-  private
-
-  public
-    function LerCfg(Arquivo, Ext, Secao, Campo: String;
-      Criptografado: boolean): String;
-    procedure SalvarCfg(Arquivo, Ext, Secao, Campo, Valor: String;
-      Criptografado: boolean);
-  end;
-
   TVertScrollBoxHelper = class helper for TVertScrollBox
   public
     procedure Clear;
@@ -189,34 +179,6 @@ end;
 procedure TLocale.SetLocaleFileName(const Value: string);
 begin
   FLocaleFileName := Value;
-end;
-
-{ TCFGINI }
-
-function TCFGINI.LerCfg(Arquivo, Ext, Secao, Campo: String;
-  Criptografado: boolean): String;
-var
-  Ini: TIniFile;
-begin
-  Ini := TIniFile.Create(ExtractFilePath(ParamStr(0)) + Arquivo + '.' + Ext);
-  if Criptografado = true then
-    Result := Ini.ReadString(Secao, Campo, '')
-  else
-    Result := Ini.ReadString(Secao, Campo, '');
-  Ini.Free;
-end;
-
-procedure TCFGINI.SalvarCfg(Arquivo, Ext, Secao, Campo, Valor: String;
-  Criptografado: boolean);
-Var
-  Ini: TIniFile;
-begin
-  Ini := TIniFile.Create(ExtractFilePath(ParamStr(0)) + Arquivo + '.' + Ext);
-  if Criptografado = true then
-    Ini.WriteString(Secao, Campo, Valor)
-  else
-    Ini.WriteString(Secao, Campo, Valor);
-  Ini.Free;
 end;
 
 { TVertScrollBoxHelper }

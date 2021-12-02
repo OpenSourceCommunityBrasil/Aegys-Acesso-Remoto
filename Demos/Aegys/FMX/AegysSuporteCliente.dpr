@@ -37,7 +37,8 @@ uses
   CCR.Clipboard in 'Lib\ClipBoard\CCR.Clipboard.pas',
   CCR.Clipboard.VCL in 'Lib\ClipBoard\CCR.Clipboard.VCL.pas',
   CCR.Clipboard.Win in 'Lib\ClipBoard\CCR.Clipboard.Win.pas',
-  ufrMonitorItem in 'View\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame};
+  ufrMonitorItem in 'View\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame},
+  uSQLiteConfig in 'Lib\uSQLiteConfig.pas';
 
 {$R *.res}
 

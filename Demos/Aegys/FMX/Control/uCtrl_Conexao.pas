@@ -19,7 +19,7 @@ interface
 
 uses
   System.Classes, System.Threading, uCtrl_Threads, System.Win.ScktComp,
-  uConstants, uFunctions, Winapi.Windows;
+  uConstants, uFunctions, Winapi.Windows, uSQLiteConfig;
 
 type
   TConexao = class
@@ -50,7 +50,7 @@ type
       ErrorEvent: TErrorEvent; var ErrorCode: Integer);
   private
     Locale: TLocale;
-    CFG: TCFGINI;
+    CFG: TSQLiteConfig;
     FAcessando: Boolean;
     FID: string;
     FIntervalo: Integer;
@@ -147,7 +147,7 @@ var
   iPort: Integer;
 begin
   Locale := TLocale.Create;
-  CFG := TCFGINI.Create;
+  CFG := TSQLiteConfig.Create;
   if (ParamStr(1) <> '') then
     xHost := ParamStr(1)
   else
@@ -554,7 +554,7 @@ begin
   vMAC := MacAddress;
   vHD := SerialNumHardDisk(SystemDrive);
   vSenhaGerada := SenhaGerada;
-  vSenha := Cfg.LerCfg('cfg', 'ini', 'CFG', 'pass', false);
+  vSenha := Cfg.getValue(FIXED_PASSWORD);
   Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' + vHD +
     '<|>' + '<|SENHADEFINIDA|>' + vSenha + '<|>' + '<|SENHAGERADA|>' + vSenhaGerada + '<|>');
   CriarThread(ttPrincipal, Socket);

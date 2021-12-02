@@ -52,7 +52,12 @@ const
   CBQUAL = 'CBQUALITY';
   CBLANG = 'CBLANGUAGE';
 
-  CBLANGUAGEKEYS = '';
+  // Config consts
+  RUN_ON_STARTUP = 'startup';
+  FIXED_PASSWORD = 'password';
+  QUICK_SUPPORT = 'quicksupp';
+  ENABLE_SYSTRAY = 'systray';
+  LANGUAGE = 'language';
 
 implementation
 

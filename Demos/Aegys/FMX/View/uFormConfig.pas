@@ -4,11 +4,11 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Variants,
-  System.Classes, System.Actions, System.ImageList,
+  System.Classes, System.Actions, System.ImageList, System.JSON,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ListBox,
   FMX.Objects, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
   FMX.Ani, FMX.ActnList, FMX.ImgList,
-  uCtrl_Conexao, uFunctions, uConstants
+  uCtrl_Conexao, uFunctions, uConstants, uSQLiteConfig
 
     ;
 
@@ -32,22 +32,17 @@ type
     RPassword: TRectangle;
     LlyPasswordCaption: TLabel;
     Layout3: TLayout;
-    EPassword: TEdit;
+    password: TEdit;
     ImageList1: TImageList;
-    cbLanguages: TComboBox;
-    ListBoxItem1: TListBoxItem;
-    ListBoxItem2: TListBoxItem;
-    ListBoxItem3: TListBoxItem;
-    ListBoxItem4: TListBoxItem;
-    ListBoxItem5: TListBoxItem;
-    swrun_startup: TSwitch;
+    language: TComboBox;
+    startup: TSwitch;
     lyrunonstartup: TLayout;
     Lrunonstartup: TLabel;
     lyquicksuporte: TLayout;
-    Swquicksuporte: TSwitch;
+    quicksupp: TSwitch;
     Lquicksuporte: TLabel;
     lysystemtray: TLayout;
-    swsystem_tray: TSwitch;
+    systray: TSwitch;
     Lrunonsystemtray: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
@@ -59,7 +54,7 @@ type
   private
     { Private declarations }
     Locale: TLocale;
-    Cfg: TCFGINI;
+    Cfg: TSQLiteConfig;
     FCallBack: TCallBack;
     procedure SetColors;
   public
@@ -82,16 +77,26 @@ begin
 end;
 
 procedure TfConfig.FormCreate(Sender: TObject);
+var
+  I: Integer;
 begin
   Locale := TLocale.Create;
-  Cfg := TCFGINI.Create;
-  EPassword.Text           := Cfg.LerCfg('cfg', 'ini', 'CFG', 'pass', false);
-  swrun_startup.IsChecked  :=
-  iif( Cfg.LerCfg('cfg', 'ini', 'CFG', 'runonstartup', false)='true',true,false);
-  Swquicksuporte.IsChecked  :=
-  iif( Cfg.LerCfg('cfg', 'ini', 'CFG', 'quicksuporte', false)='true',true,false);
-  swsystem_tray.IsChecked  :=
-  iif( Cfg.LerCfg('cfg', 'ini', 'CFG', 'systemtray', false)='true',true,false);
+  Cfg := TSQLiteConfig.Create;
+  try
+    for I := 0 to pred(Componentcount) do
+      if Components[I] is TComboBox then
+        (Components[I] as TComboBox).ItemIndex :=
+          StrToIntDef(Cfg.getValue((Components[I] as TComboBox).Name), -1)
+      else if Components[I] is TEdit then
+        (Components[I] as TEdit).Text :=
+          Cfg.getValue((Components[I] as TEdit).Name)
+      else if Components[I] is TSwitch then
+        (Components[I] as TSwitch).IsChecked :=
+          StrToIntDef(Cfg.getValue((Components[I] as TSwitch).Name), 0)
+          .ToBoolean;
+  finally
+    Cfg.DisposeOf;
+  end;
 
   SetColors;
   Translate;
@@ -105,25 +110,40 @@ end;
 procedure TfConfig.rrApplyClick(Sender: TObject);
 var
   Res: TResourceStream;
+  aJSON: TJSONObject;
+  I: Integer;
 begin
-  if cbLanguages.ItemIndex > -1 then
-  begin
-    Res := TResourceStream.Create(HInstance,
-      cbLanguages.Selected.ItemData.Detail, RT_RCDATA);
-    Res.SaveToFile(Locale.LocaleFileName);
-    Translate;
+  Cfg := TSQLiteConfig.Create;
+  aJSON := TJSONObject.Create;
+  try
+    for I := 0 to pred(Componentcount) do
+    begin
+      if Components[I] is TComboBox then
+        aJSON.AddPair((Components[I] as TComboBox).Name,
+          (Components[I] as TComboBox).Selected.Index)
+      else if Components[I] is TEdit then
+        aJSON.AddPair((Components[I] as TEdit).Name,
+          (Components[I] as TEdit).Text)
+      else if Components[I] is TSwitch then
+        aJSON.AddPair((Components[I] as TSwitch).Name,
+          (Components[I] as TSwitch).IsChecked.ToInteger);
+    end;
+    Cfg.UpdateConfig(aJSON);
+
+    if language.ItemIndex > -1 then
+    begin
+      Res := TResourceStream.Create(HInstance,
+        language.Selected.ItemData.Detail, RT_RCDATA);
+      Res.SaveToFile(Locale.LocaleFileName);
+      Translate;
+    end;
+
+    RunOnStartup('AEGYS Remote Acess', Application.Name, startup.IsChecked);
+    if Assigned(FCallBack) then
+      FCallBack;
+  finally
+    Cfg.DisposeOf;
   end;
-
-  Cfg.SalvarCfg('cfg', 'ini', 'CFG', 'pass', EPassword.Text, false);
-  Cfg.salvarCFG('cfg', 'ini', 'CFG', 'runonstartup', iif( swrun_startup.IsChecked ,'true','false'),false);
-  Cfg.salvarCFG('cfg', 'ini', 'CFG', 'quicksuporte', iif( Swquicksuporte.IsChecked ,'true','false'),false);
-  Cfg.salvarCFG('cfg', 'ini', 'CFG', 'systemtray', iif( swsystem_tray.IsChecked ,'true','false'),false);
-
-
-  RunOnStartup('AEGYS Remote Acess', Application.Name, swrun_startup.IsChecked);
-
-  if Assigned(FCallBack) then
-   FCallBack;
 end;
 
 procedure TfConfig.rrApplyMouseEnter(Sender: TObject);
@@ -156,8 +176,8 @@ begin
   LBackButton.Text := Locale.GetLocale(FRMS, 'ConfigBackButton');
   LApplyButton.Text := Locale.GetLocale(FRMS, 'ConfigApplyButton');
   LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'ConfigPassword');
-  EPassword.TextPrompt := Locale.GetLocale(FRMS, 'ConfigPassword');
-  Locale.GetLocale(cbLanguages, tcbLanguage);
+  password.TextPrompt := Locale.GetLocale(FRMS, 'ConfigPassword');
+  Locale.GetLocale(language, tcbLanguage);
 end;
 
 end.

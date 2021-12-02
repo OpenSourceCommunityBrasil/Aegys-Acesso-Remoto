@@ -206,6 +206,7 @@ procedure TFormArquivos.FormCreate(Sender: TObject);
 begin
   Locale := TLocale.Create;
   Translate;
+  SetColors;
   SetWindowLong(FmxHandleToHWND(Handle), GWL_EXSTYLE, WS_EX_APPWINDOW);
 end;
 
@@ -291,7 +292,6 @@ end;
 procedure TFormArquivos.PROC_UPLOADExecute(Sender: TObject);
 var
   FileName: string;
-  Arquivo: TMemoryStream;
 begin
   OpenDialog1.FileName := '';
 
