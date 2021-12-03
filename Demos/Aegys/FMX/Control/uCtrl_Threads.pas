@@ -428,11 +428,12 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 14);
           Position := Pos('<|>', BufferTemp);
-          MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
+          aTempID   := FormTelaRemota.ActualScreen;
+          If Trim(aTempID) = '' Then
+           aTempID := '0';
+          MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY := StrToInt(Copy(BufferTemp, 1,
-            Pos('<|END|>', BufferTemp) - 1));
-
+          MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1));
           if Buffer.Contains('<|BLOCKINPUT|>') then
           begin
             Synchronize(

@@ -8,7 +8,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ListBox,
   FMX.Objects, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
   FMX.Ani, FMX.ActnList, FMX.ImgList,
-  uCtrl_Conexao, uFunctions, uConstants, uSQLiteConfig
+  uCtrl_Conexao, uFunctions, uConstants, uSQLiteConfig, FMX.ComboEdit
 
     ;
 
@@ -27,23 +27,25 @@ type
     lyLanguage: TLayout;
     RLanguage: TRectangle;
     LLanguageSelector: TLabel;
-    Layout10: TLayout;
-    lyPassword: TLayout;
-    RPassword: TRectangle;
-    LlyPasswordCaption: TLabel;
-    Layout3: TLayout;
-    password: TEdit;
     ImageList1: TImageList;
     language: TComboBox;
     startup: TSwitch;
     lyrunonstartup: TLayout;
-    Lrunonstartup: TLabel;
+    LStartup: TLabel;
     lyquicksuporte: TLayout;
     quicksupp: TSwitch;
-    Lquicksuporte: TLabel;
+    LQuickSupport: TLabel;
     lysystemtray: TLayout;
     systray: TSwitch;
-    Lrunonsystemtray: TLabel;
+    LSystray: TLabel;
+    lyPassword: TLayout;
+    RPassword: TRectangle;
+    LlyPasswordCaption: TLabel;
+    password: TEdit;
+    lyServer: TLayout;
+    RServer: TRectangle;
+    LServer: TLabel;
+    server: TComboEdit;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure rrReturnClick(Sender: TObject);
@@ -93,7 +95,10 @@ begin
       else if Components[I] is TSwitch then
         (Components[I] as TSwitch).IsChecked :=
           StrToIntDef(Cfg.getValue((Components[I] as TSwitch).Name), 0)
-          .ToBoolean;
+          .ToBoolean
+      else if Components[I] is TComboEdit then
+        (Components[I] as TComboEdit).Text :=
+          Cfg.getValue((Components[I] as TComboEdit).Name);
   finally
     Cfg.DisposeOf;
   end;
@@ -120,13 +125,16 @@ begin
     begin
       if Components[I] is TComboBox then
         aJSON.AddPair((Components[I] as TComboBox).Name,
-          (Components[I] as TComboBox).Selected.Index)
+          IntToStr((Components[I] as TComboBox).Selected.Index))
       else if Components[I] is TEdit then
         aJSON.AddPair((Components[I] as TEdit).Name,
           (Components[I] as TEdit).Text)
       else if Components[I] is TSwitch then
         aJSON.AddPair((Components[I] as TSwitch).Name,
-          (Components[I] as TSwitch).IsChecked.ToInteger);
+          IntToStr((Components[I] as TSwitch).IsChecked.ToInteger))
+      else if Components[I] is TComboEdit then
+        aJSON.AddPair((Components[I] as TComboEdit).Name,
+          (Components[I] as TComboEdit).Text);
     end;
     Cfg.UpdateConfig(aJSON);
 
@@ -165,6 +173,7 @@ procedure TfConfig.SetColors;
 begin
   RPassword.Fill.Color := SECONDARY_COLOR;
   RLanguage.Fill.Color := SECONDARY_COLOR;
+  RServer.Fill.Color := SECONDARY_COLOR;
   rrApply.Fill.Color := PRIMARY_COLOR;
   rrReturn.Fill.Color := PRIMARY_COLOR;
 end;
@@ -178,6 +187,10 @@ begin
   LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'ConfigPassword');
   password.TextPrompt := Locale.GetLocale(FRMS, 'ConfigPassword');
   Locale.GetLocale(language, tcbLanguage);
+  LStartup.Text := Locale.GetLocale(FRMS, 'ConfigStartup');
+  LSystray.Text := Locale.GetLocale(FRMS, 'ConfigSystemTray');
+  LQuickSupport.Text := Locale.GetLocale(FRMS, 'ConfigQuickSupport');
+  LServer.Text := Locale.GetLocale(FRMS, 'ConfigServer');
 end;
 
 end.

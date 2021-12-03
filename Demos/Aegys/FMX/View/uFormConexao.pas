@@ -111,6 +111,7 @@ type
     procedure ShowAppOnTaskbar;
     procedure HideApponTaskbar;
     procedure SetTrayIcon;
+    procedure SetSockets;
   public
     procedure LimparConexao;
     procedure MudarStatusConexao(AStatus: Integer; AMensagem: string);
@@ -395,7 +396,8 @@ begin
   LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
   LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
   Locale.GetLocale(cbQuality, tcbQuality);
-  Conexao.ReconectarSocket(True);
+  SetSockets;
+
 end;
 
 procedure TFormConexao.TrayWndProc(var Message: TMessage);
@@ -450,6 +452,35 @@ begin
   LPassword.Text := Conexao.SenhaGerada;
   btnConectar.Enabled := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
+end;
+
+procedure TFormConexao.SetSockets;
+var
+  CFG: TSQLiteConfig;
+  host: string;
+begin
+  CFG := TSQLiteConfig.Create;
+  try
+    host := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
+    Conexao.SocketPrincipal.Close;
+    Conexao.SocketAreaRemota.Close;
+    Conexao.SocketArquivos.Close;
+    Conexao.SocketTeclado.Close;
+
+    Conexao.SocketPrincipal.host := host;
+    Conexao.SocketAreaRemota.host := host;
+    Conexao.SocketArquivos.host := host;
+    Conexao.SocketTeclado.host := host;
+
+    sleep(1000);
+
+    Conexao.SocketPrincipal.Open;
+    Conexao.SocketAreaRemota.Open;
+    Conexao.SocketArquivos.Open;
+    Conexao.SocketTeclado.Open;
+  finally
+    CFG.DisposeOf;
+  end;
 end;
 
 procedure TFormConexao.SetTrayIcon;

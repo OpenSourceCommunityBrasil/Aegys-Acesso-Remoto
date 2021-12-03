@@ -12,7 +12,7 @@ uses
   uFormConexao in 'View\uFormConexao.pas' {FormConexao},
   uFormTelaRemota in 'View\uFormTelaRemota.pas' {FormTelaRemota},
   uFormChat in 'View\uFormChat.pas' {FormChat},
-  uDM_Styles in 'Styles\uDM_Styles.pas' {DM_Styles: TDataModule},
+  uDM in 'Styles\uDM.pas' {DM: TDataModule},
   uFormArquivos in 'View\uFormArquivos.pas' {FormArquivos},
   uCtrl_Threads in 'Control\uCtrl_Threads.pas',
   uLibClass in 'Lib\uLibClass.pas',
@@ -46,6 +46,16 @@ procedure ExtractRunAsSystem;
 var
   resource: TResourceStream;
 begin
+{$IFDEF Windows32}
+  resource := TResourceStream.Create(HInstance, 'SQLITE32', RT_RCDATA);
+  resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\sqlite3.dll');
+  FreeAndNil(resource);
+{$ENDIF}
+{$IFDEF Windows64}
+  resource := TResourceStream.Create(HInstance, 'SQLITE64', RT_RCDATA);
+  resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\sqlite3.dll');
+  FreeAndNil(resource);
+{$ENDIF}
   resource := TResourceStream.Create(HInstance, 'RUN_AS_SYSTEM', RT_RCDATA);
   try
     resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
@@ -115,7 +125,7 @@ begin
 {$ENDIF}
   Application.Title := Locale.GetLocale(MAIN, 'Title');
   Application.CreateForm(TFormConexao, FormConexao);
-  Application.CreateForm(TDM_Styles, DM_Styles);
+  Application.CreateForm(TDM, DM);
   Application.CreateForm(TFormChat, FormChat);
   Application.CreateForm(TFormTelaRemota, FormTelaRemota);
   Application.CreateForm(TFormArquivos, FormArquivos);

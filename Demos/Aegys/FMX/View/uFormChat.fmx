@@ -7,7 +7,6 @@ object FormChat: TFormChat
   ClientWidth = 291
   Fill.Color = claWhitesmoke
   Fill.Kind = Solid
-  StyleBook = DM_Styles.DesktopStyle
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -75,7 +74,7 @@ object FormChat: TFormChat
         Size.Width = 226.000000000000000000
         Size.Height = 54.000000000000000000
         Size.PlatformDefault = False
-        StyleLookup = 'memTransparente'
+        StyleLookup = 'mmTransparent'
         TabOrder = 0
         OnKeyDown = mmMessageKeyDown
         Viewport.Width = 222.000000000000000000

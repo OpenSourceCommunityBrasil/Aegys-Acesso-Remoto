@@ -20,7 +20,12 @@ interface
 Uses
   System.SysUtils, System.Types, System.Classes, System.TypInfo,
   FMX.ListBox, FMX.Layouts,
-  IniFiles, uConstants,Registry,Winapi.windows ;
+  IniFiles, uConstants, Registry, Winapi.windows;
+
+type
+  TLanguageImage = (AR_SA, DE_DE, EN_US, ES_AR, ES_ES, FR_FR, IT_IT, JA_JA,
+    KO_KO, PT_BR, RU_RU, ZH_CN, ZH_TW);
+  TComboTypes = (tcbQuality, tcbLanguage);
 
 type
   TLocale = class
@@ -42,32 +47,35 @@ type
   public
     procedure Clear;
   end;
-  function iif(bcondicao:boolean;vtrue,vfalse:variant):variant;
-  function RunOnStartup(sProgTitle, sCmdLine: string; bRunOnce: boolean):boolean;
+
+function iif(bcondicao: boolean; vtrue, vfalse: variant): variant;
+function RunOnStartup(sProgTitle, sCmdLine: string; bRunOnce: boolean): boolean;
+
 implementation
 
-function RunOnStartup(sProgTitle, sCmdLine: string; bRunOnce: boolean):boolean;
+function RunOnStartup(sProgTitle, sCmdLine: string; bRunOnce: boolean): boolean;
 var
   sKey: string;
-  reg : TRegIniFile;
+  reg: TRegIniFile;
 begin
   if not bRunOnce then
-      sKey := ''
+    sKey := ''
   else
     sKey := 'Once';
   reg := TRegIniFile.Create('');
   reg.RootKey := HKEY_LOCAL_MACHINE;
-  reg.WriteString('Software\Microsoft\Windows\CurrentVersion\Run'
-+ sKey + #0, sProgTitle, sCmdLine);
+  reg.WriteString('Software\Microsoft\Windows\CurrentVersion\Run' + sKey + #0,
+    sProgTitle, sCmdLine);
   reg.Free;
 end;
 
-function iif(bcondicao:boolean;vtrue,vfalse:variant):variant;
+function iif(bcondicao: boolean; vtrue, vfalse: variant): variant;
 begin
   if bcondicao then
-  Result := vtrue else result :=vfalse;
+    Result := vtrue
+  else
+    Result := vfalse;
 end;
-
 
 { TLocale }
 
@@ -95,27 +103,42 @@ End;
 procedure TLocale.GetLocale(aCombo: TComboBox; comboType: TComboTypes);
 var
   Items: TStringList;
-  currIndex, i: integer;
+  currIndex, i, j: integer;
 begin
   Items := TStringList.Create;
   Locale := TIniFile.Create(FLocaleFileName);
   currIndex := aCombo.ItemIndex;
   try
+    aCombo.Items.Clear;
     case comboType of
       tcbQuality:
-        Locale.ReadSectionValues(CBQUAL, Items);
+        begin
+          Locale.ReadSectionValues(CBQUAL, Items);
+          for i := 0 to pred(Items.count) do
+          begin
+            aCombo.ListBox.Items.Add('');
+            aCombo.ListItems[i].ItemData.Detail := Items.KeyNames[i];
+            aCombo.ListItems[i].ItemData.Text :=
+              UTF8Decode(Items.ValueFromIndex[i]);
+          end;
+        end;
       tcbLanguage:
-        Locale.ReadSectionValues(CBLANG, Items);
-    end;
-
-    aCombo.Items.Clear;
-    for i := 0 to pred(Items.count) do
-    begin
-      aCombo.ListBox.Items.Add('');
-      aCombo.ListItems[i].ItemData.Detail := Items.KeyNames[i];
-      aCombo.ListItems[i].ItemData.Text := UTF8Decode(Items.ValueFromIndex[i]);
-      aCombo.ListItems[i].ImageIndex := GetEnumValue(TypeInfo(TLanguageImage),
-        Items.KeyNames[i]);
+        begin
+          Locale.ReadSectionValues(CBLANG, Items);
+          j := 0;
+          for i := 0 to pred(Items.count) do
+            if GetEnumValue(TypeInfo(TLanguageImage), Items.KeyNames[i]) > -1
+            then
+            begin
+              aCombo.ListBox.Items.Add('');
+              aCombo.ListItems[j].ItemData.Detail := Items.KeyNames[i];
+              aCombo.ListItems[j].ItemData.Text :=
+                UTF8Decode(Items.ValueFromIndex[i]);
+              aCombo.ListItems[j].ImageIndex :=
+                GetEnumValue(TypeInfo(TLanguageImage), Items.KeyNames[i]);
+              inc(j);
+            end;
+        end;
     end;
     aCombo.ItemIndex := currIndex;
   finally
@@ -133,39 +156,17 @@ procedure TLocale.Initialize;
 var
   Res: TResourceStream;
   teste: integer;
+  test: string;
 begin
   if not FileExists(FLocaleFileName) then
   begin
 {$IFDEF MSWindows}
-    case SysLocale.DefaultLCID of
-      3081, 10249, 4105, 9225, 2057, 16393, 6153, 8201, 5129, 13321, 7177,
-        11273, 12297, 1033:
-        Res := TResourceStream.Create(HInstance, 'EN_US', RT_RCDATA);
-      1046:
-        Res := TResourceStream.Create(HInstance, 'PT_BR', RT_RCDATA);
-      11274, 16394, 13322, 9226, 5130, 7178, 12298, 17418, 4106, 18442, 2058,
-        19466, 6154, 15370, 10250, 20490, 14346, 8202, 1034:
-        Res := TResourceStream.Create(HInstance, 'ES_ES', RT_RCDATA);
-      1028:
-        Res := TResourceStream.Create(HInstance, 'ZH_TW', RT_RCDATA);
-      2052:
-        Res := TResourceStream.Create(HInstance, 'ZH_CN', RT_RCDATA);
-      1025:
-        Res := TResourceStream.Create(HInstance, 'AR_SA', RT_RCDATA);
-      1031:
-        Res := TResourceStream.Create(HInstance, 'DE_DE', RT_RCDATA);
-      1036:
-        Res := TResourceStream.Create(HInstance, 'FR_FR', RT_RCDATA);
-      1040:
-        Res := TResourceStream.Create(HInstance, 'IT_IT', RT_RCDATA);
-      1041:
-        Res := TResourceStream.Create(HInstance, 'JA_JA', RT_RCDATA);
-      1042:
-        Res := TResourceStream.Create(HInstance, 'KO_KO', RT_RCDATA);
-      1049:
-        Res := TResourceStream.Create(HInstance, 'RU_RU', RT_RCDATA);
-    else
-      Res := TResourceStream.Create(HInstance, 'EN_US', RT_RCDATA);
+    try
+      Res := TResourceStream.Create(HInstance,
+        Languages.LocaleName[Languages.IndexOf(Languages.UserDefaultLocale)
+        ].ToUpper.Replace('-', '_'), RT_RCDATA);
+    except
+      Res := TResourceStream.Create(HInstance, 'EN-US', RT_RCDATA);
     end;
 {$ENDIF}
     try
@@ -185,10 +186,10 @@ end;
 
 procedure TVertScrollBoxHelper.Clear;
 var
-  I: integer;
+  i: integer;
 begin
-  for I := pred(self.Content.ChildrenCount) downto 0 do
-    self.Content.Children.Items[I].DisposeOf;
+  for i := pred(self.Content.ChildrenCount) downto 0 do
+    self.Content.Children.Items[i].DisposeOf;
 end;
 
 end.

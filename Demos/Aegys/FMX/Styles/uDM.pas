@@ -1,4 +1,4 @@
-﻿unit uDM_Styles;
+﻿unit uDM;
 
 {
  Project Aegys Remote Support.
@@ -21,9 +21,8 @@ uses
   System.SysUtils, System.Classes, FMX.Types, FMX.Controls;
 
 type
-  TDM_Styles = class(TDataModule)
-    DesktopStyle: TStyleBook;
-    Style1: TStyleBook;
+  TDM = class(TDataModule)
+    Styles: TStyleBook;
   private
     { Private declarations }
   public
@@ -31,7 +30,7 @@ type
   end;
 
 var
-  DM_Styles: TDM_Styles;
+  DM: TDM;
 
 implementation
 

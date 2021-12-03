@@ -59,7 +59,7 @@ implementation
 
 {$R *.fmx}
 
-uses uDM_Styles, uFrameMensagemChat, Winapi.Windows;
+uses uDM, uFrameMensagemChat, Winapi.Windows;
 
 procedure TFormChat.Mensagem(AMensagem: string; AAtendente: Boolean);
 var

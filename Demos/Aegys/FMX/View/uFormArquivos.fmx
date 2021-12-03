@@ -73,7 +73,7 @@ object FormArquivos: TFormArquivos
         object EFolder: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
-          StyleLookup = 'transparentedit'
+          StyleLookup = 'ETransparent'
           TabOrder = 0
           ReturnKeyType = Next
           Text = 'C:\'

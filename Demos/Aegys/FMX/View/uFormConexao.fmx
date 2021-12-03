@@ -10,7 +10,6 @@ object FormConexao: TFormConexao
   Fill.Color = claWhitesmoke
   Fill.Kind = Solid
   Position = ScreenCenter
-  StyleBook = DM_Styles.DesktopStyle
   FormFactor.Width = 0
   FormFactor.Height = 0
   FormFactor.Orientations = []
@@ -344,7 +343,6 @@ object FormConexao: TFormConexao
         end
         object cbQuality: TComboBox
           Align = Center
-          Locked = True
           Items.Strings = (
             'P/B'
             'Baixa'
@@ -354,6 +352,7 @@ object FormConexao: TFormConexao
           Size.Width = 89.000000000000000000
           Size.Height = 30.000000000000000000
           Size.PlatformDefault = False
+          StyleLookup = 'cbDefault'
           TabOrder = 1
         end
       end
@@ -395,7 +394,7 @@ object FormConexao: TFormConexao
           object EGuestID: TEdit
             Touch.InteractiveGestures = [LongTap, DoubleTap]
             Align = Client
-            StyleLookup = 'transparentedit'
+            StyleLookup = 'ETransparent'
             TabOrder = 0
             KeyboardType = NumberPad
             ReturnKeyType = Go

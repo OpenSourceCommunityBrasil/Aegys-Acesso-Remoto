@@ -124,7 +124,7 @@ implementation
 
 {$R *.fmx}
 
-uses uFormArquivos, uFormChat, uFormConexao, Winapi.Windows, uDM_Styles,
+uses uFormArquivos, uFormChat, uFormConexao, Winapi.Windows, uDM,
   FMX.Platform.Win, uConstants;
 
 Procedure TFormTelaRemota.Wait(Value: Integer);

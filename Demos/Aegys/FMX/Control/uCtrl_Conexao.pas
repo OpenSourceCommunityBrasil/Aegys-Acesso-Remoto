@@ -151,7 +151,7 @@ begin
   if (ParamStr(1) <> '') then
     xHost := ParamStr(1)
   else
-    xHost := SERVIDOR;
+    xHost := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
 
   if (ParamStr(2) <> '') then
     iPort := StrToIntDef(ParamStr(2), PORTA)
