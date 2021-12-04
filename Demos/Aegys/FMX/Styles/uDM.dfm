@@ -1,7 +1,7 @@
 object DM: TDM
+  OldCreateOrder = True
   Height = 133
   Width = 154
-  PixelsPerInch = 96
   object Styles: TStyleBook
     Styles = <
       item
