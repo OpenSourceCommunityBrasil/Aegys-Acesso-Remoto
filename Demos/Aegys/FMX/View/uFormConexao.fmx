@@ -6,7 +6,7 @@ object FormConexao: TFormConexao
   BorderStyle = Single
   Caption = 'Suporte Remoto'
   ClientHeight = 472
-  ClientWidth = 354
+  ClientWidth = 348
   Fill.Color = claWhitesmoke
   Fill.Kind = Solid
   Position = ScreenCenter
@@ -40,7 +40,7 @@ object FormConexao: TFormConexao
   end
   object Layout4: TLayout
     Align = Client
-    Size.Width = 354.000000000000000000
+    Size.Width = 348.000000000000000000
     Size.Height = 472.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 10
@@ -50,13 +50,13 @@ object FormConexao: TFormConexao
       Margins.Top = 10.000000000000000000
       Margins.Right = 20.000000000000000000
       Margins.Bottom = 10.000000000000000000
-      Size.Width = 314.000000000000000000
+      Size.Width = 308.000000000000000000
       Size.Height = 452.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       object lyHeader: TLayout
         Align = Top
-        Size.Width = 314.000000000000000000
+        Size.Width = 308.000000000000000000
         Size.Height = 100.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 29
@@ -229,13 +229,13 @@ object FormConexao: TFormConexao
         Align = Top
         Margins.Top = 10.000000000000000000
         Position.Y = 110.000000000000000000
-        Size.Width = 314.000000000000000000
+        Size.Width = 308.000000000000000000
         Size.Height = 56.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 30
         object RMachineID: TRectangle
           Align = Top
-          Size.Width = 314.000000000000000000
+          Size.Width = 308.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           Stroke.Kind = None
@@ -244,7 +244,7 @@ object FormConexao: TFormConexao
           object LlyMachineIDCaption: TLabel
             Align = Client
             StyledSettings = [Style]
-            Size.Width = 314.000000000000000000
+            Size.Width = 308.000000000000000000
             Size.Height = 20.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Quicksand'
@@ -256,7 +256,7 @@ object FormConexao: TFormConexao
         end
         object Layout6: TLayout
           Align = Client
-          Size.Width = 314.000000000000000000
+          Size.Width = 308.000000000000000000
           Size.Height = 36.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
@@ -264,7 +264,7 @@ object FormConexao: TFormConexao
             Align = Client
             StyledSettings = [Style]
             Margins.Left = 46.000000000000000000
-            Size.Width = 222.000000000000000000
+            Size.Width = 216.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Quicksand'
@@ -279,7 +279,7 @@ object FormConexao: TFormConexao
             Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
-            Position.X = 278.000000000000000000
+            Position.X = 272.000000000000000000
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
@@ -316,13 +316,13 @@ object FormConexao: TFormConexao
         Align = Top
         Margins.Top = 10.000000000000000000
         Position.Y = 242.000000000000000000
-        Size.Width = 314.000000000000000000
+        Size.Width = 308.000000000000000000
         Size.Height = 55.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 32
         object rQuality: TRectangle
           Align = Top
-          Size.Width = 314.000000000000000000
+          Size.Width = 308.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           Stroke.Kind = None
@@ -331,7 +331,7 @@ object FormConexao: TFormConexao
           object LlyResolutionCaption: TLabel
             Align = Client
             StyledSettings = [Style]
-            Size.Width = 314.000000000000000000
+            Size.Width = 308.000000000000000000
             Size.Height = 20.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Quicksand'
@@ -360,13 +360,13 @@ object FormConexao: TFormConexao
         Align = Top
         Margins.Top = 10.000000000000000000
         Position.Y = 307.000000000000000000
-        Size.Width = 314.000000000000000000
+        Size.Width = 308.000000000000000000
         Size.Height = 56.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 33
         object RGuestID: TRectangle
           Align = Top
-          Size.Width = 314.000000000000000000
+          Size.Width = 308.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           Stroke.Kind = None
@@ -375,7 +375,7 @@ object FormConexao: TFormConexao
           object LlyGuestIDCaption: TLabel
             Align = Client
             StyledSettings = [Style]
-            Size.Width = 314.000000000000000000
+            Size.Width = 308.000000000000000000
             Size.Height = 20.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Quicksand'
@@ -387,7 +387,7 @@ object FormConexao: TFormConexao
         end
         object Layout10: TLayout
           Align = Client
-          Size.Width = 314.000000000000000000
+          Size.Width = 308.000000000000000000
           Size.Height = 36.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
@@ -405,7 +405,7 @@ object FormConexao: TFormConexao
             TextSettings.FontColor = xFF424242
             TextSettings.HorzAlign = Center
             Margins.Left = 46.000000000000000000
-            Size.Width = 222.000000000000000000
+            Size.Width = 216.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
             TextPrompt = '___-___-___'
@@ -418,7 +418,7 @@ object FormConexao: TFormConexao
             Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
-            Position.X = 278.000000000000000000
+            Position.X = 272.000000000000000000
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
@@ -453,14 +453,14 @@ object FormConexao: TFormConexao
         Align = Top
         Margins.Top = 10.000000000000000000
         Position.Y = 373.000000000000000000
-        Size.Width = 314.000000000000000000
+        Size.Width = 308.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 34
         object btnConectar: TRoundRect
           Align = Contents
           Fill.Color = xFF0070BA
-          Size.Width = 314.000000000000000000
+          Size.Width = 308.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
           Stroke.Kind = None
@@ -470,7 +470,7 @@ object FormConexao: TFormConexao
             Enabled = True
             StyledSettings = [Style]
             HitTest = True
-            Size.Width = 314.000000000000000000
+            Size.Width = 308.000000000000000000
             Size.Height = 40.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Quicksand'
@@ -491,7 +491,7 @@ object FormConexao: TFormConexao
         Align = Top
         Margins.Top = 5.000000000000000000
         Position.Y = 418.000000000000000000
-        Size.Width = 314.000000000000000000
+        Size.Width = 308.000000000000000000
         Size.Height = 30.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 35
@@ -527,7 +527,7 @@ object FormConexao: TFormConexao
         object LStatus: TLabel
           Align = Client
           StyledSettings = [Style]
-          Size.Width = 284.000000000000000000
+          Size.Width = 278.000000000000000000
           Size.Height = 30.000000000000000000
           Size.PlatformDefault = False
           TextSettings.Font.Family = 'Quicksand'
@@ -539,13 +539,13 @@ object FormConexao: TFormConexao
         Align = Top
         Margins.Top = 10.000000000000000000
         Position.Y = 176.000000000000000000
-        Size.Width = 314.000000000000000000
+        Size.Width = 308.000000000000000000
         Size.Height = 56.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 31
         object RPassword: TRectangle
           Align = Top
-          Size.Width = 314.000000000000000000
+          Size.Width = 308.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           Stroke.Kind = None
@@ -554,7 +554,7 @@ object FormConexao: TFormConexao
           object LlyPasswordCaption: TLabel
             Align = Client
             StyledSettings = [Style]
-            Size.Width = 314.000000000000000000
+            Size.Width = 308.000000000000000000
             Size.Height = 20.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Quicksand'
@@ -566,7 +566,7 @@ object FormConexao: TFormConexao
         end
         object Layout8: TLayout
           Align = Client
-          Size.Width = 314.000000000000000000
+          Size.Width = 308.000000000000000000
           Size.Height = 36.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
@@ -574,7 +574,7 @@ object FormConexao: TFormConexao
             Align = Client
             StyledSettings = [Style]
             Margins.Left = 46.000000000000000000
-            Size.Width = 222.000000000000000000
+            Size.Width = 216.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Quicksand'
@@ -589,7 +589,7 @@ object FormConexao: TFormConexao
             Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
-            Position.X = 278.000000000000000000
+            Position.X = 272.000000000000000000
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
@@ -633,7 +633,7 @@ object FormConexao: TFormConexao
   end
   object TmrSystemTray: TTimer
     OnTimer = TmrSystemTrayTimer
-    Left = 292
+    Left = 116
     Top = 172
   end
   object ActionList1: TActionList

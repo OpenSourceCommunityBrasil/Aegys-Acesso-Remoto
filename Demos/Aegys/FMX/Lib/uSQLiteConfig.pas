@@ -4,13 +4,13 @@ interface
 
 uses
   FireDAC.Comp.Client,
-{$IF CompilerVersion > 33.0}
+{$IF CompilerVersion > 30.0}
   FireDAC.phys.SQLite,
 {$ENDIF}
 {$IF CompilerVersion > 30.0}
   FireDAC.Stan.Def, FireDAC.DApt, FireDAC.FMXUI.Wait, FireDAC.Stan.Async,
   FireDAC.Stan.StorageJSON, FireDAC.Stan.StorageBin,FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef,
-  FireDAC.Stan.Intf, FireDAC.Phys, FireDAC.Phys.SQLite,
+  FireDAC.Stan.Intf, FireDAC.Phys,
 {$ENDIF}
   System.JSON, System.SysUtils,
   uConstants;

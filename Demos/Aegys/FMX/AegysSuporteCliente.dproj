@@ -4,7 +4,7 @@
         <ProjectVersion>19.3</ProjectVersion>
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>1043</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -542,15 +542,16 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Assets\Resources\DLL\32\sqlite3.dll" Configuration="Debug" Class="ProjectFile">
+                <DeployFile LocalName="Assets\Resources\DLL\32\sqlite3.dll" Configuration="Release" Class="File">
                     <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
+                        <RemoteDir>c:\windows\system32</RemoteDir>
+                        <RemoteName>sqlite3.dll</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="OSX64\Release\RedRemotoSuporte.info.plist" Configuration="Release" Class="ProjectOSXInfoPList">
-                    <Platform Name="OSX64">
-                        <RemoteName>Info.plist</RemoteName>
+                <DeployFile LocalName="Assets\Resources\DLL\64\sqlite3.dll" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -566,16 +567,15 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Assets\Resources\DLL\32\sqlite3.dll" Configuration="Release" Class="File">
+                <DeployFile LocalName="Assets\Resources\DLL\32\sqlite3.dll" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
-                        <RemoteDir>c:\windows\system32</RemoteDir>
-                        <RemoteName>sqlite3.dll</RemoteName>
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Assets\Resources\DLL\64\sqlite3.dll" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
+                <DeployFile LocalName="OSX64\Release\RedRemotoSuporte.info.plist" Configuration="Release" Class="ProjectOSXInfoPList">
+                    <Platform Name="OSX64">
+                        <RemoteName>Info.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

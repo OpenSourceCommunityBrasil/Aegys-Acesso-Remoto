@@ -46,12 +46,12 @@ procedure ExtractRunAsSystem;
 var
   resource: TResourceStream;
 begin
-{$IFDEF Windows32}
+{$IFDEF WIN32}
   resource := TResourceStream.Create(HInstance, 'SQLITE32', RT_RCDATA);
   resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\sqlite3.dll');
   FreeAndNil(resource);
 {$ENDIF}
-{$IFDEF Windows64}
+{$IFDEF WIN64}
   resource := TResourceStream.Create(HInstance, 'SQLITE64', RT_RCDATA);
   resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\sqlite3.dll');
   FreeAndNil(resource);
