@@ -1,0 +1,40 @@
+object fConnectar: TfConnectar
+  Left = 0
+  Top = 0
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Connectando...'
+  ClientHeight = 32
+  ClientWidth = 194
+  Color = clBtnFace
+  TransparentColor = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object pbDados: TProgressBar
+    Left = 0
+    Top = 0
+    Width = 194
+    Height = 32
+    Align = alClient
+    TabOrder = 0
+    ExplicitWidth = 150
+    ExplicitHeight = 17
+  end
+  object tAnimation: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = tAnimationTimer
+    Left = 72
+    Top = 8
+  end
+end

@@ -1,0 +1,224 @@
+object FormSenha: TFormSenha
+  Left = 0
+  Top = 0
+  ClientHeight = 250
+  ClientWidth = 318
+  Fill.Color = claWhitesmoke
+  Fill.Kind = Solid
+  Position = MainFormCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object Layout2: TLayout
+    Align = Client
+    Margins.Left = 20.000000000000000000
+    Margins.Right = 20.000000000000000000
+    Size.Width = 278.000000000000000000
+    Size.Height = 250.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 31
+    object Layout1: TLayout
+      Align = Top
+      Size.Width = 278.000000000000000000
+      Size.Height = 113.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object Path1: TPath
+        Align = HorzCenter
+        Data.Path = {
+          3900000000000000000030410000204101000000000030410000404101000000
+          0000204100004041010000000000204100006041010000000000004100006041
+          010000000000004100004041010000005C8FBA400000404102000000A470AD40
+          52B852410200000085EB89400000604102000000000040400000604102000000
+          33ECAB3F0000604102000000000000007A824A41020000000000000000003041
+          0200000000008034867D15410200000037ECAB3F000000410200000002004040
+          000000410200000085EB89400000004102000000A470AD40AE470D4102000000
+          5C8FBA4000002041010000000000304100002041000000000000404000002041
+          020000005EA71C40000020410200000000000040D72927410200000000000040
+          00003041020000000000004029D63841020000005EA71C400000404102000000
+          000040400000404102000000A258634000004041020000000000804029D63841
+          0200000000008040000030410200000000008040D729274102000000A2586340
+          0000204102000000000040400000204100000000000080410000604102000000
+          295C954100006041020000000000C041A4707541020000000000C04100009041
+          010000000000C0410000A04101000000000000410000A0410100000000000041
+          000090410200000000000041A470754102000000AE4755410000604102000000
+          0000804100006041000000000000804100004041020000005EA75C4100004041
+          0200000000004041A25823410200000000004041000000410200000000004041
+          BA4EB940020000005EA75C41FEFF7F4002000000000080410000804002000000
+          51AC914100008040020000000000A041BC4EB940020000000000A04100000041
+          020000000000A041A25823410200000051AC9141000040410200000000008041
+          00004041030000000000804100004041}
+        Fill.Color = xFF0070BA
+        Position.X = 79.000000000000000000
+        Size.Width = 119.000000000000000000
+        Size.Height = 113.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        WrapMode = Fit
+      end
+    end
+    object Layout5: TLayout
+      Align = Top
+      Margins.Top = 10.000000000000000000
+      Position.Y = 189.000000000000000000
+      Size.Width = 278.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 33
+      object arcLogin: TArc
+        Align = Center
+        Size.Width = 30.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = xFFED3237
+        Stroke.Thickness = 2.000000000000000000
+        EndAngle = 280.000000000000000000
+        object aniLogin: TFloatAnimation
+          AnimationType = InOut
+          Duration = 0.800000011920929000
+          Loop = True
+          PropertyName = 'RotationAngle'
+          StartValue = 0.000000000000000000
+          StopValue = 360.000000000000000000
+        end
+      end
+      object btnLogin: TRoundRect
+        Align = Contents
+        Fill.Color = xFF0070BA
+        Size.Width = 278.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        object LOkButton: TLabel
+          Action = PROC_SENHA
+          Align = Client
+          Enabled = True
+          StyledSettings = [Style]
+          HitTest = True
+          Size.Width = 278.000000000000000000
+          Size.Height = 48.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Quicksand'
+          TextSettings.Font.Size = 20.000000000000000000
+          TextSettings.FontColor = claWhite
+          TextSettings.HorzAlign = Center
+        end
+        object aniBtnLogin: TFloatAnimation
+          Duration = 0.500000000000000000
+          PropertyName = 'Opacity'
+          StartValue = 1.000000000000000000
+          StartFromCurrent = True
+          StopValue = 0.000000000000000000
+        end
+      end
+    end
+    object Layout9: TLayout
+      Align = Top
+      Margins.Top = 10.000000000000000000
+      Position.Y = 123.000000000000000000
+      Size.Width = 278.000000000000000000
+      Size.Height = 56.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object RPassword: TRectangle
+        Align = Top
+        Size.Width = 278.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        XRadius = 10.000000000000000000
+        YRadius = 10.000000000000000000
+        object LPassword: TLabel
+          Align = Client
+          StyledSettings = [Style]
+          Size.Width = 278.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Quicksand'
+          TextSettings.Font.Size = 15.000000000000000000
+          TextSettings.FontColor = xFF424242
+          TextSettings.HorzAlign = Center
+          Text = 'Senha do acesso remoto'
+        end
+      end
+      object Layout10: TLayout
+        Align = Client
+        Size.Width = 278.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object EPassword: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'transparentedit'
+          TabOrder = 0
+          ReturnKeyType = Go
+          MaxLength = 20
+          TextSettings.Font.Family = 'Quicksand'
+          TextSettings.Font.Size = 30.000000000000000000
+          TextSettings.FontColor = xFF424242
+          TextSettings.HorzAlign = Center
+          Margins.Left = 46.000000000000000000
+          Size.Width = 186.000000000000000000
+          Size.Height = 36.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '_____________'
+          StyledSettings = [Style]
+          OnKeyDown = EPasswordKeyDown
+          OnKeyUp = EPasswordKeyUp
+        end
+        object SpeedButton3: TSpeedButton
+          Action = PROC_COLAR_SENHA
+          Align = Right
+          Enabled = True
+          ImageIndex = -1
+          Margins.Left = 10.000000000000000000
+          Position.X = 242.000000000000000000
+          Size.Width = 36.000000000000000000
+          Size.Height = 36.000000000000000000
+          Size.PlatformDefault = False
+          object Path5: TPath
+            Align = Client
+            Data.Path = {
+              1B00000000000000C3F560410000104101000000000070413D0A1F4101000000
+              A470BD4000009841010000000000A04000009841010000000000A040D7A39041
+              01000000C3F560410000104100000000AE478D410000404002000000AE478B41
+              000040400200000033338941666646400200000014AE87415C8F524001000000
+              7B1472410AD7A340010000003D0A974185EB0D410100000014AEA541AE47E140
+              02000000CDCCA841CDCCD44002000000CDCCA8410000C0400200000014AEA541
+              F628B44001000000C3F592415C8F524002000000295C91418FC2454002000000
+              295C8F410000404002000000AE478D410000404000000000C3F560417B14C640
+              010000000000404000008A4101000000000040400000A841010000000000D840
+              0000A84101000000E17A8E413D0A1F4101000000C3F560417B14C64003000000
+              C3F560417B14C640}
+            Fill.Color = xFF424242
+            HitTest = False
+            Margins.Top = 8.000000000000000000
+            Margins.Bottom = 8.000000000000000000
+            Size.Width = 36.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Kind = None
+            WrapMode = Fit
+          end
+        end
+      end
+    end
+  end
+  object ActionList1: TActionList
+    Left = 144
+    Top = 112
+    object PROC_SENHA: TAction
+      Text = 'Ok'
+      OnExecute = PROC_SENHAExecute
+    end
+    object PROC_COLAR_SENHA: TAction
+      OnExecute = PROC_COLAR_SENHAExecute
+    end
+  end
+end
