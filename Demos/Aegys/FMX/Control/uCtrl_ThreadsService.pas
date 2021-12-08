@@ -18,7 +18,7 @@ unit uCtrl_ThreadsService;
 interface
 
 uses
-  System.Classes, System.Win.ScktComp, uConstants, System.SyncObjs;
+  System.Classes, System.Win.ScktComp, uConstants, System.SyncObjs, VCL.Forms, Windows;
 
 type
   TThreadBase = class(TThread)
@@ -68,6 +68,8 @@ type
     constructor Create(ASocket: TCustomWinSocket; AProtocolo: string); override;
   end;
 
+ Procedure Delay(msecs : Cardinal);
+
 implementation
 
 { TThreadConexaoDefinidor }
@@ -75,6 +77,16 @@ implementation
 uses System.SysUtils, uCtrl_Conexoes, uDMServer, Vcl.Dialogs;
 
 { TThreadConexaoDefinidor }
+
+Procedure Delay(msecs : Cardinal);
+Var
+ FirstTickCount: Cardinal;
+Begin
+ FirstTickCount := GetTickCount;
+ Repeat
+  Application.ProcessMessages;
+ Until ((GetTickCount - FirstTickCount) >= msecs);
+End;
 
 constructor TThreadConexaoDefinidor.Create(ASocket: TCustomWinSocket);
 begin
@@ -98,7 +110,7 @@ var
 begin
   inherited;
 
-  while True do
+  while (Not (Terminated)) do
   begin
     Sleep(FOLGAPROCESSAMENTO);
 
@@ -149,7 +161,7 @@ begin
     if iPosition > 0 then
     begin
       xBufferTemp := xBuffer;
-      Delete(xBufferTemp, 1, iPosition + 16);
+      Delete(xBufferTemp, 1, iPosition + (Length('<|DESKTOPSOCKET|>') -1));
       xID := Copy(xBufferTemp, 1, Pos('<|END|>', xBufferTemp) - 1);
       DMServer.Conexoes.RetornaItemPorID(xID).CriarThread(ttAreaRemota, scClient);
       Break;
@@ -216,29 +228,32 @@ var
 begin
   inherited;
 
-  while True do
+  while (Not (Terminated)) do
   begin
     Sleep(FOLGAPROCESSAMENTO);
+    Try
+     if (scClient = nil)
+       or not(scClient.Connected)
+       or (Terminated)
+       or not(Assigned(DMServer)) then
+       Break;
 
-    if (scClient = nil)
-      or not(scClient.Connected)
-      or (Terminated)
-      or not(Assigned(DMServer)) then
-      Break;
+     if scClient.ReceiveLength < 1 then
+       Continue;
 
-    if scClient.ReceiveLength < 1 then
-      Continue;
+     xBuffer := scClient.ReceiveText;
 
-    xBuffer := scClient.ReceiveText;
-
-    for i := Low(arrAcessos) to High(arrAcessos) do
-    begin
-      if (Assigned(arrAcessos[i])) and (arrAcessos[i].Connected) then
-      begin
-        while arrAcessos[i].SendText(xBuffer) < 0 do
-          Sleep(FOLGAPROCESSAMENTO);
-      end;
-    end;
+     for i := Low(arrAcessos) to High(arrAcessos) do
+     begin
+       if (Assigned(arrAcessos[i])) and (arrAcessos[i].Connected) then
+       begin
+         while arrAcessos[i].SendText(xBuffer) < 0 do
+           Sleep(FOLGAPROCESSAMENTO);
+       end;
+     end;
+    Except
+     //log de erros
+    End;
   end;
 end;
 
@@ -263,7 +278,6 @@ var
   bAchou: Boolean;
 begin
   bAchou := False;
-
   for i := Low(arrAcessos) to High(arrAcessos) do
   begin
     if (Assigned(arrAcessos[i])) and (arrAcessos[i].Handle = ASocket.Handle) then
@@ -276,6 +290,7 @@ begin
     SetLength(arrAcessos, i);
     arrAcessos[High(arrAcessos)] := ASocket;
   end;
+ Application.ProcessMessages;
 end;
 
 procedure TThreadBase.ThreadTerminate(ASender: TObject);
@@ -308,9 +323,12 @@ begin
   FConexao := DMServer.Conexoes.RetornaItemPorConexao(FProtocolo);
 
   while scClient.SendText('<|ID|>' + FConexao.ID + '<|>' + FConexao.Senha + '<|>' + FConexao.SenhaGerada + '<|END|>') < 0 do
-    Sleep(FOLGAPROCESSAMENTO);
+    Begin
+     Sleep(FOLGAPROCESSAMENTO);
+     Application.ProcessMessages;
+    End;
 
-  while True do
+  while (Not (Terminated)) do
   begin
     Sleep(FOLGAPROCESSAMENTO);
 
@@ -430,29 +448,46 @@ begin
         Delete(xBufferTemp, Pos('<|BESTQ|>', xBufferTemp), 19);
        End;
       Delete(xBufferTemp, 1, iPosition + 11);
-      iPosition := Pos('<|>', xBufferTemp);
-      xID := Copy(xBufferTemp, 1, iPosition - 1);
+      iPosition      := Pos('<|>', xBufferTemp);
+      xID            := Copy(xBufferTemp, 1, iPosition - 1);
       Delete(xBufferTemp, 1, iPosition + 2);
-      xIDAcesso := Copy(xBufferTemp, 1, Pos('<|>', xBufferTemp) - 1);
-
-      FConexao := nil;
-      FConexaoAcesso := nil;
-      FConexao := DMServer.Conexoes.RetornaItemPorID(xID);
-      FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(xIDAcesso);
-
+      xIDAcesso      := Copy(xBufferTemp, 1, Pos('<|>', xBufferTemp) - 1);
+      FConexao       := Nil;
+      FConexaoAcesso := Nil;
       // RECONNECT SOCKET CLIENT
-      FConexao.ThreadPrincipal.SetAcesso(FConexaoAcesso.ThreadPrincipal.scClient);
-      FConexaoAcesso.ThreadPrincipal.SetAcesso(FConexao.ThreadPrincipal.scClient);
-      FConexao.ThreadAreaRemota.SetAcesso(FConexaoAcesso.ThreadAreaRemota.scClient);
-      FConexaoAcesso.ThreadAreaRemota.SetAcesso(FConexao.ThreadAreaRemota.scClient);
-      FConexao.ThreadTeclado.SetAcesso(FConexaoAcesso.ThreadTeclado.scClient);
-      FConexao.ThreadArquivos.SetAcesso(FConexaoAcesso.ThreadArquivos.scClient);
-      FConexaoAcesso.ThreadArquivos.SetAcesso(FConexao.ThreadArquivos.scClient);
-      FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|ACCESSING|>');
-      If xValue <> '' Then
-       FConexaoAcesso.ThreadAreaRemota.scClient.SendText('<|GETFULLSCREENSHOT|><|BESTQ|>' + xValue + '<|END|>')
-      Else
-       FConexaoAcesso.ThreadAreaRemota.scClient.SendText('<|GETFULLSCREENSHOT|>');
+      FConexao       := DMServer.Conexoes.RetornaItemPorID(xID);
+      FConexaoAcesso := DMServer.Conexoes.RetornaItemPorID(xIDAcesso);
+      Application.Processmessages;
+      FConexao.ThreadPrincipal.SetAcesso(FConexaoAcesso.SocketPrincipal);
+      FConexaoAcesso.ThreadPrincipal.SetAcesso(FConexao.SocketPrincipal);
+      If Assigned(FConexaoAcesso.SocketAreaRemota) Then
+       If Assigned(FConexao.ThreadAreaRemota) Then
+        FConexao.ThreadAreaRemota.SetAcesso(FConexaoAcesso.SocketAreaRemota);
+      If Assigned(FConexao.SocketAreaRemota) Then
+       If Assigned(FConexaoAcesso.ThreadAreaRemota) Then
+        FConexaoAcesso.ThreadAreaRemota.SetAcesso(FConexao.SocketAreaRemota);
+      If Assigned(FConexaoAcesso.SocketTeclado) Then
+       If Assigned(FConexao.ThreadTeclado) Then
+        FConexao.ThreadTeclado.SetAcesso(FConexaoAcesso.SocketTeclado);
+      If Assigned(FConexaoAcesso.SocketArquivos) Then
+       If Assigned(FConexao.ThreadArquivos) Then
+        FConexao.ThreadArquivos.SetAcesso(FConexaoAcesso.SocketArquivos);
+      If Assigned(FConexao.SocketArquivos) Then
+       If Assigned(FConexaoAcesso.ThreadArquivos) Then
+        FConexaoAcesso.ThreadArquivos.SetAcesso(FConexao.SocketArquivos);
+      Synchronize(Procedure
+                  Begin
+                   If Assigned(FConexaoAcesso.ThreadPrincipal) Then
+                    If Assigned(FConexaoAcesso.ThreadPrincipal.scClient) Then
+                     Begin
+                      FConexaoAcesso.ThreadPrincipal.scClient.SendText('<|ACCESSING|>');
+                      Application.Processmessages;
+                      If xValue <> '' Then
+                       FConexaoAcesso.ThreadAreaRemota.scClient.SendText('<|GETFULLSCREENSHOT|><|BESTQ|>' + xValue + '<|END|>')
+                      Else
+                       FConexaoAcesso.ThreadAreaRemota.scClient.SendText('<|GETFULLSCREENSHOT|>');
+                     End;
+                  End);
     end;
 
     // Stop relations
@@ -472,7 +507,7 @@ begin
 
       if (Pos('<|FOLDERLIST|>', xBufferTemp) > 0) then
       begin
-        while (scClient.Connected) do
+        while (scClient.Connected) and (Not (Terminated)) do
         begin
           Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
 
@@ -485,7 +520,7 @@ begin
 
       if (Pos('<|FILESLIST|>', xBufferTemp) > 0) then
       begin
-        while (scClient.Connected) do
+        while (scClient.Connected) and (Not (Terminated)) do
         begin
           Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
 

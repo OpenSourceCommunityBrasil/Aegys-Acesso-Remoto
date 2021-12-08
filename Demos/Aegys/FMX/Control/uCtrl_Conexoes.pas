@@ -35,6 +35,10 @@ type
     FThreadArquivos   : TThreadConexaoArquivos;
     FThreadPrincipal  : TThreadConexaoPrincipal;
     FThreadTeclado    : TThreadConexaoTeclado;
+    aSocketAreaRemota,
+    aSocketArquivos,
+    aSocketPrincipal,
+    aSocketTeclado    : TCustomWinSocket;
     FPingInicial,
     FPingFinal        : Int64;
     procedure SetID(const Value: string);
@@ -67,6 +71,10 @@ type
     property ThreadArquivos: TThreadConexaoArquivos read FThreadArquivos write SetThreadArquivos;
     property ThreadPrincipal: TThreadConexaoPrincipal read FThreadPrincipal write SetThreadPrincipal;
     property ThreadTeclado: TThreadConexaoTeclado read FThreadTeclado write SetThreadTeclado;
+    property SocketAreaRemota : TCustomWinSocket Read aSocketAreaRemota;
+    property SocketArquivos   : TCustomWinSocket Read aSocketArquivos;
+    property SocketPrincipal  : TCustomWinSocket Read aSocketPrincipal;
+    property SocketTeclado    : TCustomWinSocket Read aSocketTeclado;
   end;
 
   TConexoes = class
@@ -124,23 +132,27 @@ begin
   case AThread of
     ttPrincipal:
       begin
-        LimparThread(ttPrincipal);
-        FThreadPrincipal := TThreadConexaoPrincipal.Create(ASocket, Protocolo);
+       LimparThread(ttPrincipal);
+       aSocketPrincipal := ASocket;
+       FThreadPrincipal := TThreadConexaoPrincipal.Create(ASocket, Protocolo);
       end;
     ttAreaRemota:
       begin
-        LimparThread(ttAreaRemota);
-        FThreadAreaRemota := TThreadConexaoAreaRemota.Create(ASocket, Protocolo);
+       LimparThread(ttAreaRemota);
+       aSocketAreaRemota := ASocket;
+       FThreadAreaRemota := TThreadConexaoAreaRemota.Create(ASocket, Protocolo);
       end;
     ttTeclado:
       begin
-        LimparThread(ttTeclado);
-        FThreadTeclado := TThreadConexaoTeclado.Create(ASocket, Protocolo);
+       LimparThread(ttTeclado);
+       aSocketTeclado := ASocket;
+       FThreadTeclado := TThreadConexaoTeclado.Create(ASocket, Protocolo);
       end;
     ttArquivos:
       begin
-        LimparThread(ttArquivos);
-        FThreadArquivos := TThreadConexaoArquivos.Create(ASocket, Protocolo);
+       LimparThread(ttArquivos);
+       aSocketArquivos := ASocket;
+       FThreadArquivos := TThreadConexaoArquivos.Create(ASocket, Protocolo);
       end;
   end;
 end;

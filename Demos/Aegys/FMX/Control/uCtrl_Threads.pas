@@ -104,6 +104,8 @@ Type
     procedure ThreadTerminate(ASender: TObject);
   end;
 
+  Procedure Delay(msecs : Cardinal);
+
 implementation
 
 { TConexaoPrincipal }
@@ -123,6 +125,16 @@ uses uFormArquivos, uFormChat, uFormConexao, uFormTelaRemota,
 {$ENDIF}
     , CCR.Clipboard;
 
+
+Procedure Delay(msecs : Cardinal);
+Var
+ FirstTickCount: Cardinal;
+Begin
+ FirstTickCount := GetTickCount;
+ Repeat
+  Application.ProcessMessages;
+ Until ((GetTickCount - FirstTickCount) >= msecs);
+End;
 
 
 Function TThreadConexaoPrincipal.GetMonitorCount : Integer;
@@ -216,15 +228,8 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Delete(BufferTemp, 1, Position + 2);
           Conexao.SenhaGerada := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
           Synchronize(FormConexao.SetOnline);
-
-          // If this Socket are connected, then connect the Desktop Socket, Keyboard Socket, File Download Socket and File Upload Socket
-          Synchronize(
-            procedure
-            begin
-              Conexao.SocketAreaRemota.Active := True;
-              Conexao.SocketTeclado.Active := True;
-              Conexao.SocketArquivos.Active := True;
-            end);
+//          // If this Socket are connected, then connect the Desktop Socket, Keyboard Socket, File Download Socket and File Upload Socket
+          Conexao.ReconectarSocketsSecundarios;
         end;
 
         // Ping
@@ -308,24 +313,25 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
         if Buffer.Contains('<|ACCESSGRANTED|>') then
         begin
-          Synchronize(Procedure
-                      Begin
-                       FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Granted'));
-                       Socket.SendText('<|GETMONITORCOUNT|>' + Conexao.ID + '<|>' +
-                                       FormConexao.EGuestID.Text + '<|END|>');
-                      End);
+         Synchronize(Procedure
+                     Begin
+//                      Conexao.ReconectarSocketsSecundarios;
+                      FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Granted'));
+                     End);
+         Socket.SendText('<|GETMONITORCOUNT|>' + Conexao.ID + '<|>' +
+                         FormConexao.EGuestID.Text + '<|END|>');
         end;
         if Buffer.Contains('<|GETMONITORCOUNT|>') then
         begin
+         Synchronize(Procedure
+                     Begin
+//                      Conexao.ReconectarSocketsSecundarios;
+                     End);
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + Length('<|GETMONITORCOUNT|>'));
           Position := Pos('<|END|>', BufferTemp);
           aTempID  := Copy(BufferTemp, 1, Position -1);
-          Synchronize(
-            procedure
-            begin
-              Socket.SendText('<|MONITORS|>' + aTempID + '<|>' + IntToStr(GetMonitorCount) + '<|END|>');
-            end);
+          Socket.SendText('<|MONITORS|>' + aTempID + '<|>' + IntToStr(GetMonitorCount) + '<|END|>');
         end;
         if Buffer.Contains('<|CHANGEMONITOR|>') then
         begin
@@ -336,6 +342,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Conexao.ThreadAreaRemota.Capture := False;
           If Not Conexao.ThreadAreaRemota.Finished Then
            Conexao.ThreadAreaRemota.Terminate;
+          WaitForSingleObject(Conexao.ThreadAreaRemota.Handle, INFINITE);
           Conexao.ThreadAreaRemota := Nil;
           Conexao.ThreadAreaRemota := TThreadConexaoAreaRemota.Create(Conexao.SocketAreaRemota.Socket);
           Conexao.ThreadAreaRemota.Monitor := aTempID;
@@ -358,13 +365,16 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
               FormConexao.LimparConexao;
               FormTelaRemota.ActualScreen      := '0';
               FormTelaRemota.ActualIDConnected := FormConexao.EGuestID.Text;
-              FormTelaRemota.AddItems(StrToInt(aTempID));
+              If aTempID = '' Then
+               FormTelaRemota.AddItems(0)
+              Else
+               FormTelaRemota.AddItems(StrToInt(aTempID));
               FormTelaRemota.Show;
               FormConexao.Hide;
-              Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' +
-                FormConexao.EGuestID.Text + '<|>' + '<|BESTQ|>' +
-                IntToStr(FormConexao.cbQuality.ItemIndex) + '<|END|>');
             end);
+          Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' +
+                          FormConexao.EGuestID.Text + '<|>' + '<|BESTQ|>' +
+                          IntToStr(FormConexao.cbQuality.ItemIndex) + '<|END|>');
         end;
 
         if Buffer.Contains('<|DISCONNECTED|>') then
@@ -733,7 +743,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         Position := Pos('<|FOLDERLIST|>', Buffer);
         if Position > 0 then
         begin
-          while Socket.Connected do
+          while (Socket.Connected) And (Not Terminated) do
           begin
             if Buffer.Contains('<|ENDFOLDERLIST|>') then
               Break;
@@ -768,7 +778,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         Position := Pos('<|FILESLIST|>', Buffer);
         if Position > 0 then
         begin
-          while Socket.Connected do
+          while (Socket.Connected) And (Not Terminated) do
           begin
             if Buffer.Contains('<|ENDFILESLIST|>') then
               Break;
@@ -850,6 +860,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             ('<|SIZE|>' + IntToStr(FileToUpload.Size) + '<|END|>');
           Conexao.SocketArquivos.Socket.SendStream(FileToUpload);
         end;
+       application.ProcessMessages;
       end;
     Locale.DisposeOf;
   end;
@@ -857,7 +868,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
   procedure TThreadConexaoPrincipal.ThreadTerminate(ASender: TObject);
   begin
     if (Assigned(Conexao)) and (not Terminated) then
-      Conexao.LimparThread(ttPrincipal);
+     Conexao.LimparThread(ttPrincipal);
   end;
 
 { TConexaoAreaRemota }
@@ -908,30 +919,32 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         PackStream := TMemoryStream.Create;
         bFirst := True;
 
-        while vBreak do
+        while (vBreak) And (not Terminated) do
         begin
+          Application.ProcessMessages;
           Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
+          Application.ProcessMessages;
           If vInitBuffer = '' Then
            Begin
             if (Socket = nil) or not(Socket.Connected) or (Terminated) then
-              Break;
+             Break;
             if (Socket.ReceiveLength < 1) and
               (Pos('<|GETFULLSCREENSHOT|>', Buffer) <= 0) then
-              Continue;
+             Continue;
            End;
           if vInitbuffer <> '' then
            Begin
             Buffer := vInitBuffer;
             vInitBuffer := '';
-            bFirstMon := True;
            End
-          Else
+          Else If (Socket.ReceiveLength > 1) Then
            Buffer := Buffer + Socket.ReceiveText;
           // Accommodates in memory all images that are being received and not processed. This helps in smoothing and mapping so that changes in the wrong places do not occur.
 
           Position := Pos('<|GETFULLSCREENSHOT|>', Buffer);
           if Position > 0 then
           begin
+            bFirstMon := True;
 {$IF DEFINED (ANDROID) || (IOS)}
             PixelFormat := TPixelFormat(0);
 {$ENDIF}
@@ -966,8 +979,8 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
               End;
             End;
             Delete(Buffer, 1, Position + 20);
-            If Not bFirstMon Then
-             Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' + IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height)) + '<|END|>');
+//            If Not bFirstMon Then
+            Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|RESOLUTION|>' + IntToStr(Trunc(Screen.Width)) + '<|>' + IntToStr(Trunc(Screen.Height)) + '<|END|>');
             TMemoryStream(MyFirstBmp).Clear;
             UnPackStream.Clear;
             MyTempStream.Clear;
@@ -988,7 +1001,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             vTempText := Socket.ReceiveText;
             Socket.SendText('<|FIRSTIMAGE|>' + TRDLib.MemoryStreamToString(PackStream) + '<|END|>');
             bFirstMon := False;
-            while vBreak do
+            while (vBreak) And (not Terminated)  do
             begin
               Sleep(FOLGAPROCESSAMENTO);
 
@@ -1007,13 +1020,15 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
               // EUREKA: This is the responsable to interact with UAC. But we need run
               // the software on SYSTEM account to work.
-              hDesktop := OpenInputDesktop(0, True, MAXIMUM_ALLOWED);
-              if hDesktop <> 0 then
-              begin
-                SetThreadDesktop(hDesktop);
-                CloseHandle(hDesktop);
-              end;
-
+              Try
+               hDesktop := OpenInputDesktop(0, True, MAXIMUM_ALLOWED);
+               If hDesktop <> 0 then
+                Begin
+                 SetThreadDesktop(hDesktop);
+                 CloseHandle(hDesktop);
+                End;
+              Except
+              End;
               // Workaround to run on change from secure desktop to default.
               try
                 GetScreenToMemoryStream(Conexao.MostrarMouse,
@@ -1193,7 +1208,7 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
         Bblockinpunt:boolean;
         InicioPalavra,tamanhopalavra:integer;
       begin
-        while True do
+        while (not Terminated) do
         begin
           Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
 
@@ -1325,7 +1340,7 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
           ReceivingFile := False;
           FileStream := nil;
 
-          while True do
+          while (not Terminated) do
           begin
             Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
 

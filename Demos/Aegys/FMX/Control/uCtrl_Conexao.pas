@@ -19,7 +19,7 @@ interface
 
 uses
   System.Classes, System.Threading, uCtrl_Threads, System.Win.ScktComp,
-  uConstants, uFunctions, Winapi.Windows, uSQLiteConfig;
+  uConstants, uFunctions, Winapi.Windows, uSQLiteConfig, FMX.Forms;
 
 type
   TConexao = class
@@ -147,12 +147,15 @@ var
   iPort: Integer;
 begin
   Locale := TLocale.Create;
-  CFG := TSQLiteConfig.Create;
-  if (ParamStr(1) <> '') then
-    xHost := ParamStr(1)
-  else
+  Try
+   CFG := TSQLiteConfig.Create;
+   if (SERVIDOR <> '') then
+    xHost := SERVIDOR
+   else
     xHost := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
-
+  Except
+   xHost := SERVIDOR;
+  End;
   if (ParamStr(2) <> '') then
     iPort := StrToIntDef(ParamStr(2), PORTA)
   else
@@ -178,6 +181,7 @@ begin
   SocketAreaRemota.OnDisconnect := SocketAreaRemotaDisconnect;
   SocketAreaRemota.HOST := xHost;
   SocketAreaRemota.Port := iPort;
+//  SocketAreaRemota.Socket.ASyncStyles := [asRead, asWrite];
 
   SocketTeclado := TClientSocket.Create(nil);
   SocketTeclado.Active := false;
@@ -214,18 +218,24 @@ begin
       end;
     ttAreaRemota:
       begin
-        LimparThread(ttAreaRemota);
-        FThreadAreaRemota := TThreadConexaoAreaRemota.Create(ASocket);
-        FThreadAreaRemota.Resume;
+       LimparThread(ttAreaRemota);
+       If ID <> '' Then
+        Begin
+         FThreadAreaRemota         := TThreadConexaoAreaRemota.Create(ASocket);
+         FThreadAreaRemota.Monitor := '0';
+         FThreadAreaRemota.Resume;
+        End;
       end;
     ttTeclado:
       begin
-        LimparThread(ttTeclado);
+       LimparThread(ttTeclado);
+       If ID <> '' Then
         FThreadTeclado := TThreadConexaoTeclado.Create(ASocket);
       end;
     ttArquivos:
       begin
-        LimparThread(ttArquivos);
+       LimparThread(ttArquivos);
+       If ID <> '' Then
         FThreadArquivos := TThreadConexaoArquivos.Create(ASocket);
       end;
   end;
@@ -233,14 +243,6 @@ end;
 
 destructor TConexao.Destroy;
 begin
-  if Assigned(FSocketPrincipal) then
-    FreeAndNil(FSocketPrincipal);
-  if Assigned(FSocketAreaRemota) then
-    FreeAndNil(FSocketAreaRemota);
-  if Assigned(FSocketTeclado) then
-    FreeAndNil(FSocketTeclado);
-  if Assigned(FSocketArquivos) then
-    FreeAndNil(FSocketArquivos);
   if Assigned(FThreadPrincipal) then
     LimparThread(ttPrincipal);
   if Assigned(FThreadAreaRemota) then
@@ -249,6 +251,14 @@ begin
     LimparThread(ttTeclado);
   if Assigned(FThreadArquivos) then
     LimparThread(ttArquivos);
+  if Assigned(FSocketPrincipal) then
+    FreeAndNil(FSocketPrincipal);
+  if Assigned(FSocketAreaRemota) then
+    FreeAndNil(FSocketAreaRemota);
+  if Assigned(FSocketTeclado) then
+    FreeAndNil(FSocketTeclado);
+  if Assigned(FSocketArquivos) then
+    FreeAndNil(FSocketArquivos);
   Locale.DisposeOf;
   CFG.DisposeOf;
   inherited;
@@ -279,36 +289,32 @@ begin
       begin
         if Assigned(FThreadPrincipal) then
         begin
-          if not FThreadPrincipal.Finished then
-            FThreadPrincipal.Terminate;
-          FThreadPrincipal := nil;
+         FThreadPrincipal.Terminate;
+         FThreadPrincipal := nil;
         end;
       end;
     ttAreaRemota:
       begin
         if Assigned(FThreadAreaRemota) then
         begin
-          if not FThreadAreaRemota.Finished then
-            FThreadAreaRemota.Terminate;
-          FThreadAreaRemota := nil;
+         FThreadAreaRemota.Terminate;
+         FThreadAreaRemota := nil;
         end;
       end;
     ttTeclado:
       begin
         if Assigned(FThreadTeclado) then
         begin
-          if not FThreadTeclado.Finished then
-            FThreadTeclado.Terminate;
-          FThreadTeclado := nil;
+         FThreadTeclado.Terminate;
+         FThreadTeclado := nil;
         end;
       end;
     ttArquivos:
       begin
         if Assigned(FThreadArquivos) then
         begin
-          if not FThreadArquivos.Finished then
-            FThreadArquivos.Terminate;
-          FThreadArquivos := nil;
+         FThreadArquivos.Terminate;
+         FThreadArquivos := nil;
         end;
       end;
   end;
@@ -319,23 +325,29 @@ begin
   if (Forced) and (SocketPrincipal.Active) then
   begin
     SocketPrincipal.Close;
-    Sleep(1000);
+    Application.ProcessMessages;
+    Sleep(FOLGAPROCESSAMENTO);
     SocketPrincipal.Open;
   end
   else if not SocketPrincipal.Active then
+   Begin
+    Sleep(FOLGAPROCESSAMENTO);
     SocketPrincipal.Active := True;
+    Application.ProcessMessages;
+   End;
 end;
 
 procedure TConexao.ReconectarSocketsSecundarios;
 begin
   Visualizador := false;
-  SocketAreaRemota.Close;
-  SocketTeclado.Close;
-  SocketArquivos.Close;
-  Sleep(1000);
+  SocketAreaRemota.Active := False;
+  SocketTeclado.Active    := False;
+  SocketArquivos.Active   := False;
+  Application.Processmessages;
+  Sleep(FOLGAPROCESSAMENTO);
   SocketAreaRemota.Active := True;
-  SocketTeclado.Active := True;
-  SocketArquivos.Active := True;
+  SocketTeclado.Active    := True;
+  SocketArquivos.Active   := True;
 end;
 
 procedure TConexao.SetAcessando(const Value: Boolean);
@@ -460,8 +472,11 @@ end;
 procedure TConexao.SocketAreaRemotaConnect(Sender: TObject;
   Socket: TCustomWinSocket);
 begin
- Socket.SendText('<|DESKTOPSOCKET|>' + ID + '<|END|>');
- CriarThread(ttAreaRemota, Socket);
+ If ID <> '' Then
+  Begin
+   Socket.SendText('<|DESKTOPSOCKET|>' + ID + '<|END|>');
+   CriarThread(ttAreaRemota, Socket);
+  End;
 end;
 
 procedure TConexao.SocketAreaRemotaDisconnect(Sender: TObject;

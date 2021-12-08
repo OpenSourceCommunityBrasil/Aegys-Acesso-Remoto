@@ -461,6 +461,9 @@ var
 begin
   CFG := TSQLiteConfig.Create;
   try
+   if SERVIDOR <> '' then
+    host := SERVIDOR
+   Else
     host := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
     Conexao.SocketPrincipal.Close;
     Conexao.SocketAreaRemota.Close;
@@ -472,12 +475,12 @@ begin
     Conexao.SocketArquivos.host := host;
     Conexao.SocketTeclado.host := host;
 
-    sleep(1000);
+    sleep(FOLGAPROCESSAMENTO);
 
     Conexao.SocketPrincipal.Open;
-    Conexao.SocketAreaRemota.Open;
-    Conexao.SocketArquivos.Open;
-    Conexao.SocketTeclado.Open;
+//    Conexao.SocketAreaRemota.Open;
+//    Conexao.SocketArquivos.Open;
+//    Conexao.SocketTeclado.Open;
   finally
     CFG.DisposeOf;
   end;

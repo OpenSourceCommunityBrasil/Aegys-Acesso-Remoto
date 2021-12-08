@@ -23,14 +23,14 @@ type
 const
   PORTA = 3898;
   FOLGAPROCESSAMENTO = 2;
-  // SERVIDOR = '201.73.143.69';
+  SERVIDOR = '201.73.143.69';
   // Svr: Razios '201.4.250.4' //Svr:Embratel '201.73.143.69';
   INTERVALOCONEXAO = 60;
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
 
   // Controle de Versão
   APPVERSION = '2.0.1';
-  APPBUILDV = '76';
+  APPBUILDV = '77';
 
   // frescuragem do app
   PRIMARY_COLOR = $FF0070BA;

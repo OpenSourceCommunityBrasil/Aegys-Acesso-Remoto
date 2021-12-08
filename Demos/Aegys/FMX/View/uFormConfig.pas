@@ -82,6 +82,9 @@ procedure TfConfig.FormCreate(Sender: TObject);
 var
   I: Integer;
 begin
+  server.Enabled := SERVIDOR = '';
+  if Not server.Enabled then
+   server.ItemIndex := -1;
   Locale := TLocale.Create;
   Cfg := TSQLiteConfig.Create;
   try
