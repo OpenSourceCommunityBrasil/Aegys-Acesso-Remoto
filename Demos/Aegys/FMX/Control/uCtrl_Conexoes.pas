@@ -27,6 +27,7 @@ type
     FID,
     FMAC,
     FHD,
+    FUser,
     FLatencia,
     FProtocolo,
     FSenha,
@@ -58,8 +59,9 @@ type
     procedure Ping;
     procedure CriarThread(AThread: IDThreadType; ASocket: TCustomWinSocket);
     procedure LimparThread(AThread: IDThreadType);
-    property MAC : String Read FMAC Write FMAC;
-    property HD  : String Read FHD  Write FHD;
+    property MAC  : String Read FMAC  Write FMAC;
+    property HD   : String Read FHD   Write FHD;
+    property User : String Read FUser Write FUser;
     property ID: string read FID write SetID;
     property Latencia: string read FLatencia write SetLatencia;
     property PingFinal: Int64 read FPingFinal write SetPingFinal;
@@ -83,7 +85,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    Function GenerateID(strMAC, strHD : String) : String;
+    Function GenerateID(strMAC, strHD, strUser : String) : String;
     function GerarID: string;
     function GerarSenha(psw:string): string;
     function RetornaItemPorConexao(AConexao: string): TConexao;
@@ -92,7 +94,7 @@ type
     function VerificaID(AID: string): Boolean;
     function VerificaIDSenha(AID, ASenha: string): Boolean;
     procedure AdicionarConexao(AProtocolo,
-                               MAC, HD, DSenha : String);Overload;
+                               MAC, HD, User, DSenha : String);Overload;
     //procedure AdicionarConexao(AProtocolo: string);Overload;
     procedure RemoverConexao(AProtocolo: string);
     property ListaConexoes: TObjectList<TConexao> read FListaConexoes;
@@ -280,7 +282,7 @@ end;
 { TConexoes }
 
 procedure TConexoes.AdicionarConexao(AProtocolo,
-                                     MAC, HD, DSenha : String);
+                                     MAC, HD, User, DSenha : String);
 Var
  I : Integer;
 Begin
@@ -289,7 +291,8 @@ Begin
  FListaConexoes[i].Protocolo := AProtocolo;
  FListaConexoes[i].MAC       := MAC;
  FListaConexoes[i].HD        := HD;
- FListaConexoes[i].ID        := GenerateID(MAC, HD);
+ FListaConexoes[i].User      := User;
+ FListaConexoes[i].ID        := GenerateID(MAC, HD, User);
  FListaConexoes[i].Senha     := GerarSenha(DSenha);
  FListaConexoes[i].SenhaGerada := GerarSenha('');
 End;
@@ -316,11 +319,29 @@ begin
   FreeAndNil(FListaConexoes);
 end;
 
-Function GenerateIDUnique(mac, hd : String) : String;
+Function GenerateIDUnique(mac, hd, User  : String) : String;
+ Function EmbaralharString(const aString : string) : String;
+ Var
+  I, A    : Integer;
+  vChar1,
+  vChar2  : Char;
+ Begin
+  Result := aString;
+  For I := 1 To Length(Result) Do
+   Begin
+    For A := Length(Result) DownTo 1 Do
+     Begin
+      vChar1 := Result[I];
+      vChar2 := Result[A];
+      Result[I] := vChar2;
+      Result[A] := vChar1;
+     End;
+   End;
+ End;
  Function LetToNum(Str : String) : String;
  Const
-  Cad1: String = 'ABCDEF';
-  Cad2: String = '123456';
+  Cad1: String = 'ABCDEFGHIJKLMNOPQRSTWXYZ';
+  Cad2: String = '1234567890';
  Var
   x, y : Integer;
  Begin
@@ -331,6 +352,7 @@ Function GenerateIDUnique(mac, hd : String) : String;
     If x > 0 Then Result := Result + Copy(Cad2,x,1)
     Else Result := Result + Copy(str,y,1);
    End;
+  Result := EmbaralharString(Result);
  End;
  Function RemoveChrInvalidos(Str: string): string;
  Var
@@ -350,21 +372,23 @@ Function GenerateIDUnique(mac, hd : String) : String;
  End;
 Var
  AMac,
- AHD, S,
+ AHD,
+ AUser, S,
  sID1,
  sID2,
  sID3   : String;
 Begin
- AMac := RemoveChrInvalidos(mac);
- AHD := RemoveChrInvalidos(hd);
- S := LetToNum(AMac + AHD); // Trocando as letras pelos numeros;
- sID1 := Copy(s,StrToIntDef(Copy(s,1,1),1),3);
- sID2 := Copy(s,StrToIntDef(Copy(s,10,1),2),3);
- sID3 := Copy(s,StrToIntDef(Copy(s,length(s)-3,1),3),3);
- Result := sID1 + '-'+ sID2  +'-'+ sID3;
+ AMac  := RemoveChrInvalidos(mac);
+ AHD   := RemoveChrInvalidos(hd);
+ AUser := RemoveChrInvalidos(User);
+ S := LetToNum(AMac + AHD + AUser); // Trocando as letras pelos numeros;
+ sID1 := Copy(s, StrToIntDef(Copy(s, 1,  1), 1), 3);
+ sID2 := Copy(s, StrToIntDef(Copy(s, 10, 1), 2), 3);
+ sID3 := Copy(s, StrToIntDef(Copy(s, Length(s)-3, 1), 3), 3);
+ Result := sID1 + '-' + sID2 + '-' + sID3;
 End;
 
-Function TConexoes.GenerateID(strMAC, strHD : String) : String;
+Function TConexoes.GenerateID(strMAC, strHD, strUser : String) : String;
 Var
  I       : Integer;
  ID      : String;
@@ -372,7 +396,7 @@ Var
  Conexao : TConexao;
 Begin
  Randomize;
- ID := GenerateIDUnique(strMAC, strHD);
+ ID := GenerateIDUnique(strMAC, strHD, strUser);
  Exists := False;
  Try
   For Conexao in FListaConexoes do

@@ -104,6 +104,7 @@ var
  xID,
  xMAC,
  xHD,
+ xUser,
  xSenha,
  xSenhaGerada  : String;
  iPosition   : Integer;
@@ -134,10 +135,13 @@ begin
        xMAC := xValue;
        xMAC := Copy(xMAC, 1, Pos('<|>', xMAC) - 1);
        Delete(xValue, 1, Pos('<|>', xValue) + 2);
-
        Delete(xValue, 1, Pos('<|HD|>', xValue)+ 5);
        xHD := xValue;
        xHD := Copy(xHD, 1, Pos('<|>', xHD) - 1);
+       Delete(xValue, 1, Pos('<|>', xValue) + 2);
+       Delete(xValue, 1, Pos('<|USER|>', xValue) + 7);
+       xUser := xValue;
+       xUser := Copy(xUser, 1, Pos('<|>', xUser) - 1);
        Delete(xValue, 1, Pos('<|>', xValue) + 2);
 
        Delete(xValue, 1, Pos('<|SENHADEFINIDA|>', xValue)+ 16);
@@ -149,7 +153,7 @@ begin
        xSenhaGerada := xValue;
        xSenhaGerada := Copy(xSenhaGerada, 1, Pos('<|>', xSenha) - 1);
        xValue := '';
-       DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle), XMac, XHD, XSenha);
+       DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle), XMac, XHD, xUser, XSenha);
       End;
 //     Else
 //      DMServer.Conexoes.AdicionarConexao(IntToStr(scClient.Handle));

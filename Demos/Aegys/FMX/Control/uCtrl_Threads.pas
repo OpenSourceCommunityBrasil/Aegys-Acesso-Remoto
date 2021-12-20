@@ -438,7 +438,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 14);
           Position := Pos('<|>', BufferTemp);
-          aTempID   := FormTelaRemota.ActualScreen;
+          aTempID   := Conexao.ThreadAreaRemota.Monitor;
           If Trim(aTempID) = '' Then
            aTempID := '0';
           MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, 1, Position - 1));
@@ -461,12 +461,15 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         Position := Pos('<|SETMOUSELEFTCLICKDOWN|>', Buffer);
         if Position > 0 then
         begin
+          aTempID   := Conexao.ThreadAreaRemota.Monitor;
+          If Trim(aTempID) = '' Then
+           aTempID := '0';
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 24);
           Position := Pos('<|>', BufferTemp);
-          MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
+          MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY := StrToInt(Copy(BufferTemp, 1,
+          MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, 1,
             Pos('<|END|>', BufferTemp) - 1));
           if Buffer.Contains('<|BLOCKINPUT|>') then
           begin
@@ -489,12 +492,15 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         Position := Pos('<|SETMOUSELEFTCLICKUP|>', Buffer);
         if Position > 0 then
         begin
+          aTempID   := Conexao.ThreadAreaRemota.Monitor;
+          If Trim(aTempID) = '' Then
+           aTempID := '0';
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 22);
           Position := Pos('<|>', BufferTemp);
-          MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
+          MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY := StrToInt(Copy(BufferTemp, 1,
+          MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, 1,
             Pos('<|END|>', BufferTemp) - 1));
           if Buffer.Contains('<|BLOCKINPUT|>') then
           begin
@@ -518,12 +524,15 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         Position := Pos('<|SETMOUSERIGHTCLICKDOWN|>', Buffer);
         if Position > 0 then
         begin
+          aTempID   := Conexao.ThreadAreaRemota.Monitor;
+          If Trim(aTempID) = '' Then
+           aTempID := '0';
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 25);
           Position := Pos('<|>', BufferTemp);
-          MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
+          MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY := StrToInt(Copy(BufferTemp, 1,
+          MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, 1,
             Pos('<|END|>', BufferTemp) - 1));
           if Buffer.Contains('<|BLOCKINPUT|>') then
           begin
@@ -547,13 +556,15 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         Position := Pos('<|SETMOUSERIGHTCLICKUP|>', Buffer);
         if Position > 0 then
         begin
-
+          aTempID   := Conexao.ThreadAreaRemota.Monitor;
+          If Trim(aTempID) = '' Then
+           aTempID := '0';
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 23);
           Position := Pos('<|>', BufferTemp);
-          MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
+          MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY := StrToInt(Copy(BufferTemp, 1,
+          MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, 1,
             Pos('<|END|>', BufferTemp) - 1));
           if Buffer.Contains('<|BLOCKINPUT|>') then
           begin
@@ -577,12 +588,15 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         Position := Pos('<|SETMOUSEMIDDLEDOWN|>', Buffer);
         if Position > 0 then
         begin
+          aTempID   := Conexao.ThreadAreaRemota.Monitor;
+          If Trim(aTempID) = '' Then
+           aTempID := '0';
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 21);
           Position := Pos('<|>', BufferTemp);
-          MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
+          MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY := StrToInt(Copy(BufferTemp, 1,
+          MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, 1,
             Pos('<|END|>', BufferTemp) - 1));
           if Buffer.Contains('<|BLOCKINPUT|>') then
           begin
@@ -606,12 +620,15 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         Position := Pos('<|SETMOUSEMIDDLEUP|>', Buffer);
         if Position > 0 then
         begin
+          aTempID   := Conexao.ThreadAreaRemota.Monitor;
+          If Trim(aTempID) = '' Then
+           aTempID := '0';
           BufferTemp := Buffer;
           Delete(BufferTemp, 1, Position + 19);
           Position := Pos('<|>', BufferTemp);
-          MousePosX := StrToInt(Copy(BufferTemp, 1, Position - 1));
+          MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, 1, Position - 1));
           Delete(BufferTemp, 1, Position + 2);
-          MousePosY := StrToInt(Copy(BufferTemp, 1,
+          MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, 1,
             Pos('<|END|>', BufferTemp) - 1));
           if Buffer.Contains('<|BLOCKINPUT|>') then
           begin

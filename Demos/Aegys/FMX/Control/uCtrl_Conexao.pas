@@ -510,6 +510,20 @@ begin
   ErrorCode := 0;
 end;
 
+Function UsuarioLogado : string;
+Var
+ nsize    : Cardinal;
+ UserName : string;
+Begin
+ nsize := 25;
+ SetLength(UserName,nsize);
+ If GetUserName(PChar(UserName), nsize) Then
+  Begin
+   SetLength(UserName,nsize-1);
+   Result := UserName;
+  End;
+End;
+
 Function MacAddress: string;
 Var
   Lib: Cardinal;
@@ -561,17 +575,39 @@ End;
 procedure TConexao.SocketPrincipalConnect(Sender: TObject;
   Socket: TCustomWinSocket);
 Var
-  vHD, vMAC, vSenha, vSenhaGerada: String;
+ vHD,
+ vMAC,
+ vSenha,
+ vSenhaGerada,
+ vUserLog    : String;
+ Function LimpaLixo(Value : String) : String;
+ Var
+  I : Integer;
+ Begin
+  Result := Value;
+  For I := Length(Result) DownTo 1 do
+   Begin
+    If Not(Result[I] in ['0'..'9',
+                         'a'..'z',
+                         'A'..'Z']) then
+     Delete(Result, I, 1);
+   End;
+ End;
 begin
   FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Connected'));
   Intervalo := 0;
   FormConexao.tmrIntervalo.Enabled := True;
   vMAC := MacAddress;
   vHD := SerialNumHardDisk(SystemDrive);
+  vUserLog := UsuarioLogado;
   vSenhaGerada := SenhaGerada;
   vSenha := Cfg.getValue(FIXED_PASSWORD);
-  Socket.SendText('<|MAINSOCKET|><|MAC|>' + vMAC + '<|>' + '<|HD|>' + vHD +
-    '<|>' + '<|SENHADEFINIDA|>' + vSenha + '<|>' + '<|SENHAGERADA|>' + vSenhaGerada + '<|>');
+  Socket.SendText('<|MAINSOCKET|>' +
+                  '<|MAC|>'           + LimpaLixo(vMAC)                + '<|>' +
+                  '<|HD|>'            + Uppercase(LimpaLixo(vHD))      + '<|>' +
+                  '<|USER|>'          + Uppercase(LimpaLixo(vUserLog)) + '<|>' +
+                  '<|SENHADEFINIDA|>' + vSenha                         + '<|>' +
+                  '<|SENHAGERADA|>'   + vSenhaGerada                   + '<|>');
   CriarThread(ttPrincipal, Socket);
 end;
 
