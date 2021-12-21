@@ -148,6 +148,8 @@ Procedure DrawScreenCursor(Var Bmp: Vcl.Graphics.TBitmap; const MonitorID: Integ
 Var
  R          : TRect;
  CursorInfo : TCursorInfo;
+ Left,
+ Top        : Integer;
  Icon       : TIcon;
  IconInfo   : TIconInfo;
 Begin
@@ -161,8 +163,16 @@ Begin
      Icon.Handle:= CopyIcon(CursorInfo.hCursor);
      If GetIconInfo(Icon.Handle, IconInfo) Then
       Begin
-       Bmp.Canvas.Draw(CursorInfo.ptScreenPos.x - Integer(IconInfo.xHotspot) - R.Left,
-                       CursorInfo.ptScreenPos.y - Integer(IconInfo.yHotspot) - R.Top,
+       If CursorInfo.ptScreenPos.x > Screen.Monitors[MonitorID].Left Then
+        Left := CursorInfo.ptScreenPos.x - Screen.Monitors[MonitorID].Left
+       Else
+        Left := CursorInfo.ptScreenPos.x;
+       If CursorInfo.ptScreenPos.y > Screen.Monitors[MonitorID].Top  Then
+        Top  := CursorInfo.ptScreenPos.y - Screen.Monitors[MonitorID].Top
+       Else
+        Top  := CursorInfo.ptScreenPos.y;
+       Bmp.Canvas.Draw(Left - Integer(IconInfo.xHotspot) - R.Left,
+                       Top  - Integer(IconInfo.yHotspot) - R.Top,
                        Icon);
       End;
     End;
