@@ -38,7 +38,8 @@ uses
   CCR.Clipboard.VCL in 'Lib\ClipBoard\CCR.Clipboard.VCL.pas',
   CCR.Clipboard.Win in 'Lib\ClipBoard\CCR.Clipboard.Win.pas',
   ufrMonitorItem in 'View\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame},
-  uSQLiteConfig in 'Lib\uSQLiteConfig.pas';
+  uSQLiteConfig in 'Lib\uSQLiteConfig.pas',
+  uFileTransfer in 'View\uFileTransfer.pas' {fFileTransfer};
 
 {$R *.res}
 
@@ -130,6 +131,7 @@ begin
   Application.CreateForm(TFormTelaRemota, FormTelaRemota);
   Application.CreateForm(TFormArquivos, FormArquivos);
   Application.CreateForm(TFormSenha, FormSenha);
+  Application.CreateForm(TfFileTransfer, fFileTransfer);
   Application.Run;
 
   if Application.Terminated then
