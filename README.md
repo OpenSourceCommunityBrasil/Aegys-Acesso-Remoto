@@ -13,6 +13,9 @@
 - [ ] Copiar e colar diretamente entre as máquinas através de atalhos do teclado
 - [ ] Lista de acessos recentes
 - [ ] Capacidade de Gravar sessão remota
+- Multiconexões:
+  - [ ] Várias instâncias conectando em uma outra
+  - [ ] Uma instância conectada em várias
 - Multiplataforma:
   - [x] Windows
   - [ ] Linux
