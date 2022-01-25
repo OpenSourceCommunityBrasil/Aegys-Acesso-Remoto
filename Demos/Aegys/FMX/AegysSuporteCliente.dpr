@@ -39,9 +39,9 @@ uses
   CCR.Clipboard.Win in 'Lib\ClipBoard\CCR.Clipboard.Win.pas',
   ufrMonitorItem in 'View\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame},
   uSQLiteConfig in 'Lib\uSQLiteConfig.pas',
-  uFilesFoldersOP in 'View\uFilesFoldersOP.pas',
+  uFilesFoldersOP in 'Lib\uFilesFoldersOP.pas',
   uFileTransfer in 'View\uFileTransfer.pas' {fFileTransfer},
-  uIconsAssoc in 'View\uIconsAssoc.pas';
+  uIconsAssoc in 'Lib\uIconsAssoc.pas';
 
 {$R *.res}
 

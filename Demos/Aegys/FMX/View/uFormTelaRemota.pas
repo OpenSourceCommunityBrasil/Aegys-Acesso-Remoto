@@ -486,9 +486,9 @@ end;
 procedure TFormTelaRemota.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   cShowForm := true;
-//  FormArquivos.Hide;
+  // FormArquivos.Hide;
   if Assigned(fFileTransfer) then
-   fFileTransfer.Close;
+    fFileTransfer.Close;
   FormChat.Hide;
   Conexao.SocketPrincipal.Socket.SendText('<|STOPACCESS|>');
   FormConexao.SetOnline;
@@ -555,10 +555,9 @@ end;
 
 procedure TFormTelaRemota.PROC_ARQUIVOSExecute(Sender: TObject);
 begin
-//  FormArquivos.Show;
- if Not Assigned(fFileTransfer) then
-  fFileTransfer := TfFileTransfer.Create(Self);
- fFileTransfer.Show;
+  if Not Assigned(fFileTransfer) then
+    Application.CreateForm(TfFileTransfer, fFileTransfer);
+  fFileTransfer.Show;
 end;
 
 procedure TFormTelaRemota.PROC_BLOCKINPUTExecute(Sender: TObject);
