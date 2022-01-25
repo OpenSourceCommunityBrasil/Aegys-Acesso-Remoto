@@ -124,7 +124,7 @@ implementation
 
 {$R *.fmx}
 
-uses uFormArquivos, uFormChat, uFormConexao, Winapi.Windows, uDM,
+uses uFormArquivos, uFileTransfer, uFormChat, uFormConexao, Winapi.Windows, uDM,
   FMX.Platform.Win, uConstants;
 
 Procedure TFormTelaRemota.Wait(Value: Integer);
@@ -486,7 +486,9 @@ end;
 procedure TFormTelaRemota.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   cShowForm := true;
-  FormArquivos.Hide;
+//  FormArquivos.Hide;
+  if Assigned(fFileTransfer) then
+   fFileTransfer.Close;
   FormChat.Hide;
   Conexao.SocketPrincipal.Socket.SendText('<|STOPACCESS|>');
   FormConexao.SetOnline;
@@ -553,7 +555,10 @@ end;
 
 procedure TFormTelaRemota.PROC_ARQUIVOSExecute(Sender: TObject);
 begin
-  FormArquivos.Show;
+//  FormArquivos.Show;
+ if Not Assigned(fFileTransfer) then
+  fFileTransfer := TfFileTransfer.Create(Self);
+ fFileTransfer.Show;
 end;
 
 procedure TFormTelaRemota.PROC_BLOCKINPUTExecute(Sender: TObject);

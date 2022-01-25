@@ -23,7 +23,7 @@ type
 const
   PORTA = 3898;
   FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '';
+  SERVIDOR = 'aegys.ddns.net';
   // Svr: Razios 'aegys.ddns.net' //Svr:Embratel '201.73.143.69'; Servernovo Diego '177.10.144.78';
   INTERVALOCONEXAO = 60;
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
