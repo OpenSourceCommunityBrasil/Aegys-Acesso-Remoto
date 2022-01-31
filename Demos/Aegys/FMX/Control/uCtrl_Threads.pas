@@ -105,6 +105,8 @@ Type
   end;
 
   Procedure Delay(msecs : Cardinal);
+  Procedure ListFoldersB(Directory      : String;
+                         Var ReturnData : TStringList);
 
 implementation
 
@@ -123,7 +125,7 @@ uses uFormArquivos, uFormChat, uFormConexao, uFormTelaRemota,
     , Winapi.Windows,
   Fmx.Platform.Win
 {$ENDIF}
-    , CCR.Clipboard;
+    , CCR.Clipboard, uFilesFoldersOP, uFileTransfer;
 
 
 Procedure Delay(msecs : Cardinal);
@@ -136,6 +138,42 @@ Begin
  Until ((GetTickCount - FirstTickCount) >= msecs);
 End;
 
+
+Procedure ListFoldersB(Directory      : String;
+                       Var ReturnData : TStringList);
+Var
+ FileName,
+ Filelist   : String;
+ Searchrec  : TWin32FindData;
+ FindHandle : THandle;
+Begin
+ ReturnData.Clear;
+ If Directory <> '' Then
+  Begin
+   Try
+    FindHandle := FindFirstFile(PChar(Directory + '*.*'), Searchrec);
+    If FindHandle <> INVALID_HANDLE_VALUE Then
+     Begin
+      Repeat
+       If (Pos('ecycle.bin', LowerCase(Searchrec.cFileName)) = 0) Then
+        Begin
+         FileName := Searchrec.cFileName;
+         If (FileName = '.') Then
+          Continue;
+         If ((Searchrec.dwFileAttributes And FILE_ATTRIBUTE_DIRECTORY) <> 0) Then
+          ReturnData.Add(FileName)
+         Else
+          Filelist := Filelist + (FileName + #13);
+        End;
+      Until Not(FindNextFile(FindHandle, Searchrec));
+     End;
+   Finally
+    Winapi.Windows.FindClose(FindHandle);
+   End;
+  End;
+// ReturnStr := (Dirlist);
+// Result := ReturnStr;
+End;
 
 Function TThreadConexaoPrincipal.GetMonitorCount : Integer;
 Begin
@@ -167,6 +205,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
     Position: Integer;
     MousePosX: Integer;
     MousePosY: Integer;
+    vDataSendReceive,
     FoldersAndFiles: TStringList;
     L: TListItem;
     FileToUpload: TFileStream;
@@ -179,6 +218,64 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
     Svc: IFMXClipboardService;
     Locale: TLocale;
     BInputsBlock:Boolean;
+    Procedure ListDrivers(Var ReturnData : TStringList);
+    Var
+     ShellProps : TShellProps;
+     I          : Integer;
+    Begin
+     ShellProps := TShellProps.Create;
+     ReturnData.Clear;
+     ReturnData.Add(ShellProps.LocalStation);
+     For I := 0 To ShellProps.Drivers.Count -1 Do
+      ReturnData.Add(ShellProps.Drivers[I]);
+     FreeAndNil(ShellProps);
+    End;
+    Procedure ListFilesB(FileName   : String;
+                         Var Return : TStringList);
+    Var
+     ShellProps  : TShellProps;
+     I           : Integer;
+     vLinha      : AnsiString;
+     Function GetSize(Bytes : Int64) : String;
+     Const
+      K = Int64(1024);
+      M = K * K;
+      G = K * M;
+      T = K * G;
+     Begin
+           If Bytes < K Then Result := Format('%d B',  [Bytes])
+      Else If Bytes < M Then Result := Format('%f KB', [Bytes / K])
+      Else If Bytes < G Then Result := Format('%f MB', [Bytes / M])
+      Else If Bytes < T Then Result := Format('%f GB', [Bytes / G])
+      Else                   Result := Format('%f TB', [Bytes / T]);
+     End;
+    Begin
+     ShellProps  := TShellProps.Create;
+     ShellProps.Folder := FileName;
+     Return.Clear;
+     Try
+      For I := 0 To ShellProps.FilesCount -1 do
+       Begin
+        If ShellProps.Files[I].FileType <> fpDir Then
+         Begin
+          vLinha := Format('%s|%s|%s|%s', [ShellProps.Files[I].FileName,
+                                           GetSize(ShellProps.Files[I].FileSize),
+                                           ShellProps.Files[I].FileTypeDesc,
+                                           FormatDateTime('dd/mm/yyyy hh:mm:ss', ShellProps.Files[I].LastWrite)]);
+          Return.Add(vLinha);
+         End;
+       End;
+     Finally
+     End;
+    End;
+    Function MontaLinhaEnvio(Value : TStringList) : AnsiString;
+    Var
+     I : Integer;
+    Begin
+     Result := '';
+     For I := 0 To Value.Count -1 do
+      Result := Result + Value[I] + #$D#$A;
+    End;
   begin
     inherited;
     Locale := TLocale.Create;
@@ -234,15 +331,26 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
         // Ping
         if Buffer.Contains('<|PING|>') then
+         Begin
           Socket.SendText('<|PONG|>');
+          StringReplace(Buffer, '<|PING|>', '', [rfReplaceAll]);
+          Application.ProcessMessages;
+          Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
+          If Socket.ReceiveLength < 1 then
+           Continue;
+          Buffer := Socket.ReceiveText;
+         End;
 
         Position := Pos('<|SETPING|>', Buffer);
         if Position > 0 then
         begin
-          BufferTemp := Buffer;
-          Delete(BufferTemp, 1, Position + 10);
-          BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
+//          BufferTemp := Buffer;
+          Delete(Buffer, 1, Position + 10);
+          BufferTemp := Copy(Buffer, 1, Pos('<|END|>', Buffer) - 1);
+          Delete(Buffer, 1, Pos('<|END|>', Buffer) + 6);
           Conexao.Latencia := StrToInt(BufferTemp);
+          If Trim(Buffer) = '' then
+           Continue;
         end;
 
         // Warns access and remove Wallpaper
@@ -739,21 +847,69 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         if Position > 0 then
         begin
           BufferTemp := Buffer;
+          Buffer     := '';
+          Application.ProcessMessages;
           Delete(BufferTemp, 1, Position + 13);
-          BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
-          Socket.SendText('<|REDIRECT|><|FOLDERLIST|>' +
-            TRDLib.ListFolders(BufferTemp) + '<|ENDFOLDERLIST|>');
+          BufferTemp := Copy(BufferTemp, 1, Pos('<|END_GETFOLDERS|>', BufferTemp) - 1);
+          vDataSendReceive := TStringList.Create;
+          ListFoldersB(BufferTemp, vDataSendReceive);
+          Socket.SendText('<|REDIRECT|><|FOLDERLIST|>' + vDataSendReceive.Text + '<|END_FOLDERLIST|>');
+          Application.ProcessMessages;
+          vDataSendReceive.Free;
         end;
-
+       Position := Pos('<|GETDRIVERS|>', Buffer);
+       if Position > 0 then
+        Begin
+         BufferTemp := Buffer;
+         Buffer     := '';
+         Application.ProcessMessages;
+         vDataSendReceive := TStringList.Create;
+         ListDrivers(vDataSendReceive);
+         Try
+          Socket.SendText('<|REDIRECT|><|DRIVERLIST|>' + vDataSendReceive.Text + '<|END_DRIVERLIST|>');
+          Application.ProcessMessages;
+         Finally
+          vDataSendReceive.Free;
+         End;
+        End;
+       Position := Pos('<|DRIVERLIST|>', Buffer);
+       if Position > 0 then
+        Begin
+         BufferTemp := Buffer;
+         Buffer     := '';
+         Application.ProcessMessages;
+         Delete(BufferTemp, 1, Position + 13);
+         BufferTemp := Copy(BufferTemp, 1, Pos('<|END_DRIVERLIST|>', BufferTemp) - 1);
+         FoldersAndFiles := TStringList.Create;
+         FoldersAndFiles.Text := BufferTemp;
+         Synchronize(Procedure
+                     Var
+                      I : Integer;
+                     Begin
+                      fFileTransfer.ceRemotePath.Items.Clear;
+                      fFileTransfer.lPCRemoto.Text := FoldersAndFiles[0];
+                      For I := 1 To FoldersAndFiles.count - 1 Do
+                       fFileTransfer.ceRemotePath.Items.Add(' ' + FoldersAndFiles[I]);
+                      If fFileTransfer.ceRemotePath.Items.Count > 0 Then
+                       fFileTransfer.ceRemotePath.ItemIndex := 0;
+                     End);
+         FreeAndNil(FoldersAndFiles);
+         fFileTransfer.tLoadAction.Enabled := True;
+        End;
         // Request Files List
         Position := Pos('<|GETFILES|>', Buffer);
         if Position > 0 then
         begin
           BufferTemp := Buffer;
+          Buffer     := '';
+          Application.ProcessMessages;
           Delete(BufferTemp, 1, Position + 11);
-          BufferTemp := Copy(BufferTemp, 1, Pos('<|END|>', BufferTemp) - 1);
-          Socket.SendText('<|REDIRECT|><|FILESLIST|>' +
-            TRDLib.ListFiles(BufferTemp, '*.*') + '<|ENDFILESLIST|>');
+          BufferTemp := Copy(BufferTemp, 1, Pos('<|END_GETFILES|>', BufferTemp) - 1);
+          vDataSendReceive := TStringList.Create;
+          ListFilesB(BufferTemp, vDataSendReceive);
+          Socket.SendText('<|REDIRECT|><|FILESLIST|>' + MontaLinhaEnvio(vDataSendReceive) + '<|END_FILESLIST|>');
+          FreeAndNil(vDataSendReceive);
+          Application.ProcessMessages;
         end;
 
         // Receive Folder List
@@ -762,7 +918,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         begin
           while (Socket.Connected) And (Not Terminated) do
           begin
-            if Buffer.Contains('<|ENDFOLDERLIST|>') then
+            if Buffer.Contains('<|END_FOLDERLIST|>') then
               Break;
 
             if Socket.ReceiveLength > 0 then
@@ -772,23 +928,23 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           end;
 
           BufferTemp := Buffer;
+          Buffer     := '';
+          Application.ProcessMessages;
           Delete(BufferTemp, 1, Position + 13);
           FoldersAndFiles := TStringList.Create;
-          FoldersAndFiles.Text := Copy(BufferTemp, 1,
-            Pos('<|ENDFOLDERLIST|>', BufferTemp) - 1);
+          FoldersAndFiles.Text := Copy(BufferTemp, 1, Pos('<|END_FOLDERLIST|>', BufferTemp) - 1);
           FoldersAndFiles.Sort;
-
+          FoldersAndFiles.Text := '..' + #13 + FoldersAndFiles.Text;
           Synchronize(
             procedure
             begin
-              FormArquivos.CarregarListaPastas(FoldersAndFiles.Text);
-              FormArquivos.Caption := Format(Locale.GetLocale(FRMS,
-                'FileTitle'), [FormArquivos.lstArquivos.Items.Count]);
+              fFileTransfer.CarregarListaPastas(FoldersAndFiles.Text);
+              fFileTransfer.Caption := Format(Locale.GetLocale(FRMS, 'FileTitle'), [fFileTransfer.DestCount]);
             end);
 
           FreeAndNil(FoldersAndFiles);
-          Socket.SendText('<|REDIRECT|><|GETFILES|>' + FormArquivos.EFolder.Text
-            + '<|END|>');
+          Socket.SendText('<|REDIRECT|><|GETFILES|>' + fFileTransfer.ActiveFolder + '<|END_GETFILES|>');
+          Application.ProcessMessages;
         end;
 
         // Receive Files List
@@ -797,7 +953,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         begin
           while (Socket.Connected) And (Not Terminated) do
           begin
-            if Buffer.Contains('<|ENDFILESLIST|>') then
+            if Buffer.Contains('<|END_FILESLIST|>') then
               Break;
 
             if Socket.ReceiveLength > 0 then
@@ -807,19 +963,19 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           end;
 
           BufferTemp := Buffer;
+          Buffer     := '';
+          Application.ProcessMessages;
           Delete(BufferTemp, 1, Position + 12);
           FoldersAndFiles := TStringList.Create;
-          FoldersAndFiles.Text := Copy(BufferTemp, 1,
-            Pos('<|ENDFILESLIST|>', BufferTemp) - 1);
+          FoldersAndFiles.Text := Copy(BufferTemp, 1, Pos('<|END_FILESLIST|>', BufferTemp) - 1);
           FoldersAndFiles.Sort;
 
           Synchronize(
             procedure
             begin
-              FormArquivos.CarregarListaArquivos(FoldersAndFiles.Text);
-              FormArquivos.EFolder.Enabled := True;
-              FormArquivos.Caption := Format(Locale.GetLocale(FRMS,
-                'FileTitle'), [FormArquivos.lstArquivos.Items.Count]);
+              fFileTransfer.CarregarListaArquivos(FoldersAndFiles.Text);
+              fFileTransfer.Caption := Format(Locale.GetLocale(FRMS,
+                'FileTitle'), [fFileTransfer.DestCount]);
             end);
 
           FreeAndNil(FoldersAndFiles);
@@ -856,7 +1012,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
           Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' +
             FormArquivos.EFolder.Text + '<|END|>');
-
+          Application.ProcessMessages;
           Synchronize(
             procedure
             begin

@@ -515,7 +515,7 @@ begin
         begin
           Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
 
-          if (Pos('<|ENDFOLDERLIST|>', xBufferTemp) > 0) then
+          if (Pos('<|END_FOLDERLIST|>', xBufferTemp) > 0) then
             Break;
 
           xBufferTemp := xBufferTemp + scClient.ReceiveText;
@@ -528,7 +528,19 @@ begin
         begin
           Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
 
-          if (Pos('<|ENDFILESLIST|>', xBufferTemp) > 0) then
+          if (Pos('<|END_FILESLIST|>', xBufferTemp) > 0) then
+            Break;
+
+          xBufferTemp := xBufferTemp + scClient.ReceiveText;
+        end;
+      end;
+      if (Pos('<|GETFILES|>', xBufferTemp) > 0) then
+      begin
+        while (scClient.Connected) and (Not (Terminated)) do
+        begin
+          Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
+
+          if (Pos('<|END_GETFILES|>', xBufferTemp) > 0) then
             Break;
 
           xBufferTemp := xBufferTemp + scClient.ReceiveText;

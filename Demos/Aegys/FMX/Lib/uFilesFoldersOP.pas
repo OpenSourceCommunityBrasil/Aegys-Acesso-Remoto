@@ -38,7 +38,6 @@ Type
     Procedure ListarArquivos(DiretorioInicial, Mascara: String;
       ListTotalDir: Boolean = False; Recursive: Boolean = False);
     Function GetFilesCount: Integer;
-    Function GetFileTypeDescription(FileName: String): AnsiString;
     Function GetFileTypeRegKey(FileName: String; out Key: HKEY): Integer;
     Function GetDrivers: TStringList;
     Procedure GetDriveLetters(AList: TStrings);
@@ -55,6 +54,8 @@ Type
     Property Drivers: TStringList Read GetDrivers;
     Property LocalStation: String Read GetPCName;
   End;
+
+  Function GetFileTypeDescription(FileName: String): AnsiString;
 
 implementation
 
@@ -81,7 +82,7 @@ Begin
   GetDriveLetters(Result);
 End;
 
-Function TShellProps.GetFileTypeDescription(FileName: String): AnsiString;
+Function GetFileTypeDescription(FileName: String): AnsiString;
 Var
   SHFileInfo: TSHFileInfo;
   SearchRec: TSearchRec;

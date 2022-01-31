@@ -131,8 +131,8 @@ begin
   Application.CreateForm(TDM, DM);
   Application.CreateForm(TFormChat, FormChat);
   Application.CreateForm(TFormTelaRemota, FormTelaRemota);
-  Application.CreateForm(TFormArquivos, FormArquivos);
   Application.CreateForm(TFormSenha, FormSenha);
+  Application.CreateForm(TFormArquivos, FormArquivos);
   Application.Run;
 
   if Application.Terminated then
