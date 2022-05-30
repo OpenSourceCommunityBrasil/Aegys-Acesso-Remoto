@@ -80,10 +80,13 @@ type
       const Column: TColumn; const Bounds: TRectF; const Row: Integer;
       const Value: TValue; const State: TGridDrawStates);
     procedure tLoadActionTimer(Sender: TObject);
+    procedure sbDownloadClick(Sender: TObject);
+    procedure sbUploadClick(Sender: TObject);
   private
     { Private declarations }
    vIconsIndex       : TIconsIndex;
    ShellProps        : TShellProps;
+   vLastFolder,
    vActiveFolder,
    vDirectory_Local,
    vDirectory_Edit   : String;
@@ -92,11 +95,14 @@ type
    Function   GetIcon      (FileName  : String) : FMX.Graphics.TBitmap;
    Function   GetSize      (Bytes     : Int64): String;
    Procedure  GoToDirectory(Directory : String);
+   Procedure  LoadRemoteData;
+   Procedure  OnRemoteDblClick    (Sender    : TObject);
   public
     { Public declarations }
    Procedure CarregarListaPastas  (Directory : String);
    Procedure CarregarListaArquivos(Directory : String);
    Property  DestCount : Integer   Read vDestCount;
+   Property  Directory_Local : String Read vDirectory_Local;
    Property  ActiveFolder : String Read vActiveFolder;
   end;
 
@@ -106,6 +112,8 @@ var
 implementation
 
 {$R *.fmx}
+
+Uses uCtrl_Threads;
 
 Function TfFileTransfer.GetIcon(FileName: String): FMX.Graphics.TBitmap;
 Var
@@ -164,6 +172,11 @@ begin
   End;
 end;
 
+Procedure TfFileTransfer.LoadRemoteData;
+Begin
+ GoToDirectory(vActiveFolder);
+End;
+
 procedure TfFileTransfer.CarregarListaPastas(Directory : String);
 Var
  I               : Integer;
@@ -174,6 +187,7 @@ Begin
  FoldersAndFiles.Text := Directory;
  SGRemote.RowCount := 0;
  SGRemote.RowCount := 1;
+ SGRemote.Enabled := True;
  If FoldersAndFiles.Count = 0 Then
   Begin
    SGRemote.Cells[0, SGRemote.RowCount - 1] := '';
@@ -200,6 +214,7 @@ End;
 procedure TfFileTransfer.CarregarListaArquivos(Directory : String);
 Var
  I               : Integer;
+ vFilename,
  vLine           : String;
  FoldersAndFiles : TStringList;
  Function GetValue(Var Value : String) : String;
@@ -223,13 +238,14 @@ Begin
    If (FoldersAndFiles.Strings[i] = '.')  Or
       (FoldersAndFiles.Strings[i] = '..') Then
     Continue;
-   vLine        := FoldersAndFiles.Strings[i];
+   vLine             := FoldersAndFiles.Strings[i];
    SGRemote.RowCount := SGRemote.RowCount + 1;
-   SGRemote.Cells[0, SGRemote.RowCount - 1] := ExtractFileExt(vLine);
-   SGRemote.Cells[1, SGRemote.RowCount - 1] := GetValue(vLine);
-   SGRemote.Cells[2, SGRemote.RowCount - 1] := GetSize(StrToInt(GetValue(vLine)));
-   SGRemote.Cells[3, SGRemote.RowCount - 1] := GetFileTypeDescription(GetValue(vLine));
-   SGRemote.Cells[4, SGRemote.RowCount - 1] := FormatDateTime('dd/mm/yyyy hh:mm:ss', StrToDateTime(GetValue(vLine)));
+   vFilename         := GetValue(vLine);
+   SGRemote.Cells[0, SGRemote.RowCount - 1] := ExtractFileExt(vFilename);
+   SGRemote.Cells[1, SGRemote.RowCount - 1] := vFilename;
+   SGRemote.Cells[2, SGRemote.RowCount - 1] := GetValue(vLine);
+   SGRemote.Cells[3, SGRemote.RowCount - 1] := GetValue(vLine);
+   SGRemote.Cells[4, SGRemote.RowCount - 1] := GetValue(vLine);
    Inc(vDestCount);
   End;
  FoldersAndFiles.Free;
@@ -242,10 +258,8 @@ Begin
    If Not (Directory[Length(Directory)] = '\') Then
     Directory := Directory + '\';
    vDirectory_Edit := Directory;
-   TThread.CreateAnonymousThread(Procedure
-                                 Begin
-                                  Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' + vDirectory_Edit + '<|END_GETFOLDERS|>');
-                                 End).Start;
+   SGRemote.Enabled := False;
+   Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' + vDirectory_Edit + '<|END_GETFOLDERS|>');
    Application.ProcessMessages;
   End;
 End;
@@ -256,7 +270,7 @@ begin
   Begin
    vDirectory_Edit := Trim(ceRemotePath.Items[ceRemotePath.ItemIndex]);
    vActiveFolder   := vDirectory_Edit;
-   GoToDirectory(vDirectory_Edit);
+   GoToDirectory(vActiveFolder);
   End;
 end;
 
@@ -291,12 +305,78 @@ begin
  Release;
 end;
 
+Procedure TfFileTransfer.OnRemoteDblClick(Sender : TObject);
+Var
+ vTempFolder : String;
+ ARow        : Integer;
+begin
+ If SGRemote.Selected > -1 Then
+  Begin
+   ARow := SGRemote.Selected;
+   If SGRemote.Cells[0, ARow] = '.' Then
+    Begin
+     If (SGRemote.Cells[1, ARow] = '..')  Or
+        (SGRemote.Cells[1, ARow] = '..\') Then
+      Begin
+       SGRemote.Enabled := False;
+       If Length(vLastFolder) > 0 Then
+        vActiveFolder := Copy(vActiveFolder, 1, Length(vActiveFolder) - Length(vLastFolder));
+       vTempFolder := vActiveFolder;
+       If vTempFolder <> '' Then
+        If vTempFolder[Length(vTempFolder)] = '\' Then
+         Delete(vTempFolder, Length(vTempFolder), 1);
+       Delete(vTempFolder, 1, LastDelimiter('\', vTempFolder));
+       If Length(vTempFolder) > 0 Then
+        vLastFolder := IncludeTrailingPathDelimiter(vTempFolder);
+      End
+     Else
+      Begin
+       vActiveFolder := vActiveFolder + IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
+       vLastFolder := IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
+      End;
+     LoadRemoteData;
+    End;
+  End;
+End;
+
+procedure TfFileTransfer.sbDownloadClick(Sender: TObject);
+Begin
+ If (SGRemote.Selected > -1) Then
+  Begin
+   vDirectory_Local := vDirectory_Local + SGRemote.Cells[1, SGRemote.Selected];
+   ActualDownloadFileName := SGRemote.Cells[1, SGRemote.Selected];
+   Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|DOWNLOADFILE|>' +
+                                           vDirectory_Edit + SGRemote.Cells[1, SGRemote.Selected] + '<|END|>');
+  End;
+End;
+
+procedure TfFileTransfer.sbUploadClick(Sender: TObject);
+Var
+ FileStream : TFileStream;
+ FileName   : String;
+begin
+ If (SGLocal.Selected > -1) Then
+  Begin
+   vDirectory_Local := vDirectory_Local + SGLocal.Cells[1, SGLocal.Selected];
+   ActualDownloadFileName := SGRemote.Cells[1, SGLocal.Selected];
+   FileStream := TFileStream.Create(vDirectory_Local, fmOpenRead);
+   FileName := ExtractFileName(vDirectory_Local);
+   pgbUpload.Max := FileStream.Size;
+   Conexao.SocketArquivos.Socket.SendText('<|DIRECTORYTOSAVE|>' + vDirectory_Edit + FileName +
+                                          '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
+   FileStream.Position := 0;
+   Conexao.SocketArquivos.Socket.SendStream(FileStream);
+  End;
+end;
+
 procedure TfFileTransfer.FormCreate(Sender: TObject);
 begin
- vActiveFolder := '';
- vIconsIndex   := TIconsIndex.Create;
- ShellProps    := TShellProps.Create;
+ vActiveFolder               := '';
+ vIconsIndex                 := TIconsIndex.Create;
+ SGRemote.Enabled            := False;
+ ShellProps                  := TShellProps.Create;
  ShellProps.OnAfterChangeDir := ChangeLocalDir;
+ SGRemote.OnDblClick         := OnRemoteDblClick;
 end;
 
 procedure TfFileTransfer.FormShow(Sender: TObject);
@@ -404,7 +484,7 @@ begin
    cbLocalDrivers.OnChange(cbLocalDrivers);
   End;
  lNomeComputadorLocal.Text := ShellProps.LocalStation;
- Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETDRIVERS|><|END|>');
+ Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETDRIVERS|><|END_GETDRIVERS|>');
  Application.ProcessMessages;
 end;
 

@@ -521,6 +521,18 @@ begin
           xBufferTemp := xBufferTemp + scClient.ReceiveText;
         end;
       end;
+      if (Pos('<|GETDRIVERS|>', xBufferTemp) > 0) then
+      begin
+        while (scClient.Connected) and (Not (Terminated)) do
+        begin
+          Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
+
+          if (Pos('<|END_GETDRIVERS|>', xBufferTemp) > 0) then
+            Break;
+
+          xBufferTemp := xBufferTemp + scClient.ReceiveText;
+        end;
+      end;
 
       if (Pos('<|FILESLIST|>', xBufferTemp) > 0) then
       begin

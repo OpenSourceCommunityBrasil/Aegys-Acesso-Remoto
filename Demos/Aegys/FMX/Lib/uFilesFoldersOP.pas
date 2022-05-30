@@ -267,7 +267,7 @@ Var
   Var
     Rec: TSearchRec;
   Begin
-    If FindFirst(Folder + '*.*', faArchive, Rec) = 0 Then
+    If FindFirst(IncludeTrailingPathDelimiter(Folder) + '*.*', faArchive, Rec) = 0 Then
       Try
         Repeat
           If lista.IndexOf(Rec.Name) = -1 Then
@@ -309,8 +309,14 @@ Begin
     ListarArquivos(diretorioInicial + listatemp.Strings[i] + '', mascara, listtotaldir, recursive);
     End;
   }
-  ListarDiretoriosP(DiretorioInicial, listatemp);
-  ListarArquivos(DiretorioInicial, listatemp);
+  Try
+   ListarDiretoriosP(DiretorioInicial, listatemp);
+  Except
+  End;
+  Try
+   ListarArquivos(DiretorioInicial, listatemp);
+  Except
+  End;
   {
     ListarAtalhos(diretorioInicial, mascara, listatemp);
     If listtotaldir Then
@@ -322,7 +328,7 @@ Begin
   vFileList.Clear;
   For I := 0 To listatemp.Count - 1 Do
   Begin
-    Attributes := FileGetAttr(DiretorioInicial + listatemp[I]);
+    Attributes := FileGetAttr(IncludeTrailingPathDelimiter(DiretorioInicial) + listatemp[I]);
     If (Attributes <> faSysFile) And (Attributes <> faDirectory) And
       (Attributes <> faArchive) And (Attributes <> faSymLink) Then
       Continue;
@@ -357,8 +363,12 @@ End;
 
 Procedure TShellProps.SetFolder(Value: String);
 Begin
-  vListFolder := Value;
+ Try
+  vListFolder := IncludeTrailingPathDelimiter(Value);
   ListarArquivos(vListFolder, '*.*');
+ Except
+  vListFolder := '';
+ End;
 End;
 
 Function TShellProps.GetFile(Value: Integer): TFileDesc;
