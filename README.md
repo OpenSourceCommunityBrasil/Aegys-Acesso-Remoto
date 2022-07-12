@@ -9,7 +9,7 @@
 - [x] Suporte a vários monitores
 - [x] Bloqueio de interação do usuário remoto
 - [ ] Chat interativo com mensagens
-- [ ] Transferência de arquivos independente de sessão ativa
+- [x] Transferência de arquivos independente de sessão ativa
 - [ ] Copiar e colar diretamente entre as máquinas através de atalhos do teclado
 - [ ] Lista de acessos recentes
 - [ ] Capacidade de Gravar sessão remota
