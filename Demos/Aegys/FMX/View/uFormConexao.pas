@@ -132,7 +132,7 @@ implementation
 
 {$R *.fmx}
 
-uses uFormTelaRemota, uFormArquivos, uFormChat, FMX.Clipboard,
+uses uFormTelaRemota, uFileTransfer, uFormChat, FMX.Clipboard,
   System.IOUtils, System.Rtti, uLibClass,
   uConstants, BCrypt, System.DateUtils, uHttpClass,
   System.Threading, FMX.Platform.Win, uFormConfig;
@@ -147,16 +147,15 @@ Begin
   // FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
   FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign
     (FormTelaRemota.imgTelaInicial.Bitmap);
-  FormArquivos.btnDownload.Enabled := True;
-  FormArquivos.btnUpload.Enabled := True;
-  FormArquivos.pgbDownload.Value := 0;
-  FormArquivos.pgbUpload.Value := 0;
-  FormArquivos.LDownloadSize.Text := Locale.GetLocale(MAIN, 'Size');
-  FormArquivos.LUploadSize.Text := Locale.GetLocale(MAIN, 'Size');
-  FormArquivos.EFolder.Text := 'C:\';
-  FormArquivos.lstArquivos.Items.Clear;
-  If (FormArquivos.Visible) Then
-    FormArquivos.Close;
+  If Assigned(fFileTransfer) Then
+   Begin
+    fFileTransfer.pgbDownload.Value := 0;
+    fFileTransfer.pgbUpload.Value := 0;
+    fFileTransfer.LDownloadSize.Text := Locale.GetLocale(MAIN, 'Size');
+    fFileTransfer.LUploadSize.Text := Locale.GetLocale(MAIN, 'Size');
+    If (fFileTransfer.Visible) Then
+      fFileTransfer.Close;
+   End;
   FormChat.Width := 230;
   FormChat.Height := 340;
   FormChat.Left := Trunc(Screen.WorkAreaWidth - FormChat.Width);

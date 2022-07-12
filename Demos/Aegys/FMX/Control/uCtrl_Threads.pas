@@ -108,6 +108,9 @@ Type
   Procedure ListFoldersB(Directory      : String;
                          Var ReturnData : TStringList);
 
+  Var
+   ActualDownloadFileName : String;
+
 implementation
 
 { TConexaoPrincipal }
@@ -226,8 +229,11 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
      ShellProps := TShellProps.Create;
      ReturnData.Clear;
      ReturnData.Add(ShellProps.LocalStation);
-     For I := 0 To ShellProps.Drivers.Count -1 Do
-      ReturnData.Add(ShellProps.Drivers[I]);
+     Try
+      For I := 0 To ShellProps.Drivers.Count -1 Do
+       ReturnData.Add(ShellProps.Drivers[I]);
+     Except
+     End;
      FreeAndNil(ShellProps);
     End;
     Procedure ListFilesB(FileName   : String;
@@ -251,9 +257,9 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
      End;
     Begin
      ShellProps  := TShellProps.Create;
-     ShellProps.Folder := FileName;
      Return.Clear;
      Try
+      ShellProps.Folder := FileName;
       For I := 0 To ShellProps.FilesCount -1 do
        Begin
         If ShellProps.Files[I].FileType <> fpDir Then
@@ -265,9 +271,10 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Return.Add(vLinha);
          End;
        End;
-     Finally
+     Except
+
      End;
-    End;
+    eND;
     Function MontaLinhaEnvio(Value : TStringList) : AnsiString;
     Var
      I : Integer;
@@ -491,7 +498,8 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             procedure
             begin
               FormTelaRemota.Hide;
-              FormArquivos.Hide;
+              If Assigned(fFileTransfer) Then
+               fFileTransfer.Hide;
               FormChat.Hide;
               Conexao.ReconectarSocketsSecundarios;
               FormConexao.Show;
@@ -845,9 +853,8 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
         // Request Folder List
         Position := Pos('<|GETFOLDERS|>', Buffer);
         if Position > 0 then
-        begin
+         Begin
           BufferTemp := Buffer;
-          Buffer     := '';
           Application.ProcessMessages;
           Delete(BufferTemp, 1, Position + 13);
           BufferTemp := Copy(BufferTemp, 1, Pos('<|END_GETFOLDERS|>', BufferTemp) - 1);
@@ -856,12 +863,11 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Socket.SendText('<|REDIRECT|><|FOLDERLIST|>' + vDataSendReceive.Text + '<|END_FOLDERLIST|>');
           Application.ProcessMessages;
           vDataSendReceive.Free;
-        end;
+         End;
        Position := Pos('<|GETDRIVERS|>', Buffer);
        if Position > 0 then
         Begin
          BufferTemp := Buffer;
-         Buffer     := '';
          Application.ProcessMessages;
          vDataSendReceive := TStringList.Create;
          ListDrivers(vDataSendReceive);
@@ -876,7 +882,6 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
        if Position > 0 then
         Begin
          BufferTemp := Buffer;
-         Buffer     := '';
          Application.ProcessMessages;
          Delete(BufferTemp, 1, Position + 13);
          BufferTemp := Copy(BufferTemp, 1, Pos('<|END_DRIVERLIST|>', BufferTemp) - 1);
@@ -886,31 +891,43 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
                      Var
                       I : Integer;
                      Begin
-                      fFileTransfer.ceRemotePath.Items.Clear;
-                      fFileTransfer.lPCRemoto.Text := FoldersAndFiles[0];
-                      For I := 1 To FoldersAndFiles.count - 1 Do
-                       fFileTransfer.ceRemotePath.Items.Add(' ' + FoldersAndFiles[I]);
-                      If fFileTransfer.ceRemotePath.Items.Count > 0 Then
-                       fFileTransfer.ceRemotePath.ItemIndex := 0;
+                      If Assigned(fFileTransfer) Then
+                       Begin
+                        fFileTransfer.ceRemotePath.Items.Clear;
+                        fFileTransfer.lPCRemoto.Text := FoldersAndFiles[0];
+                        For I := 1 To FoldersAndFiles.count - 1 Do
+                         fFileTransfer.ceRemotePath.Items.Add(' ' + FoldersAndFiles[I]);
+                        If fFileTransfer.ceRemotePath.Items.Count > 0 Then
+                         Begin
+                          fFileTransfer.ceRemotePath.ItemIndex := 0;
+                          fFileTransfer.ceRemotePath.OnChange(fFileTransfer.ceRemotePath);
+                         End;
+                       End;
                      End);
          FreeAndNil(FoldersAndFiles);
-         fFileTransfer.tLoadAction.Enabled := True;
+//         fFileTransfer.tLoadAction.Enabled := True;
         End;
         // Request Files List
-        Position := Pos('<|GETFILES|>', Buffer);
-        if Position > 0 then
-        begin
-          BufferTemp := Buffer;
-          Buffer     := '';
-          Application.ProcessMessages;
-          Delete(BufferTemp, 1, Position + 11);
-          BufferTemp := Copy(BufferTemp, 1, Pos('<|END_GETFILES|>', BufferTemp) - 1);
-          vDataSendReceive := TStringList.Create;
+       Position := Pos('<|GETFILES|>', Buffer);
+       if Position > 0 then
+        Begin
+         BufferTemp := Buffer;
+         Application.ProcessMessages;
+         Delete(BufferTemp, 1, Position + 11);
+         BufferTemp := Copy(BufferTemp, 1, Pos('<|END_GETFILES|>', BufferTemp) - 1);
+         vDataSendReceive := TStringList.Create;
+         Try
           ListFilesB(BufferTemp, vDataSendReceive);
-          Socket.SendText('<|REDIRECT|><|FILESLIST|>' + MontaLinhaEnvio(vDataSendReceive) + '<|END_FILESLIST|>');
-          FreeAndNil(vDataSendReceive);
-          Application.ProcessMessages;
-        end;
+          If vDataSendReceive.Count > 0 Then
+           Begin
+            BufferTemp := '<|REDIRECT|><|FILESLIST|>' + MontaLinhaEnvio(vDataSendReceive) + '<|END_FILESLIST|>';
+            Socket.SendText(BufferTemp);
+            Application.ProcessMessages;
+           End;
+         Except
+         End;
+         FreeAndNil(vDataSendReceive);
+        End;
 
         // Receive Folder List
         Position := Pos('<|FOLDERLIST|>', Buffer);
@@ -928,22 +945,29 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           end;
 
           BufferTemp := Buffer;
-          Buffer     := '';
           Application.ProcessMessages;
           Delete(BufferTemp, 1, Position + 13);
           FoldersAndFiles := TStringList.Create;
           FoldersAndFiles.Text := Copy(BufferTemp, 1, Pos('<|END_FOLDERLIST|>', BufferTemp) - 1);
           FoldersAndFiles.Sort;
-          FoldersAndFiles.Text := '..' + #13 + FoldersAndFiles.Text;
+          If Copy(FoldersAndFiles.Text, 1, 2) <> '..' Then
+           FoldersAndFiles.Text := '..' + #13 + FoldersAndFiles.Text;
           Synchronize(
             procedure
             begin
-              fFileTransfer.CarregarListaPastas(FoldersAndFiles.Text);
-              fFileTransfer.Caption := Format(Locale.GetLocale(FRMS, 'FileTitle'), [fFileTransfer.DestCount]);
+             If Assigned(fFileTransfer) Then
+              Begin
+               fFileTransfer.CarregarListaPastas(FoldersAndFiles.Text);
+               fFileTransfer.Caption := Format(Locale.GetLocale(FRMS, 'FileTitle'), [fFileTransfer.DestCount]);
+              End;
             end);
 
           FreeAndNil(FoldersAndFiles);
-          Socket.SendText('<|REDIRECT|><|GETFILES|>' + fFileTransfer.ActiveFolder + '<|END_GETFILES|>');
+          If Assigned(fFileTransfer) Then
+           Begin
+            BufferTemp := '<|REDIRECT|><|GETFILES|>' + fFileTransfer.ActiveFolder + '<|END_GETFILES|>';
+            Socket.SendText(BufferTemp);
+           End;
           Application.ProcessMessages;
         end;
 
@@ -963,19 +987,20 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           end;
 
           BufferTemp := Buffer;
-          Buffer     := '';
           Application.ProcessMessages;
           Delete(BufferTemp, 1, Position + 12);
           FoldersAndFiles := TStringList.Create;
           FoldersAndFiles.Text := Copy(BufferTemp, 1, Pos('<|END_FILESLIST|>', BufferTemp) - 1);
           FoldersAndFiles.Sort;
-
           Synchronize(
             procedure
             begin
-              fFileTransfer.CarregarListaArquivos(FoldersAndFiles.Text);
-              fFileTransfer.Caption := Format(Locale.GetLocale(FRMS,
+             If Assigned(fFileTransfer) Then
+              Begin
+               fFileTransfer.CarregarListaArquivos(FoldersAndFiles.Text);
+               fFileTransfer.Caption := Format(Locale.GetLocale(FRMS,
                 'FileTitle'), [fFileTransfer.DestCount]);
+              End;
             end);
 
           FreeAndNil(FoldersAndFiles);
@@ -991,10 +1016,13 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Synchronize(
             procedure
             begin
-              FormArquivos.pgbUpload.Value := StrToInt(BufferTemp);
-              FormArquivos.LUploadSize.Text := Format(Locale.GetLocale(MAIN,
-                'Size'), [TRDLib.GetSize(FormArquivos.pgbUpload.Value),
-                TRDLib.GetSize(FormArquivos.pgbUpload.Max)])
+             If Assigned(fFileTransfer) Then
+              Begin
+               fFileTransfer.pgbUpload.Value := StrToInt(BufferTemp);
+               fFileTransfer.LUploadSize.Text := Format(Locale.GetLocale(MAIN,
+                 'Size'), [TRDLib.GetSize(fFileTransfer.pgbUpload.Value),
+                 TRDLib.GetSize(fFileTransfer.pgbUpload.Max)])
+              End;
             end);
         end;
 
@@ -1003,15 +1031,18 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
           Synchronize(
             procedure
             begin
-              FormArquivos.pgbUpload.Value := 0;
-              FormArquivos.btnUpload.Enabled := True;
-              FormArquivos.EFolder.Enabled := False;
-              FormArquivos.LUploadSize.Text := Format(Locale.GetLocale(MAIN,
-                'Size'), ['0 B', '0 B']);
+             If Assigned(fFileTransfer) Then
+              Begin
+               fFileTransfer.pgbUpload.Value := 0;
+//              fFileTransfer.btnUpload.Enabled := True;
+//              fFileTransfer.EFolder.Enabled := False;
+               fFileTransfer.LUploadSize.Text := Format(Locale.GetLocale(MAIN,
+                 'Size'), ['0 B', '0 B']);
+              End;
             end);
 
           Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' +
-            FormArquivos.EFolder.Text + '<|END|>');
+            fFileTransfer.Directory_Local + '<|END|>');
           Application.ProcessMessages;
           Synchronize(
             procedure
@@ -1503,10 +1534,10 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
           FileSize: Int64;
           ReceivingFile: Boolean;
           Buffer: string;
-          BufferTemp: string;
-          FileStream: TFileStream;
+          BufferTemp,
+          FileName: string;
+          FileStream: TMemoryStream;
           Locale: TLocale;
-          FileName:string;
         begin
           inherited;
           Locale := TLocale.Create;
@@ -1533,8 +1564,13 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
                 BufferTemp := Buffer;
                 Delete(BufferTemp, 1, Position + 18);
                 Position := Pos('<|>', BufferTemp);
-                BufferTemp := Copy(BufferTemp, 1, Position - 1);
-                FileName := BufferTemp;
+                If Position > 0 Then
+                 Begin
+                  BufferTemp := Copy(BufferTemp, 1, Position - 1);
+                  FileName := BufferTemp;
+                 End
+                Else
+                 FileName := ActualDownloadFileName;
               end;
 
               Position := Pos('<|SIZE|>', Buffer);
@@ -1545,25 +1581,21 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
                 BufferTemp := Copy(BufferTemp, 1,
                   Pos('<|END|>', BufferTemp) - 1);
                 FileSize := StrToInt(BufferTemp);
-
-                if FileExists(GetEnvironmentVariable('TEMP')+'\'+FileName) then
-                DeleteFile(PWideChar(GetEnvironmentVariable('TEMP')+'\'+FileName));
-
-                FileStream := TFileStream.Create
-                  (GetEnvironmentVariable('TEMP')+'\'+FileName,
-                  fmCreate or fmOpenReadWrite);
-
+                FileStream := TMemoryStream.Create;
                 if (Conexao.Visualizador) then
                 begin
                   Synchronize(
                     procedure
                     begin
-                      FormArquivos.pgbDownload.Max := FileSize;
-                      FormArquivos.pgbDownload.Value := 0;
-                      FormArquivos.LDownloadSize.Text :=
-                        Format(Locale.GetLocaleDlg(MAIN, 'Size'),
-                        [TRDLib.GetSize(FileStream.Size),
-                        TRDLib.GetSize(FileSize)]);
+                     If Assigned(fFileTransfer) Then
+                      Begin
+                       fFileTransfer.pgbDownload.Max := FileSize;
+                       fFileTransfer.pgbDownload.Value := 0;
+                       fFileTransfer.LDownloadSize.Text :=
+                         Format(Locale.GetLocaleDlg(MAIN, 'Size'),
+                         [TRDLib.GetSize(FileStream.Size),
+                         TRDLib.GetSize(FileSize)]);
+                      End;
                     end);
                 end;
 
@@ -1581,11 +1613,14 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
                 Synchronize(
                   procedure
                   begin
-                    FormArquivos.pgbDownload.Value := FileStream.Size;
-                    FormArquivos.LDownloadSize.Text :=
-                      Format(Locale.GetLocaleDlg(MAIN, 'Size'),
-                      [TRDLib.GetSize(FileStream.Size),
-                      TRDLib.GetSize(FileSize)]);
+                   If Assigned(fFileTransfer) Then
+                    Begin
+                     fFileTransfer.pgbDownload.Value := FileStream.Size;
+                     fFileTransfer.LDownloadSize.Text :=
+                       Format(Locale.GetLocaleDlg(MAIN, 'Size'),
+                       [TRDLib.GetSize(FileStream.Size),
+                       TRDLib.GetSize(FileSize)]);
+                    End;
                   end);
               end
               else
@@ -1598,6 +1633,21 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
 
               if (FileStream.Size = FileSize) then
               begin
+                FileStream.Position := 0;
+                If Trim(FileName) <> '' Then
+                 Begin
+                  If FileExists(FileName) Then
+                   DeleteFile(PChar(FileName));
+                  FileStream.SaveToFile(FileName);
+                  FileName := '';
+                 End
+                Else
+                 Begin
+                  If FileExists(ActualDownloadFileName) Then
+                   DeleteFile(PChar(ActualDownloadFileName));
+                  FileStream.SaveToFile(ActualDownloadFileName);
+                  ActualDownloadFileName := '';
+                 End;
                 FreeAndNil(FileStream);
                 Synchronize(
                 procedure
@@ -1620,14 +1670,17 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
                   Synchronize(
                     procedure
                     begin
-                      FormArquivos.pgbDownload.Value := 0;
-                      FormArquivos.btnDownload.Enabled := True;
-                      FormArquivos.LDownloadSize.Text :=
-                        Format(Locale.GetLocaleDlg(MAIN, 'Size'),
-                        ['0 B', '0 B']);
-                      MessageBox(0, Locale.GetLocaleDlg(MSGS,
-                        'DownloadSuccess'), Locale.GetLocaleDlg(FRMS,
-                        'FileSubTitle'), MB_ICONASTERISK + MB_TOPMOST);
+                     If Assigned(fFileTransfer) Then
+                      Begin
+                       fFileTransfer.pgbDownload.Value := 0;
+//                      fFileTransfer.btnDownload.Enabled := True;
+                       fFileTransfer.LDownloadSize.Text :=
+                         Format(Locale.GetLocaleDlg(MAIN, 'Size'),
+                         ['0 B', '0 B']);
+                       MessageBox(0, Locale.GetLocaleDlg(MSGS,
+                         'DownloadSuccess'), Locale.GetLocaleDlg(FRMS,
+                         'FileSubTitle'), MB_ICONASTERISK + MB_TOPMOST);
+                      End;
                     end);
                 end;
 
