@@ -13,7 +13,6 @@ uses
   uFormTelaRemota in 'View\uFormTelaRemota.pas' {FormTelaRemota},
   uFormChat in 'View\uFormChat.pas' {FormChat},
   uDM in 'Styles\uDM.pas' {DM: TDataModule},
-  uFormArquivos in 'View\uFormArquivos.pas' {FormArquivos},
   uCtrl_Threads in 'Control\uCtrl_Threads.pas',
   uLibClass in 'Lib\uLibClass.pas',
   uSendKeyClass in 'Lib\uSendKeyClass.pas',
@@ -132,7 +131,6 @@ begin
   Application.CreateForm(TFormChat, FormChat);
   Application.CreateForm(TFormTelaRemota, FormTelaRemota);
   Application.CreateForm(TFormSenha, FormSenha);
-  Application.CreateForm(TFormArquivos, FormArquivos);
   Application.Run;
 
   if Application.Terminated then

@@ -115,7 +115,7 @@ implementation
 
 { TConexaoPrincipal }
 
-uses uFormArquivos, uFormChat, uFormConexao, uFormTelaRemota,
+uses uFormChat, uFormConexao, uFormTelaRemota,
   Fmx.Forms,
   Fmx.ListView.Types, System.SysUtils, uLibClass, uFormSenha,
   uSendKeyClass,
@@ -1040,9 +1040,9 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
                  'Size'), ['0 B', '0 B']);
               End;
             end);
-
+         If Assigned(fFileTransfer) Then
           Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' +
-            fFileTransfer.Directory_Local + '<|END|>');
+                                                   fFileTransfer.Directory_Local + '<|END|>');
           Application.ProcessMessages;
           Synchronize(
             procedure
