@@ -24,5 +24,5 @@
   - [ ] iOS
 
 # Links:
-Discord: https://discord.me/oscbr
-Telegram: https://t.me/udpacessoremoto
+* Discord: https://discord.me/oscbr
+* Telegram: https://t.me/udpacessoremoto
