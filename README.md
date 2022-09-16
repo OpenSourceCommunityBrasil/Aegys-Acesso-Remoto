@@ -22,3 +22,7 @@
   - [ ] MacOS
   - [ ] Android
   - [ ] iOS
+
+# Links:
+Discord: https://discord.me/oscbr
+Telegram: https://t.me/udpacessoremoto
