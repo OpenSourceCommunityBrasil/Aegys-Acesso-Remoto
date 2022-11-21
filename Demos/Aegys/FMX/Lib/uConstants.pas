@@ -23,14 +23,21 @@ type
 const
   PORTA = 3898;
   FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '192.168.100.3';
-  // Svr: Razios 'aegys.ddns.net' //Svr:Embratel '201.73.143.69'; Servernovo Diego '177.10.144.78';
+  SERVIDOR = '';
+  {
+  !!!Deixe em branco para liberar a combobox na config!!!
+  segue lista de servidores disponíveis:
+  Svr: Razios 'aegys.ddns.net'
+  Svr: Embratel '201.73.143.69';
+  Svr: Diego '177.10.144.78';
+  Svr: MMHospedagem '177.93.106.240';
+  }
   INTERVALOCONEXAO = 60;
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
 
   // Controle de Versão
   APPVERSION = '2.0.1';
-  APPBUILDV = '92';
+  APPBUILDV = '96';
 
   // frescuragem do app
   PRIMARY_COLOR = $FF0070BA;

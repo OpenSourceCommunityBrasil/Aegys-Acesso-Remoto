@@ -236,17 +236,15 @@ begin
   begin
     Sleep(FOLGAPROCESSAMENTO);
     Try
-     if (scClient = nil)
-       or not(scClient.Connected)
+     if (scClient = nil) Then
+      Break;
+     if not(scClient.Connected)
        or (Terminated)
        or not(Assigned(DMServer)) then
        Break;
-
      if scClient.ReceiveLength < 1 then
        Continue;
-
      xBuffer := scClient.ReceiveText;
-
      for i := Low(arrAcessos) to High(arrAcessos) do
      begin
        if (Assigned(arrAcessos[i])) and (arrAcessos[i].Connected) then

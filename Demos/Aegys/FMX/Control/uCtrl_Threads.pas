@@ -115,7 +115,7 @@ implementation
 
 { TConexaoPrincipal }
 
-uses uFormArquivos, uFormChat, uFormConexao, uFormTelaRemota,
+uses uFormChat, uFormConexao, uFormTelaRemota,
   Fmx.Forms,
   Fmx.ListView.Types, System.SysUtils, uLibClass, uFormSenha,
   uSendKeyClass,
@@ -1040,9 +1040,9 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
                  'Size'), ['0 B', '0 B']);
               End;
             end);
-
+         If Assigned(fFileTransfer) Then
           Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' +
-            fFileTransfer.Directory_Local + '<|END|>');
+                                                   fFileTransfer.Directory_Local + '<|END|>');
           Application.ProcessMessages;
           Synchronize(
             procedure
@@ -1536,7 +1536,7 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
           Buffer: string;
           BufferTemp,
           FileName: string;
-          FileStream: TFileStream;
+          FileStream: TMemoryStream;
           Locale: TLocale;
         begin
           inherited;
@@ -1581,9 +1581,7 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
                 BufferTemp := Copy(BufferTemp, 1,
                   Pos('<|END|>', BufferTemp) - 1);
                 FileSize := StrToInt(BufferTemp);
-                if FileExists(ExtractFilePath(ParamStr(0)) + FileName) then
-                 DeleteFile(PWideChar(ExtractFilePath(ParamStr(0)) + FileName));
-                FileStream := TFileStream.Create(ExtractFilePath(ParamStr(0)) + FileName, fmCreate or fmOpenReadWrite);
+                FileStream := TMemoryStream.Create;
                 if (Conexao.Visualizador) then
                 begin
                   Synchronize(
@@ -1635,6 +1633,21 @@ procedure TThreadConexaoAreaRemota.ThreadTerminate(ASender: TObject);
 
               if (FileStream.Size = FileSize) then
               begin
+                FileStream.Position := 0;
+                If Trim(FileName) <> '' Then
+                 Begin
+                  If FileExists(FileName) Then
+                   DeleteFile(PChar(FileName));
+                  FileStream.SaveToFile(FileName);
+                  FileName := '';
+                 End
+                Else
+                 Begin
+                  If FileExists(ActualDownloadFileName) Then
+                   DeleteFile(PChar(ActualDownloadFileName));
+                  FileStream.SaveToFile(ActualDownloadFileName);
+                  ActualDownloadFileName := '';
+                 End;
                 FreeAndNil(FileStream);
                 Synchronize(
                 procedure

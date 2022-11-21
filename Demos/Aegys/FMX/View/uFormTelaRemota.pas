@@ -17,18 +17,17 @@
 
 interface
 
-uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes,
-  System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
-  FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, System.Actions,
-  FMX.ActnList, Winapi.Messages, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo,
-  uFunctions, System.UIConsts, System.StrUtils, System.DateUtils, FMX.ListBox,
-  System.ImageList, FMX.ImgList, ufrMonitorItem;
+Uses
+ System.SysUtils, System.Types,     System.UITypes, System.Classes,  System.StrUtils,
+ System.Variants, FMX.Types,        FMX.Controls,   FMX.Forms,       FMX.Graphics,
+ FMX.Dialogs,     FMX.Objects,      FMX.StdCtrls,   FMX.Controls.Presentation,
+ FMX.Layouts,     System.Actions,   FMX.ActnList,   Winapi.Messages, FMX.Memo.Types,
+ FMX.ScrollBox,   FMX.Memo,         uFunctions,     System.UIConsts, System.DateUtils,
+ FMX.ListBox,     System.ImageList, FMX.ImgList,    ufrMonitorItem;
 
 Type
-  TTagEffect = (te_Open, te_Close);
-  TExecuteProc = Reference to Procedure;
+ TTagEffect   = (te_Open, te_Close);
+ TExecuteProc = Reference to Procedure;
 
 type
   TFormTelaRemota = class(TForm)
@@ -124,7 +123,7 @@ implementation
 
 {$R *.fmx}
 
-uses uFormArquivos, uFileTransfer, uFormChat, uFormConexao, Winapi.Windows, uDM,
+uses uFileTransfer, uFormChat, uFormConexao, Winapi.Windows, uDM,
   FMX.Platform.Win, uConstants;
 
 Procedure TFormTelaRemota.Wait(Value: Integer);

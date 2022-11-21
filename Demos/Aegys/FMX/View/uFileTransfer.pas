@@ -67,6 +67,10 @@ type
     ilimagens: TImageList;
     TActiveLoad: TTimer;
     tLoadAction: TTimer;
+    eLocalPath: TEdit;
+    eRemotePath: TEdit;
+    sbLocalGo: TSpeedButton;
+    sbRemoteGo: TSpeedButton;
     procedure SGLocalDrawColumnCell(Sender: TObject; const Canvas: FMX.Graphics.TCanvas;
       const Column: TColumn; const Bounds: TRectF; const Row: Integer;
       const Value: TValue; const State: TGridDrawStates);
@@ -82,12 +86,17 @@ type
     procedure tLoadActionTimer(Sender: TObject);
     procedure sbDownloadClick(Sender: TObject);
     procedure sbUploadClick(Sender: TObject);
+    procedure sbLocalGoClick(Sender: TObject);
+    procedure eLocalPathKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
   private
     { Private declarations }
    vIconsIndex       : TIconsIndex;
    ShellProps        : TShellProps;
    vLastFolder,
    vActiveFolder,
+   vLastLocalFolder,
+   vActiveLocalFolder,
    vDirectory_Local,
    vDirectory_Edit   : String;
    vDestCount        : Integer;
@@ -97,6 +106,8 @@ type
    Procedure  GoToDirectory(Directory : String);
    Procedure  LoadRemoteData;
    Procedure  OnRemoteDblClick    (Sender    : TObject);
+   Procedure  OnLocalDblClick     (Sender    : TObject);
+   Procedure  EnterLocalDir(Dir : String);
   public
     { Public declarations }
    Procedure CarregarListaPastas  (Directory : String);
@@ -164,6 +175,7 @@ procedure TfFileTransfer.cbLocalDriversChange(Sender: TObject);
 begin
  If cbLocalDrivers.ItemIndex > -1 Then
   Begin
+   eLocalPath.Text   := '';
    ShellProps.Folder := Trim(cbLocalDrivers.Items[cbLocalDrivers.ItemIndex]);
    Try
     vDirectory_Local := ShellProps.Folder;
@@ -268,6 +280,7 @@ procedure TfFileTransfer.ceRemotePathChange(Sender: TObject);
 begin
  If ceRemotePath.ItemIndex > -1 Then
   Begin
+   eRemotePath.Text := '';
    vDirectory_Edit := Trim(ceRemotePath.Items[ceRemotePath.ItemIndex]);
    vActiveFolder   := vDirectory_Edit;
    GoToDirectory(vActiveFolder);
@@ -284,6 +297,8 @@ Begin
  SGLocal.Cells[2, SGLocal.RowCount - 1] := '';
  SGLocal.Cells[2, SGLocal.RowCount - 1] := '';
  SGLocal.Cells[3, SGLocal.RowCount - 1] := '';
+ If ShellProps.Folder <> Trim(cbLocalDrivers.Items[cbLocalDrivers.ItemIndex]) Then
+  SGLocal.Cells[1, SGLocal.RowCount - 1] := '..';
  For I := 0 To ShellProps.FilesCount - 1 do
   Begin
    If (SGLocal.RowCount <> 1) Or
@@ -299,11 +314,37 @@ Begin
   End;
 End;
 
+procedure TfFileTransfer.eLocalPathKeyUp(Sender: TObject; var Key: Word;
+  var KeyChar: Char; Shift: TShiftState);
+begin
+ If Key = vk_return Then
+  sbLocalGo.OnClick(sbLocalGo);
+end;
+
 procedure TfFileTransfer.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
  fFileTransfer := Nil;
  Release;
 end;
+
+Procedure TfFileTransfer.OnLocalDblClick(Sender: TObject);
+Var
+ vOldPath : String;
+Begin
+ If SGLocal.Selected <> -1 Then
+  Begin
+   vOldPath := SGLocal.Cells[1, SGLocal.Selected];
+   If (vOldPath <> '..')  And
+      (vOldPath <> '..\') Then
+    EnterLocalDir(vActiveLocalFolder + vOldPath)
+   Else
+    Begin
+     Delete(vActiveLocalFolder, Length(vActiveLocalFolder), 1);
+     vOldPath := ExtractFilePath(vActiveLocalFolder);
+     EnterLocalDir(vOldPath);
+    End;
+  End;
+End;
 
 Procedure TfFileTransfer.OnRemoteDblClick(Sender : TObject);
 Var
@@ -331,24 +372,45 @@ begin
       End
      Else
       Begin
-       vActiveFolder := vActiveFolder + IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
-       vLastFolder := IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
+       vActiveFolder  := vActiveFolder + IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
+       vLastFolder    := IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
       End;
+     eRemotePath.Text := vActiveFolder;
+     eRemotePath.Text := Copy(eRemotePath.Text,
+                              Length(Trim(ceRemotePath.Items[ceRemotePath.ItemIndex])) + 1,
+                              Length(eRemotePath.Text) -
+                              Length(Trim(ceRemotePath.Items[ceRemotePath.ItemIndex])));
      LoadRemoteData;
     End;
   End;
 End;
 
 procedure TfFileTransfer.sbDownloadClick(Sender: TObject);
+Var
+ vFileName : String;
 Begin
  If (SGRemote.Selected > -1) Then
   Begin
-   vDirectory_Local := vDirectory_Local + SGRemote.Cells[1, SGRemote.Selected];
-   ActualDownloadFileName := SGRemote.Cells[1, SGRemote.Selected];
+   vFileName              := SGRemote.Cells[1, SGRemote.Selected];
+   vDirectory_Local       := Trim(cbLocalDrivers.Items[cbLocalDrivers.ItemIndex]) + vActiveLocalFolder;
+   ActualDownloadFileName := vDirectory_Local + vFileName;
    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|DOWNLOADFILE|>' +
-                                           vDirectory_Edit + SGRemote.Cells[1, SGRemote.Selected] + '<|END|>');
+                                           vDirectory_Edit + vFileName + '<|END|>');
   End;
 End;
+
+procedure TfFileTransfer.sbLocalGoClick(Sender: TObject);
+begin
+ If DirectoryExists(Trim(cbLocalDrivers.Items[cbLocalDrivers.ItemIndex]) + eLocalPath.Text) Then
+  EnterLocalDir(eLocalPath.Text)
+ Else
+  Begin
+   eLocalPath.Text := vActiveLocalFolder;
+   MessageBox(0, 'Diretório Inválido',
+                 'Erro...',
+              MB_ICONERROR + MB_OK);
+  End;
+end;
 
 procedure TfFileTransfer.sbUploadClick(Sender: TObject);
 Var
@@ -357,17 +419,53 @@ Var
 begin
  If (SGLocal.Selected > -1) Then
   Begin
-   vDirectory_Local := vDirectory_Local + SGLocal.Cells[1, SGLocal.Selected];
-   ActualDownloadFileName := SGRemote.Cells[1, SGLocal.Selected];
-   FileStream := TFileStream.Create(vDirectory_Local, fmOpenRead);
-   FileName := ExtractFileName(vDirectory_Local);
+   ActualDownloadFileName := SGLocal.Cells[1, SGLocal.Selected];
+   vDirectory_Local := Trim(cbLocalDrivers.Items[cbLocalDrivers.ItemIndex]) + vActiveLocalFolder;
+   FileName   := vDirectory_Local + ActualDownloadFileName;
+   FileStream := TFileStream.Create(FileName, fmOpenRead);
+   FileName := ActualDownloadFileName;
    pgbUpload.Max := FileStream.Size;
-   Conexao.SocketArquivos.Socket.SendText('<|DIRECTORYTOSAVE|>' + vDirectory_Edit + FileName +
+   Conexao.SocketArquivos.Socket.SendText('<|REDIRECT|><|DIRECTORYTOSAVE|>' + vDirectory_Edit + FileName +
                                           '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
    FileStream.Position := 0;
    Conexao.SocketArquivos.Socket.SendStream(FileStream);
   End;
 end;
+
+Procedure TfFileTransfer.EnterLocalDir(Dir : String);
+Var
+ Directory : String;
+begin
+ If (Dir = '..')  Or
+    (Dir = '..\') Then
+  Begin
+   If Length(vLastLocalFolder) > 0 Then
+    vActiveLocalFolder := Copy(vActiveLocalFolder, 1, Length(vActiveLocalFolder) - Length(vLastLocalFolder));
+   Directory := vActiveLocalFolder;
+   If Directory <> '' Then
+    If Directory[Length(Directory)] = '\' Then
+     Delete(Directory, Length(Directory), 1);
+   Delete(Directory, 1, LastDelimiter('\', Directory));
+   If Length(Directory) > 0 Then
+    vLastLocalFolder := IncludeTrailingPathDelimiter(Directory);
+  End
+ Else
+  Begin
+   If Dir <> '' Then
+    Begin
+     vActiveLocalFolder := IncludeTrailingPathDelimiter(Dir);
+     vLastLocalFolder := IncludeTrailingPathDelimiter(Dir);
+    End
+   Else
+    Begin
+     vActiveLocalFolder := '';
+     vLastLocalFolder   := '';
+    End;
+  End;
+ ShellProps.Folder := Trim(cbLocalDrivers.Items[cbLocalDrivers.ItemIndex]) + vActiveLocalFolder;
+ eLocalPath.Text   := vActiveLocalFolder;
+ ChangeLocalDir;
+End;
 
 procedure TfFileTransfer.FormCreate(Sender: TObject);
 begin
@@ -376,6 +474,7 @@ begin
  SGRemote.Enabled            := False;
  ShellProps                  := TShellProps.Create;
  ShellProps.OnAfterChangeDir := ChangeLocalDir;
+ SGLocal.OnDblClick          := OnLocalDblClick;
  SGRemote.OnDblClick         := OnRemoteDblClick;
 end;
 
@@ -398,35 +497,44 @@ Var
 begin
  If (Column = gcLeitura) then
   Begin
-   vImage := GetIcon(ShellProps.Folder + ShellProps.Files[Row].FileName);
-   If (vImage <> Nil) Then
-    Begin
-     Canvas.DrawBitmap(vImage, vImage.Bounds, Bounds, 1);
-     FreeAndNil(vImage);
-    End
-   Else If (vImage = Nil) And
-      (ShellProps.Files[Row].FileType = fpDir) Then
+   If (ShellProps.Files[Row].FileName = '..') Or
+      (ShellProps.Files[Row].FileName = '.')  Then
     Begin
      sbitmap     := ilimagens.Source.Items[0].MultiResBitmap[0].Bitmap;
      Canvas.DrawBitmap(sbitmap, sbitmap.Bounds, Bounds, 1);
     End
-   Else If (vImage = Nil) And
-           (ShellProps.Files[Row].FileType = fpFile) Then
+   Else
     Begin
-     sbitmap     := ilimagens.Source.Items[1].MultiResBitmap[0].Bitmap;
-     Canvas.DrawBitmap(sbitmap, sbitmap.Bounds, Bounds, 1);
-    End
-   Else If (vImage = Nil) And
-           (ShellProps.Files[Row].FileType = fpShortcut) Then
-    Begin
-     sbitmap     := ilimagens.Source.Items[2].MultiResBitmap[0].Bitmap;
-     Canvas.DrawBitmap(sbitmap, sbitmap.Bounds, Bounds, 1);
-    End
-   Else If (vImage = Nil) And
-           (ShellProps.Files[Row].FileType = fpDriver) Then
-    Begin
-     sbitmap     := ilimagens.Source.Items[3].MultiResBitmap[0].Bitmap;
-     Canvas.DrawBitmap(sbitmap, sbitmap.Bounds, Bounds, 1);
+     vImage := GetIcon(ShellProps.Folder + ShellProps.Files[Row].FileName);
+     If (vImage <> Nil) Then
+      Begin
+       Canvas.DrawBitmap(vImage, vImage.Bounds, Bounds, 1);
+       FreeAndNil(vImage);
+      End
+     Else If (vImage = Nil) And
+        (ShellProps.Files[Row].FileType = fpDir) Then
+      Begin
+       sbitmap     := ilimagens.Source.Items[0].MultiResBitmap[0].Bitmap;
+       Canvas.DrawBitmap(sbitmap, sbitmap.Bounds, Bounds, 1);
+      End
+     Else If (vImage = Nil) And
+             (ShellProps.Files[Row].FileType = fpFile) Then
+      Begin
+       sbitmap     := ilimagens.Source.Items[1].MultiResBitmap[0].Bitmap;
+       Canvas.DrawBitmap(sbitmap, sbitmap.Bounds, Bounds, 1);
+      End
+     Else If (vImage = Nil) And
+             (ShellProps.Files[Row].FileType = fpShortcut) Then
+      Begin
+       sbitmap     := ilimagens.Source.Items[2].MultiResBitmap[0].Bitmap;
+       Canvas.DrawBitmap(sbitmap, sbitmap.Bounds, Bounds, 1);
+      End
+     Else If (vImage = Nil) And
+             (ShellProps.Files[Row].FileType = fpDriver) Then
+      Begin
+       sbitmap     := ilimagens.Source.Items[3].MultiResBitmap[0].Bitmap;
+       Canvas.DrawBitmap(sbitmap, sbitmap.Bounds, Bounds, 1);
+      End;
     End;
   End;
 end;
