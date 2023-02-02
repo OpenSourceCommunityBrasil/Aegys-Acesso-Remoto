@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{11EAD49C-DB0F-461F-A2A0-564E0E6CA461}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="AegysSuporteCliente.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AegysSuporteServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="AegysSuporteServiceServer.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="AegysSuporteCliente">
+        <MSBuild Projects="AegysSuporteCliente.dproj"/>
+    </Target>
+    <Target Name="AegysSuporteCliente:Clean">
+        <MSBuild Projects="AegysSuporteCliente.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysSuporteCliente:Make">
+        <MSBuild Projects="AegysSuporteCliente.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AegysSuporteServer">
+        <MSBuild Projects="AegysSuporteServer.dproj"/>
+    </Target>
+    <Target Name="AegysSuporteServer:Clean">
+        <MSBuild Projects="AegysSuporteServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysSuporteServer:Make">
+        <MSBuild Projects="AegysSuporteServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AegysSuporteServiceServer">
+        <MSBuild Projects="AegysSuporteServiceServer.dproj"/>
+    </Target>
+    <Target Name="AegysSuporteServiceServer:Clean">
+        <MSBuild Projects="AegysSuporteServiceServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysSuporteServiceServer:Make">
+        <MSBuild Projects="AegysSuporteServiceServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="AegysSuporteCliente;AegysSuporteServer;AegysSuporteServiceServer"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="AegysSuporteCliente:Clean;AegysSuporteServer:Clean;AegysSuporteServiceServer:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="AegysSuporteCliente:Make;AegysSuporteServer:Make;AegysSuporteServiceServer:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
