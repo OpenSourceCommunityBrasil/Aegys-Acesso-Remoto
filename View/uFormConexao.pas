@@ -25,7 +25,7 @@ uses
   FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
   FMX.Ani, FMX.TabControl, FMX.ListBox, FMX.Menus,
   uCtrl_Threads, uCtrl_Conexao, uFunctions, CCR.Clipboard, windows, shellapi,
-  Messages, uSQLiteConfig;
+  Messages, uSQLiteConfig, System.ImageList, FMX.ImgList;
 
 type
   TFormConexao = class(TForm)
@@ -71,7 +71,6 @@ type
     lyQuality: TLayout;
     rQuality: TRectangle;
     LlyResolutionCaption: TLabel;
-    cbQuality: TComboBox;
     lyPassword: TLayout;
     RPassword: TRectangle;
     LlyPasswordCaption: TLabel;
@@ -82,6 +81,12 @@ type
     Pm_systemtray: TPopupMenu;
     MenuItem1: TMenuItem;
     TmrSystemTray: TTimer;
+    ImageList1: TImageList;
+    Layout1: TLayout;
+    Image1: TImage;
+    Label1: TLabel;
+    Label2: TLabel;
+    Rectangle1: TRectangle;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure actPasteIDExecute(Sender: TObject);
@@ -97,6 +102,7 @@ type
     procedure TmrSystemTrayTimer(Sender: TObject);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
     procedure FormShow(Sender: TObject);
+    procedure Rectangle1Click(Sender: TObject);
   private
     Locale: TLocale;
     TrayWnd: HWND;
@@ -315,6 +321,11 @@ begin
   LStatus.Text := AMensagem;
 end;
 
+procedure TFormConexao.Rectangle1Click(Sender: TObject);
+begin
+//
+end;
+
 procedure TFormConexao.sbOptionsClick(Sender: TObject);
 begin
   Application.CreateForm(TfConfig, fConfig);
@@ -394,7 +405,7 @@ begin
   LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
   LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
   LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
-  Locale.GetLocale(cbQuality, tcbQuality);
+//  Locale.GetLocale(cbQuality, tcbQuality);
   SetSockets;
 
 end;
@@ -481,7 +492,7 @@ begin
 //    Conexao.SocketArquivos.Open;
 //    Conexao.SocketTeclado.Open;
   finally
-    CFG.DisposeOf;
+    CFG.Free;
   end;
 end;
 

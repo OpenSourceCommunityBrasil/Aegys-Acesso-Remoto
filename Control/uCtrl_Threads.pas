@@ -489,7 +489,9 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             end);
           Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' +
                           FormConexao.EGuestID.Text + '<|>' + '<|BESTQ|>' +
-                          IntToStr(FormConexao.cbQuality.ItemIndex) + '<|END|>');
+                          '2'
+//                          IntToStr(FormConexao.cbQuality.ItemIndex)
+                          + '<|END|>');
         end;
 
         if Buffer.Contains('<|DISCONNECTED|>') then
