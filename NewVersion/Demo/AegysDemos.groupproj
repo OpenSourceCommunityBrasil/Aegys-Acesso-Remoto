@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{1F40B656-4804-48F1-B7B4-CAF90B4E82C5}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="DataTransfer\BufferTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ChatTest\Client\ClientChat.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ChatTest\Server\ServerChat.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="BufferTest">
+        <MSBuild Projects="DataTransfer\BufferTest.dproj"/>
+    </Target>
+    <Target Name="BufferTest:Clean">
+        <MSBuild Projects="DataTransfer\BufferTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BufferTest:Make">
+        <MSBuild Projects="DataTransfer\BufferTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ClientChat">
+        <MSBuild Projects="ChatTest\Client\ClientChat.dproj"/>
+    </Target>
+    <Target Name="ClientChat:Clean">
+        <MSBuild Projects="ChatTest\Client\ClientChat.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ClientChat:Make">
+        <MSBuild Projects="ChatTest\Client\ClientChat.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ServerChat">
+        <MSBuild Projects="ChatTest\Server\ServerChat.dproj"/>
+    </Target>
+    <Target Name="ServerChat:Clean">
+        <MSBuild Projects="ChatTest\Server\ServerChat.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ServerChat:Make">
+        <MSBuild Projects="ChatTest\Server\ServerChat.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="BufferTest;ClientChat;ServerChat"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="BufferTest:Clean;ClientChat:Clean;ServerChat:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="BufferTest:Make;ClientChat:Make;ServerChat:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
