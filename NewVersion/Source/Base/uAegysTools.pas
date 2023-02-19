@@ -1,5 +1,7 @@
 unit uAegysTools;
 
+{$I ..\Includes\uAegys.inc}
+
 {
    Aegys Remote Access Project.
   Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
@@ -32,22 +34,127 @@ Uses
  uAegysDataTypes;
 
  //Service Functions
-  Function  MoveBytes    (Source            : TAegysBytes;
-                          Var Dest          : TAegysBytes;
+  Function  MoveBytes    (Source              : TAegysBytes;
+                          Var Dest            : TAegysBytes;
                           Position,
-                          Length            : AeInteger) : String;
-  Procedure DeleteString (Var Value         : AeString;
-                          InitPos, EndPos   : AeInteger);
-  Function  StringToBytes(AStr              : String)       : TAegysBytes;
-  Function  BytesToString(Const AValue      : TAegysBytes;
-                          Const AStartIndex : Integer;
-                          Const ALength     : Integer = -1) : String;
-  Function  VarToBytes   (Value             : Variant;
-                          vType             : TVarType)     : TAegysBytes;
-  Function  BytesToVar   (ByteValue         : TAegysBytes;
-                          vType             : TVarType)     : Variant;
+                          Length              : AeInteger) : String;
+  Procedure DeleteString (Var Value           : AeString;
+                          InitPos, EndPos     : AeInteger);
+  Function  StringToBytes(AStr                : String)       : TAegysBytes;
+  Function  BytesToString(Const AValue        : TAegysBytes;
+                          Const AStartIndex   : Integer;
+                          Const ALength       : Integer = -1) : String;
+  Function  VarToBytes   (Value               : Variant;
+                          vType               : TVarType)     : TAegysBytes;
+  Function  BytesToVar   (ByteValue           : TAegysBytes;
+                          vType               : TVarType)     : Variant;
+  Procedure ParseCommand (Var Command         : String;
+                          Var InternalCommand : TInternalCommand);
+  Procedure ParseValues  (Var Source          : String;
+                          Values              : TArrayOfPointer);
 
 Implementation
+
+Uses uAegysConsts;
+
+Procedure ParseCommand(Var Command         : String;
+                       Var InternalCommand : TInternalCommand);
+Begin
+ InternalCommand := ticNone;
+ If Copy(Command, InitStrPos, Length(cStatusDesc))            = cStatusDesc         Then
+  Begin
+   InternalCommand := ticDataStatus;
+   Delete(Command, InitStrPos, Length(cStatusDesc));
+  End
+ Else If Copy(Command, InitStrPos, Length(cFindID))           = cFindID             Then
+  Begin
+   InternalCommand := ticFindID;
+   Delete(Command, InitStrPos, Length(cFindID));
+  End
+ Else If Copy(Command, InitStrPos, Length(cIDExistsReqPass))  = cIDExistsReqPass    Then
+  Begin
+   InternalCommand := ticIDExistsReqPass;
+   Delete(Command, InitStrPos, Length(cIDExistsReqPass));
+  End
+ Else If Copy(Command, InitStrPos, Length(cIDNotFound))       = cIDNotFound         Then
+  Begin
+   InternalCommand := ticIDNotFound;
+   Delete(Command, InitStrPos, Length(cIDNotFound));
+  End
+ Else If Copy(Command, InitStrPos, Length(cPing))             = cPing               Then
+  Begin
+   InternalCommand := ticPing;
+   Delete(Command, InitStrPos, Length(cPing));
+  End
+ Else If Copy(Command, InitStrPos, Length(cCheckPass))        = cCheckPass          Then
+  Begin
+   InternalCommand := ticCheckPass;
+   Delete(Command, InitStrPos, Length(cCheckPass));
+  End
+ Else If Copy(Command, InitStrPos, Length(cAccessGranted))    = cAccessGranted      Then
+  Begin
+   InternalCommand := ticAccessGranted;
+   Delete(Command, InitStrPos, Length(cAccessGranted));
+  End
+ Else If Copy(Command, InitStrPos, Length(cGetMonitorCount))  = cGetMonitorCount    Then
+  Begin
+   InternalCommand := ticGetMonitorCount;
+   Delete(Command, InitStrPos, Length(cGetMonitorCount));
+  End
+ Else If Copy(Command, InitStrPos, Length(cChangeMonitor))    = cChangeMonitor      Then
+  Begin
+   InternalCommand := ticChangeMonitor;
+   Delete(Command, InitStrPos, Length(cChangeMonitor));
+  End
+ Else If Copy(Command, InitStrPos, Length(cRelation))         = cRelation           Then
+  Begin
+   InternalCommand := ticRelation;
+   Delete(Command, InitStrPos, Length(cRelation));
+  End
+ Else If Copy(Command, InitStrPos, Length(cConnectedPeer))    = cConnectedPeer      Then
+  Begin
+   InternalCommand := ticConnectedPeer;
+   Delete(Command, InitStrPos, Length(cConnectedPeer));
+  End
+ Else If Copy(Command, InitStrPos, Length(cDisconnectedPeer)) = cDisconnectedPeer   Then
+  Begin
+   InternalCommand := ticDisconnectedPeer;
+   Delete(Command, InitStrPos, Length(cDisconnectedPeer));
+  End
+ Else If Copy(Command, InitStrPos, Length(cPing))             = cPing               Then
+  Begin
+   InternalCommand := ticPing;
+   Delete(Command, InitStrPos, Length(cPing));
+  End
+ Else If Copy(Command, InitStrPos, Length(cPong))             = cPong               Then
+  Begin
+   InternalCommand := ticPong;
+   Delete(Command, InitStrPos, Length(cPong));
+  End;
+End;
+Procedure ParseValues(Var Source : String;
+                      Values     : TArrayOfPointer);
+Var
+ I : Integer;
+ PString : ^String;
+Begin
+ For I := 0 To Length(Values)-1 Do
+  Begin
+   PString := Values[I];
+   If Pos('&', Source) > 0 then
+    Begin
+     PString^ := Copy(Source, InitStrPos, Pos('&', Source) -1);
+     Delete(Source, InitStrPos, Pos('&', Source));
+    End
+   Else
+    Begin
+     PString^ := Copy(Source, InitStrPos, Length(Source));
+     Delete(Source, InitStrPos, Length(Source));
+    End;
+   If Source = '' Then
+    Break;
+  End;
+End;
 
 Function AeMax(Const AValueOne,
                AValueTwo        : Int64) : Int64;

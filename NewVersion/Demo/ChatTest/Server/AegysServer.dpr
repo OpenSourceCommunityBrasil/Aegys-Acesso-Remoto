@@ -1,4 +1,4 @@
-program ServerChat;
+program AegysServer;
 
 uses
   Vcl.Forms,
@@ -8,7 +8,8 @@ uses
   uAegysDataTypes in '..\..\..\Source\Base\uAegysDataTypes.pas',
   uAegysTools in '..\..\..\Source\Base\uAegysTools.pas',
   uAegysBase in '..\..\..\Source\Base\uAegysBase.pas',
-  uAegysThreads in '..\..\..\Source\Base\uAegysThreads.pas';
+  uAegysThreads in '..\..\..\Source\Base\uAegysThreads.pas',
+  uConsts in 'uConsts.pas';
 
 {$R *.res}
 

@@ -5,18 +5,28 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics,   Vcl.Controls,    Vcl.Forms,       Vcl.Dialogs,     Vcl.StdCtrls,
-  uAegysBase,     IdContext;
+  uAegysBase,     IdContext, Data.DB, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, Vcl.ExtCtrls, FireDAC.Comp.DataSet, FireDAC.Comp.Client,
+  Vcl.Grids, Vcl.DBGrids;
 
 type
   TForm3 = class(TForm)
-    Label2: TLabel;
-    ePort: TEdit;
-    bConnect: TButton;
+    DBGrid1: TDBGrid;
+    DataSource1: TDataSource;
+    QryConexoes: TFDMemTable;
+    QryConexoesPROTOCOLO: TStringField;
+    QryConexoesID: TStringField;
+    QryConexoesSENHA: TStringField;
+    QryConexoesSENHA2: TStringField;
+    QryConexoesLATENCIA: TStringField;
+    tReload: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure bConnectClick(Sender: TObject);
+    procedure tReloadTimer(Sender: TObject);
   private
     { Private declarations }
+   vAction       : Boolean;
    vAegysService : TAegysService;
    Procedure Connect;
   public
@@ -34,6 +44,7 @@ var
 
 implementation
 
+Uses uConsts;
 {$R *.dfm}
 
 Function GenerateIDUnique(mac, hd : String) : String;
@@ -94,7 +105,8 @@ Begin
  Else
   Result := IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9)) + IntToStr(Random(9));
 End;
-
+
+
 Procedure TForm3.GetNewID(ContextList      : TSessionList;
                           Value            : String;
                           Var ClientID,
@@ -140,34 +152,75 @@ Begin
   ClientPassword := GeneratePassword(vLastPassword);
  End;
 End;
-
-procedure TForm3.bConnectClick(Sender: TObject);
-begin
- Connect;
-end;
+
+
+procedure TForm3.tReloadTimer(Sender: TObject);
+Var
+ I            : Integer;
+ Conexao      : TAegysSession;
+ vSessionList : TSessionList;
+Begin
+ vAction         := tReload.Enabled;
+ vSessionList    := vAegysService.SessionList;
+ tReload.Enabled := False;
+ Try
+  QryConexoes.DisableControls;
+  QryConexoes.Close;
+  QryConexoes.Open;
+  For I := vSessionList.Count -1 DownTo 0 Do
+   Begin
+    If Not vAction Then
+     Exit;
+    Try
+     Conexao                    := vSessionList[I];
+     QryConexoes.Append;
+     QryConexoesPROTOCOLO.Value := Conexao.Connection;
+     QryConexoesID.Value        := Conexao.SessionID;
+     QryConexoesSENHA.Value     := Conexao.SessionFixedPWD;
+     QryConexoesSENHA2.Value    := Conexao.SessionPWD;
+     QryConexoesLATENCIA.Value  := IntToStr(Conexao.Latency);
+     If (Conexao.Latency         = 0)  Then
+      QryConexoesLATENCIA.Value := 'Calculando...'
+     Else
+      QryConexoesLATENCIA.Value  := IntToStr(Conexao.Latency);
+     QryConexoes.Post;
+    Except
+     Continue;
+    End;
+   End;
+ Finally
+///  FreeAndNil(vSessionList);
+  QryConexoes.EnableControls;
+  tReload.Enabled := vAction;
+ End;
+End;
 
 Procedure TForm3.Connect;
 Begin
- vAegysService.ServicePort := StrToInt(ePort.Text);
+ vAegysService.ServicePort := PORTA;
  Try
   vAegysService.Active     := Not vAegysService.Active;
  Except
 
  End;
  If vAegysService.Active Then
-  bConnect.Caption := 'Disconnect'
+  Caption := cTitle + Format(' Port:%d - Connect', [PORTA])
  Else
-  bConnect.Caption := 'Connect';
+  Caption := cTitle + Format(' Port:%d - Disconnect', [PORTA]);
 End;
 
 procedure TForm3.FormCreate(Sender: TObject);
 begin
- vAegysService := TAegysService.Create(Self);
+ vAegysService                    := TAegysService.Create(Self);
  vAegysService.OnGetClientDetails := GetNewID;
+ Connect;
+ tReload.Enabled                  := True;
 end;
 
 procedure TForm3.FormDestroy(Sender: TObject);
 begin
+ vAction                          := False;
+ tReload.Enabled                  := vAction;
  FreeAndNil(vAegysService);
  Release;
 end;

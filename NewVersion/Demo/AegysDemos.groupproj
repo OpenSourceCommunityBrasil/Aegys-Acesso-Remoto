@@ -9,7 +9,10 @@
         <Projects Include="ChatTest\Client\ClientChat.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="ChatTest\Server\ServerChat.dproj">
+        <Projects Include="ChatTest\Server\AegysServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ChatTest\Client\FMX\ClientFMXChat.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -38,23 +41,32 @@
     <Target Name="ClientChat:Make">
         <MSBuild Projects="ChatTest\Client\ClientChat.dproj" Targets="Make"/>
     </Target>
-    <Target Name="ServerChat">
-        <MSBuild Projects="ChatTest\Server\ServerChat.dproj"/>
+    <Target Name="AegysServer">
+        <MSBuild Projects="ChatTest\Server\AegysServer.dproj"/>
     </Target>
-    <Target Name="ServerChat:Clean">
-        <MSBuild Projects="ChatTest\Server\ServerChat.dproj" Targets="Clean"/>
+    <Target Name="AegysServer:Clean">
+        <MSBuild Projects="ChatTest\Server\AegysServer.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="ServerChat:Make">
-        <MSBuild Projects="ChatTest\Server\ServerChat.dproj" Targets="Make"/>
+    <Target Name="AegysServer:Make">
+        <MSBuild Projects="ChatTest\Server\AegysServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ClientFMXChat">
+        <MSBuild Projects="ChatTest\Client\FMX\ClientFMXChat.dproj"/>
+    </Target>
+    <Target Name="ClientFMXChat:Clean">
+        <MSBuild Projects="ChatTest\Client\FMX\ClientFMXChat.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ClientFMXChat:Make">
+        <MSBuild Projects="ChatTest\Client\FMX\ClientFMXChat.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="BufferTest;ClientChat;ServerChat"/>
+        <CallTarget Targets="BufferTest;ClientChat;AegysServer;ClientFMXChat"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="BufferTest:Clean;ClientChat:Clean;ServerChat:Clean"/>
+        <CallTarget Targets="BufferTest:Clean;ClientChat:Clean;AegysServer:Clean;ClientFMXChat:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="BufferTest:Make;ClientChat:Make;ServerChat:Make"/>
+        <CallTarget Targets="BufferTest:Make;ClientChat:Make;AegysServer:Make;ClientFMXChat:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

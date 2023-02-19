@@ -4,8 +4,8 @@ object Form2: TForm2
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Chat'
-  ClientHeight = 325
-  ClientWidth = 661
+  ClientHeight = 414
+  ClientWidth = 649
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -54,50 +54,50 @@ object Form2: TForm2
     Caption = 'FixedPWD'
   end
   object Label6: TLabel
-    Left = 18
-    Top = 143
+    Left = 15
+    Top = 146
     Width = 80
     Height = 13
     Caption = 'ConnectTimeOut'
   end
   object Label7: TLabel
-    Left = 18
-    Top = 168
+    Left = 15
+    Top = 167
     Width = 80
     Height = 13
     Caption = 'RequestTimeOut'
   end
   object Label8: TLabel
-    Left = 16
-    Top = 196
+    Left = 13
+    Top = 192
     Width = 82
     Height = 13
     Caption = 'Peers Connected'
   end
-  object Label9: TLabel
-    Left = 314
-    Top = 43
+  object lMSG: TLabel
+    Left = 313
+    Top = 63
     Width = 19
     Height = 13
     Caption = 'Msg'
   end
   object Label10: TLabel
     Left = 286
-    Top = 69
+    Top = 88
     Width = 47
     Height = 13
     Caption = 'Response'
   end
   object iImgSend: TImage
-    Left = 337
-    Top = 192
+    Left = 336
+    Top = 208
     Width = 276
-    Height = 121
+    Height = 198
     Stretch = True
   end
   object sbSendMSG: TSpeedButton
-    Left = 616
-    Top = 39
+    Left = 618
+    Top = 58
     Width = 23
     Height = 22
     Glyph.Data = {
@@ -114,10 +114,11 @@ object Form2: TForm2
       3333333333333333333333333333333333333333333333333333333333333333
       3333333333333333333333333333333333333333333333333333}
     NumGlyphs = 2
+    OnClick = sbSendMSGClick
   end
   object sbSendIMG: TSpeedButton
-    Left = 616
-    Top = 192
+    Left = 618
+    Top = 211
     Width = 23
     Height = 22
     Glyph.Data = {
@@ -134,6 +135,7 @@ object Form2: TForm2
       0EE03333337F33377F373333330EEEE00EE03333337F333773373333330EEEEE
       EEE03333337FFFFFFFF733333300000000003333337777777777}
     NumGlyphs = 2
+    OnClick = sbSendIMGClick
   end
   object Label11: TLabel
     Left = 322
@@ -143,7 +145,7 @@ object Form2: TForm2
     Caption = 'ID'
   end
   object sbIDConn: TSpeedButton
-    Left = 616
+    Left = 618
     Top = 15
     Width = 23
     Height = 21
@@ -169,6 +171,27 @@ object Form2: TForm2
     Width = 46
     Height = 13
     Caption = 'Password'
+  end
+  object sbAutoCap: TSpeedButton
+    Left = 618
+    Top = 239
+    Width = 23
+    Height = 22
+    Glyph.Data = {
+      76010000424D7601000000000000760000002800000020000000100000000100
+      04000000000000010000120B0000120B00001000000000000000000000000000
+      800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00370777033333
+      3330337F3F7F33333F3787070003333707303F737773333373F7007703333330
+      700077337F3333373777887007333337007733F773F333337733700070333333
+      077037773733333F7F37703707333300080737F373333377737F003333333307
+      78087733FFF3337FFF7F33300033330008073F3777F33F777F73073070370733
+      078073F7F7FF73F37FF7700070007037007837773777F73377FF007777700730
+      70007733FFF77F37377707700077033707307F37773F7FFF7337080777070003
+      3330737F3F7F777F333778080707770333333F7F737F3F7F3333080787070003
+      33337F73FF737773333307800077033333337337773373333333}
+    NumGlyphs = 2
+    OnClick = sbAutoCapClick
   end
   object eHost: TEdit
     Left = 101
@@ -211,8 +234,8 @@ object Form2: TForm2
     Text = '1234'
   end
   object cbAcceptUnAssist: TCheckBox
-    Left = 181
-    Top = 118
+    Left = 182
+    Top = 117
     Width = 97
     Height = 17
     Caption = 'AcceptUnAssist'
@@ -237,7 +260,7 @@ object Form2: TForm2
   object bConnect: TButton
     Left = 181
     Top = 161
-    Width = 91
+    Width = 150
     Height = 25
     Caption = 'Connect'
     TabOrder = 8
@@ -246,22 +269,22 @@ object Form2: TForm2
   object lbPeersConnected: TListBox
     Left = 101
     Top = 192
-    Width = 171
+    Width = 230
     Height = 122
     ItemHeight = 13
     TabOrder = 9
   end
   object eMessage: TEdit
     Left = 337
-    Top = 40
+    Top = 59
     Width = 276
     Height = 21
     TabOrder = 10
   end
   object mReply: TMemo
     Left = 337
-    Top = 67
-    Width = 276
+    Top = 86
+    Width = 302
     Height = 114
     ReadOnly = True
     ScrollBars = ssBoth
@@ -280,5 +303,19 @@ object Form2: TForm2
     Width = 101
     Height = 21
     TabOrder = 13
+  end
+  object cbToAll: TCheckBox
+    Left = 338
+    Top = 40
+    Width = 97
+    Height = 17
+    Caption = 'To All'
+    TabOrder = 14
+  end
+  object tAutoCap: TTimer
+    Interval = 40
+    OnTimer = tAutoCapTimer
+    Left = 248
+    Top = 320
   end
 end

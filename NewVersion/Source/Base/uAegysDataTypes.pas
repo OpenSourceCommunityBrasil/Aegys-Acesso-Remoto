@@ -1,5 +1,7 @@
 unit uAegysDataTypes;
 
+{$I ..\Includes\uAegys.inc}
+
 {
    Aegys Remote Access Project.
   Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
@@ -23,21 +25,26 @@ uses
   SysUtils, Classes, Variants;
 
 Type
+ TArrayOfPointer   = Array of Pointer;
  PComponent        = ^TComponent;
- TInternalCommand  = (ticNone,            ticLogin,
-                      ticConnectionList,  ticConnections,
-                      ticDataStatus,      ticFindID,
-                      ticPing,            ticCheckPass,
-                      ticGetMonitorCount, ticChangeMonitor,
-                      ticRelation,        ticConnectedPeer);
- TDataMode         = (tdmServerCommand,   tdmClientCommand,
+ TPingSense        = (tpsPing,           tpsPong);
+ TInternalCommand  = (ticNone,           ticLogin,
+                      ticConnectionList, ticDataStatus,
+                      ticFindID,         ticIDExistsReqPass,
+                      ticIDNotFound,     ticPing,
+                      ticPong,           ticCheckPass,
+                      ticAccessGranted,  ticGetMonitorCount,
+                      ticChangeMonitor,  ticRelation,
+                      ticConnectedPeer,  ticDisconnectedPeer);
+ TDataMode         = (tdmServerCommand,  tdmClientCommand,
                       tdmReply);
  TDataType         = (tdtString,         tdtDataBytes);
  TDataCheck        = (tdcAsync,          tdcSync);
  TCommandType      = (tctScreenCapture,
                       tctAudio,          tctVideo,
                       tctKeyboard,       tctMouse,
-                      tctFileTransfer,   tctNone);
+                      tctFileTransfer,   tctChat,
+                      tctNone);
  TAegysBytes       = Array of Byte;
  {$IFDEF FPC}
   AEInteger        = Longint;
@@ -77,7 +84,7 @@ Type
   {$ELSE}
    {$IF Defined(HAS_FMX)}
     AEString       = Utf8String;
-    AEWideString   = WideString;
+    AEWideString   = String;
     AEChar         = Utf8Char;
    {$ELSE}
     AEString       = AnsiString;

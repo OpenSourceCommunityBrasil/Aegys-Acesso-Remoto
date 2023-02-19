@@ -3,9 +3,9 @@ object Form3: TForm3
   Top = 0
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
-  Caption = 'Server'
-  ClientHeight = 96
-  ClientWidth = 167
+  Caption = 'Aegys Support Server'
+  ClientHeight = 458
+  ClientWidth = 707
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,28 +18,96 @@ object Form3: TForm3
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
-  object Label2: TLabel
-    Left = 38
-    Top = 27
-    Width = 20
-    Height = 13
-    Caption = 'Port'
-  end
-  object ePort: TEdit
-    Left = 61
-    Top = 24
-    Width = 47
-    Height = 21
+  object DBGrid1: TDBGrid
+    Left = 0
+    Top = 0
+    Width = 707
+    Height = 458
+    Align = alClient
+    DataSource = DataSource1
+    DrawingStyle = gdsGradient
     TabOrder = 0
-    Text = '9092'
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = []
+    Columns = <
+      item
+        Expanded = False
+        FieldName = 'PROTOCOLO'
+        Title.Caption = 'Connection'
+        Width = 163
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'ID'
+        Width = 140
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'SENHA'
+        Title.Caption = 'Senha'
+        Width = 116
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'SENHA2'
+        Title.Caption = 'Senha Gerada'
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'LATENCIA'
+        Title.Caption = 'Lat'#234'ncia'
+        Width = 60
+        Visible = True
+      end>
   end
-  object bConnect: TButton
-    Left = 38
-    Top = 51
-    Width = 91
-    Height = 25
-    Caption = 'Connect'
-    TabOrder = 1
-    OnClick = bConnectClick
+  object DataSource1: TDataSource
+    DataSet = QryConexoes
+    Left = 64
+    Top = 144
+  end
+  object QryConexoes: TFDMemTable
+    FieldDefs = <>
+    IndexDefs = <>
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    StoreDefs = True
+    Left = 64
+    Top = 96
+    object QryConexoesPROTOCOLO: TStringField
+      FieldName = 'PROTOCOLO'
+      Size = 50
+    end
+    object QryConexoesID: TStringField
+      FieldName = 'ID'
+      Size = 11
+    end
+    object QryConexoesSENHA: TStringField
+      FieldName = 'SENHA'
+    end
+    object QryConexoesSENHA2: TStringField
+      FieldName = 'SENHA2'
+    end
+    object QryConexoesLATENCIA: TStringField
+      FieldName = 'LATENCIA'
+      Size = 10
+    end
+  end
+  object tReload: TTimer
+    Interval = 5000
+    OnTimer = tReloadTimer
+    Left = 320
+    Top = 112
   end
 end

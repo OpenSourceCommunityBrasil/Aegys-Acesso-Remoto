@@ -1,5 +1,7 @@
 unit uAegysThreads;
 
+{$I ..\Includes\uAegys.inc}
+
 {
    Aegys Remote Access Project.
   Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
@@ -22,7 +24,7 @@ Interface
 Uses
  SysUtils, Classes, Variants,
  {$IF Defined(HAS_FMX)}{$IF Not Defined(HAS_UTF8)}FMX.Forms{$IFEND}
- {$ELSE}Vcl.Forms{$ELSE}Forms{$IFEND}, uAegysBufferPack, uAegysConsts,
+ {$ELSE}Vcl.Forms,{$ELSE}Forms{$IFEND} uAegysBufferPack, uAegysConsts,
  uAegysDataTypes;
 
 Type
@@ -35,6 +37,11 @@ Type
                                     MessageError    : String)      Of Object;
  TOnServiceCommands    = Procedure (InternalCommand : TInternalCommand;
                                     Command         : String)      Of Object;
+ TOnClientCommands     = Procedure (CommandType     : TCommandType;
+                                    Connection,
+                                    ID,
+                                    Command         : String;
+                                    aBuf            : TAegysBytes) Of Object;
 
 Type
  TAegysThread = Class(TThread)
@@ -45,13 +52,13 @@ Type
   pPackList                               : PPackList;
   pAegysClient                            : TComponent;
   vDelayThread                            : Integer;
-  vSelf                                   : TComponent;
   vOnBeforeExecuteData                    : TOnBeforeExecuteData;
   vOnDataReceive                          : TOnDataReceive;
   vOnExecuteData                          : TOnExecuteData;
   vAbortData                              : TOnAbortData;
   vOnThreadRequestError                   : TOnThreadRequestError;
   vOnServiceCommands                      : TOnServiceCommands;
+  vOnClientCommands                       : TOnClientCommands;
  Public
   Procedure   Kill;
   Destructor  Destroy; Override;
@@ -63,12 +70,13 @@ Type
                      OnExecuteData        : TOnExecuteData;
                      OnAbortData          : TOnAbortData;
                      OnServiceCommands    : TOnServiceCommands;
+                     OnClientCommands     : TOnClientCommands;
                      OnThreadRequestError : TOnThreadRequestError);
 End;
 
 Implementation
 
-Uses uAegysBase;
+Uses uAegysBase, uAegysTools;
 
 Procedure TAegysThread.ProcessMessages;
 Begin
@@ -93,6 +101,7 @@ Constructor TAegysThread.Create(Var aPackList        : TPackList;
                                 OnExecuteData        : TOnExecuteData;
                                 OnAbortData          : TOnAbortData;
                                 OnServiceCommands    : TOnServiceCommands;
+                                OnClientCommands     : TOnClientCommands;
                                 OnThreadRequestError : TOnThreadRequestError);
 Begin
  If Not Assigned(aPackList) Then
@@ -110,6 +119,7 @@ Begin
  vOnBeforeExecuteData  := OnBeforeExecuteData;
  vOnDataReceive        := OnDataReceive;
  vOnServiceCommands    := OnServiceCommands;
+ vOnClientCommands     := OnClientCommands;
  {$IFNDEF FPC}
   {$IF Defined(HAS_FMX)}
    {$IF Not Defined(HAS_UTF8)}
@@ -125,24 +135,30 @@ End;
 
 Procedure TAegysThread.Execute;
 Var
- vPackno    : AeInt64;
- aBuf       : TAegysBytes;
- aPackClass : TPackClass;
- aPackList  : TPackList;
- vInternalC : Boolean;
- vCommand   : String;
+ ArrayOfPointer   : TArrayOfPointer;
+ vPackno          : AeInt64;
+ bBuf,
+ aBuf             : TAegysBytes;
+ aPackClass       : TPackClass;
+ aPackList        : TPackList;
+ vInternalC       : Boolean;
+ vBytesOptions,
+ vOwner,
+ vID,
+ vCommand         : String;
+ vInternalCommand : TInternalCommand;
  Procedure ParseLogin(aValue : String);
  Var
   vDataC,
   vID,
   vPWD    : String;
  Begin
-  vDataC := Copy(aValue, InitStrPos, Pos('|', aValue) -1);
-  Delete(aValue, InitStrPos, Pos('|', aValue));
-  vID    := Copy(aValue, InitStrPos, Pos('|', aValue) -1);
-  Delete(aValue, InitStrPos, Pos('|', aValue));
-  If Pos('|', aValue) > 0 Then
-   vPWD  := Copy(aValue, InitStrPos, Pos('|', aValue) -1)
+  vDataC := Copy(aValue, InitStrPos, Pos('&', aValue) -1);
+  Delete(aValue, InitStrPos, Pos('&', aValue));
+  vID    := Copy(aValue, InitStrPos, Pos('&', aValue) -1);
+  Delete(aValue, InitStrPos, Pos('&', aValue));
+  If Pos('&', aValue) > 0 Then
+   vPWD  := Copy(aValue, InitStrPos, Pos('&', aValue) -1)
   Else
    vPWD  := aValue;
   TAegysClient(pAegysClient).SetSessionData(vDataC, vID, vPWD);
@@ -150,6 +166,7 @@ Var
 Begin
  vPackno   := -1;
  aPackList := TPackList.Create;
+ SetLength(bBuf, 0);
  While (Not(Terminated)) Do
   Begin
    Try
@@ -160,28 +177,54 @@ Begin
     If aPackList.Count > 0 Then
      Begin
       vInternalC := False;
-      aPackClass := aPackList.Items[aPackList.Count -1];
+      aPackClass := aPackList.Items[0];
       If aPackClass.DataType = tdtString Then
        Begin
+        vInternalC := True;
         vCommand   := aPackClass.Command;
-        vInternalC := (Copy(vCommand, InitStrPos, Length(cStatusDesc)) = cStatusDesc); //Status Login
-        If vInternalC Then
+        ParseCommand(vCommand, vInternalCommand);
+        If (aPackClass.CommandType  = tctNone) And
+           (vInternalCommand       <> ticNone) Then
          Begin
-          Delete(vCommand, InitStrPos, Length(cStatusDesc) +1);
-          ParseLogin(vCommand);
-          If Assigned(vOnServiceCommands) Then
-           vOnServiceCommands(ticLogin, vCommand);
+          If vInternalCommand in [ticLogin,
+                                  ticDataStatus] Then
+           ParseLogin(vCommand);
+          Synchronize(Procedure
+                      Begin
+                       If Assigned(vOnServiceCommands) Then
+                        vOnServiceCommands(vInternalCommand, vCommand);
+                      End);
+         End
+        Else
+         Begin
+          ArrayOfPointer := [@vOwner, @vID];
+          ParseValues(vCommand, ArrayOfPointer);
+          If (aPackClass.CommandType <> tctNone) Then
+           Begin
+            Synchronize(Procedure
+                        Begin
+                         If Assigned(vOnClientCommands) Then
+                          vOnClientCommands(aPackClass.CommandType, vOwner, vID, vCommand, bBuf);
+                        End);
+           End;
          End;
         If vInternalC Then
-         aPackList.Delete(aPackList.Count -1);
+         aPackList.Delete(0);
        End;
       If Not vInternalC Then
        Begin
-        aBuf := aPackList.ReadPack(aPackList.Count -1);
+        aBuf := aPackClass.DataBytes;
         Try
-         If Assigned(vOnDataReceive) Then
-          vOnDataReceive(aBuf);
+         ArrayOfPointer := [@vOwner, @vID];
+         vBytesOptions  := aPackClass.BytesOptions;
+         ParseValues(vBytesOptions, ArrayOfPointer);
+         If (aPackClass.CommandType <> tctNone) Then
+          If Assigned(vOnClientCommands) Then
+           vOnClientCommands(aPackClass.CommandType, vOwner, vID, '', aBuf)
+          Else If Assigned(vOnDataReceive) Then
+           vOnDataReceive(aBuf);
         Finally
+         aPackList.Delete(0);
          SetLength(aBuf, 0);
         End;
        End;
@@ -191,7 +234,7 @@ Begin
        (pPackList^.Count > 0)         Then
      Dec(vPackno)
     Else If (pPackList^.Count > 0)    Then
-     vPackno := pPackList^.Count -1;
+     vPackno := 0;
     If (pPackList^.Count > 0)         And
        (vPackno > -1)                 Then
      Begin

@@ -1,5 +1,7 @@
 Unit uAegysBufferPack;
 
+{$I ..\Includes\uAegys.inc}
+
 {
    Aegys Remote Access Project.
   Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
@@ -60,6 +62,7 @@ Uses
    Procedure   LoadFromFile  (Filename     : AeString);
    Procedure   SaveToFile    (Filename     : AeString);
    Property    BufferVersion               : AeInteger    Read vHeaderVersion;
+   Property    ProxyToMyConnectionList     : Boolean      Read vProxyMyList    Write vProxyMyList;
    Property    Checked                     : Boolean      Read vChecked        Write vChecked;
    Property    DataBytes                   : TAegysBytes  Read vDataBytes      Write SetDataBytes;
    Property    BytesOptions                : AeString     Read vBytesOptions   Write vBytesOptions;
@@ -97,6 +100,15 @@ Uses
                              PackDest      : AeString;
                              aDataMode     : TDataMode;
                              aDataCheck    : TDataCheck;
+                             aCommandType  : TCommandType;
+                             aCommand      : AeString;
+                             aDestMylist   : Boolean   = False;
+                             aBufferSize   : AEInt64   = 0;
+                             aDelay        : AEInteger = 0) : Integer;Overload;
+   Function   Add           (PackOwner,
+                             PackDest      : AeString;
+                             aDataMode     : TDataMode;
+                             aDataCheck    : TDataCheck;
                              aCommand      : AeString;
                              aBufferSize   : AEInt64   = 0;
                              aDelay        : AEInteger = 0) : Integer;Overload;
@@ -107,6 +119,7 @@ Uses
                              aCommandType  : TCommandType;
                              aDataBytes    : TAegysBytes;
                              aBytesOptions : AeString;
+                             aDestMylist   : Boolean   = False;
                              aBufferSize   : AEInt64   = 0;
                              aDelay        : AEInteger = 0) : Integer;Overload;
    Function   ReadPack      (Index         : Integer)  : TAegysBytes;
@@ -237,18 +250,21 @@ Var
  aDestSize,
  aOwnerSize,
  aPosition        : AeInteger;
+ aPackSize,
  aCommandSize,
  aDataSize,
  aBytesOptionSize : AEInt64;
 Begin
  If Length(Value) > 0 Then
   Begin
-   Move(Value[0], vChecked, SizeOf(vChecked));                      //Checked
-   aPosition            :=  SizeOf(vChecked);
-   Move(Value[aPosition], vProxyMyList, SizeOf(vProxyMyList));      //ProxyMyList
-   aPosition            := aPosition +  SizeOf(vProxyMyList);
-   Move(Value[aPosition], vHeaderVersion, SizeOf(vHeaderVersion));  //Header Version
-   aPosition            := aPosition +    SizeOf(vHeaderVersion);
+   Move(Value[0], aPackSize, SizeOf(aPackSize));                      //PackSize
+   aPosition            :=  SizeOf(aPackSize);
+   Move(Value[SizeOf(aPackSize)], vChecked, SizeOf(vChecked));        //Checked
+   aPosition            :=  aPosition +     SizeOf(vChecked);
+   Move(Value[aPosition], vProxyMyList,     SizeOf(vProxyMyList));    //ProxyMyList
+   aPosition            := aPosition +      SizeOf(vProxyMyList);
+   Move(Value[aPosition], vHeaderVersion,   SizeOf(vHeaderVersion));  //Header Version
+   aPosition            := aPosition +      SizeOf(vHeaderVersion);
    //Check HeaderVersion
    If vHeaderVersion = cAeBufferVersion Then
     Begin
@@ -276,17 +292,25 @@ Begin
       aPosition            := aPosition +    SizeOf(vDataSize);
       Move(Value[aPosition],  aOwnerSize,    SizeOf(aOwnerSize));     //OwnerSize
       aPosition            := aPosition +    SizeOf(aOwnerSize);
-      SetLength(aOwnerBytes,  aOwnerSize);
-      Move(Value[aPosition],  aOwnerBytes[0], aOwnerSize);            //Owner
+      If aOwnerSize > 0 Then
+       Begin
+        SetLength(aOwnerBytes,  aOwnerSize);
+        Move(Value[aPosition],  aOwnerBytes[0], aOwnerSize);            //Owner
+       End;
       aPosition            := aPosition +     aOwnerSize;
-      vOwner               := BytesToVar(aOwnerBytes, varString);
+      If aOwnerSize > 0 Then
+       vOwner              := BytesToVar(aOwnerBytes, varString);
       SetLength(aOwnerBytes, 0);
       Move(Value[aPosition],  aDestSize,     SizeOf(aDestSize));      //DestSize
       aPosition            := aPosition +    SizeOf(aDestSize);
-      SetLength(aDestBytes,   aDestSize);
-      Move(Value[aPosition],  aDestBytes[0], aDestSize);              //Dest
+      If aDestSize > 0 Then
+       Begin
+        SetLength(aDestBytes,   aDestSize);
+        Move(Value[aPosition],  aDestBytes[0], aDestSize);            //Dest
+       End;
       aPosition            := aPosition +    aDestSize;
-      vDest                := BytesToVar(aDestBytes,  varString);
+      If aDestSize > 0 Then
+       vDest               := BytesToVar(aDestBytes,  varString);
       SetLength(aDestBytes, 0);
       SetLength(vDataBytes, 0);
       vCommand             := '';
@@ -306,9 +330,9 @@ Begin
           Move(Value[aPosition], Pointer(@aDataSize)^, SizeOf(aDataSize));
           aPosition := aPosition + SizeOf(aDataSize);
           vDataSize := aDataSize;
-          SetLength(vDataBytes, aDataSize);
-          Move(Value[aPosition], vDataBytes[0], aDataSize);
-          aPosition := aPosition + aDataSize;
+          SetLength(vDataBytes, vDataSize);
+          Move(Value[aPosition], vDataBytes[0], vDataSize);
+          aPosition := aPosition + vDataSize;
           Move(Value[aPosition], Pointer(@aBytesOptionSize)^, SizeOf(aBytesOptionSize));
           aPosition := aPosition + SizeOf(aBytesOptionSize);
           If aBytesOptionSize > 0 Then
@@ -361,8 +385,10 @@ Var
  aDestSize,
  aOwnerSize,
  aPosition        : AeInteger;
+ aPackSize,
  aDataSize,
  aBytesOptionSize : AEInt64;
+ aResult          : TAegysBytes;
 Begin
  If vDataType = tdtString Then
   Begin
@@ -414,17 +440,21 @@ Begin
      Begin
       aCommand           := VarToBytes(vCommand,  varString);
       aDataSize          := Length(aCommand);
-      SetLength(Result, aHeaderSize +
-                        SizeOf(aOwnerSize) + aOwnerSize +
-                        SizeOf(aDestSize)  + aDestSize  +
-                        SizeOf(aDataSize)  + aDataSize);
-      Move(aHeader   [0], Pointer(@Result[0])^, aHeaderSize);
-      Move(aOwnerSize,    Pointer(@Result[aHeaderSize])^, SizeOf(aOwnerSize));
-      Move(aOwner    [0], Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize)])^, aOwnerSize);
-      Move(aDestSize,     Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize])^, SizeOf(aDestSize));
-      Move(aDest     [0], Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize)])^, aDestSize);
-      Move(aDataSize,     Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize])^, SizeOf(aDataSize));
-      Move(aCommand  [0], Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize)])^, aDataSize);
+      aPackSize          := SizeOf(aPackSize)  + aHeaderSize +
+                            SizeOf(aOwnerSize) + aOwnerSize +
+                            SizeOf(aDestSize)  + aDestSize  +
+                            SizeOf(aDataSize)  + aDataSize;
+      SetLength(Result, aPackSize);
+      Move(aPackSize,     Pointer(@Result[0])^, SizeOf(aPackSize));
+      Move(aHeader   [0], Pointer(@Result[SizeOf(aPackSize)])^, aHeaderSize);
+      Move(aOwnerSize,    Pointer(@Result[SizeOf(aPackSize) + aHeaderSize])^, SizeOf(aOwnerSize));
+      If aOwnerSize > 0 Then
+       Move(aOwner   [0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize)])^, aOwnerSize);
+      Move(aDestSize,     Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize])^, SizeOf(aDestSize));
+      If aDestSize > 0 Then
+       Move(aDest    [0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize)])^, aDestSize);
+      Move(aDataSize,     Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize])^, SizeOf(aDataSize));
+      Move(aCommand  [0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize)])^, aDataSize);
      End
     Else
      Begin
@@ -434,41 +464,47 @@ Begin
        Begin
         aBytesOption     := VarToBytes(vBytesOptions,  varString);
         aBytesOptionSize := Length(aBytesOption);
-        SetLength(Result, aHeaderSize              +
-                          SizeOf(aOwnerSize)       + aOwnerSize +
-                          SizeOf(aDestSize)        + aDestSize  +
-                          SizeOf(aDataSize)        + aDataSize  +
-                          SizeOf(aBytesOptionSize) + aBytesOptionSize);
+        aPackSize        := SizeOf(aPackSize)        + aHeaderSize +
+                            SizeOf(aOwnerSize)       + aOwnerSize  +
+                            SizeOf(aDestSize)        + aDestSize   +
+                            SizeOf(aDataSize)        + aDataSize   +
+                            SizeOf(aBytesOptionSize) + aBytesOptionSize;
        End
       Else
-       SetLength(Result,  aHeaderSize              +
-                          SizeOf(aOwnerSize)       + aOwnerSize +
-                          SizeOf(aDestSize)        + aDestSize  +
-                          SizeOf(aDataSize)        + aDataSize);
-      Move(aHeader   [0], Pointer(@Result[0])^, aHeaderSize);
-      Move(aOwnerSize,    Pointer(@Result[aHeaderSize])^, SizeOf(aOwnerSize));
-      Move(aOwner    [0], Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize)])^, aOwnerSize);
-      Move(aDestSize,     Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize])^, SizeOf(aDestSize));
-      Move(aDest     [0], Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize)])^, aDestSize);
-      Move(aDataSize,     Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize])^, SizeOf(aDataSize));
-      Move(vDataBytes[0], Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize)])^, aDataSize);
+       aPackSize         := SizeOf(aPackSize)        + aHeaderSize +
+                            SizeOf(aOwnerSize)       + aOwnerSize  +
+                            SizeOf(aDestSize)        + aDestSize   +
+                            SizeOf(aDataSize)        + aDataSize;
+      SetLength(Result,  aPackSize);
+      Move(aPackSize,     Pointer(@Result[0])^, SizeOf(aPackSize));
+      Move(aHeader   [0], Pointer(@Result[SizeOf(aPackSize)])^, aHeaderSize);
+      Move(aOwnerSize,    Pointer(@Result[SizeOf(aPackSize) + aHeaderSize])^, SizeOf(aOwnerSize));
+      If aOwnerSize > 0 Then
+       Move(aOwner   [0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize)])^, aOwnerSize);
+      Move(aDestSize,     Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize])^, SizeOf(aDestSize));
+      If aDestSize > 0 Then
+       Move(aDest    [0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize)])^, aDestSize);
+      Move(aDataSize,     Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize])^, SizeOf(aDataSize));
+      Move(vDataBytes[0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize)])^, aDataSize);
       If aBytesOptionSize > 0 Then
        Begin
-        Move(aBytesOptionSize, Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize) + aDataSize])^, SizeOf(aBytesOptionSize));
-        Move(aBytesOption[0],  Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize) + aDataSize + SizeOf(aBytesOptionSize)])^, aBytesOptionSize);
+        Move(aBytesOptionSize, Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize) + aDataSize])^, SizeOf(aBytesOptionSize));
+        Move(aBytesOption[0],  Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize) + aDataSize + SizeOf(aBytesOptionSize)])^, aBytesOptionSize);
        End;
      End;
    End
   Else
    Begin
-    SetLength(Result,  aHeaderSize        +
-                       SizeOf(aOwnerSize) + aOwnerSize +
-                       SizeOf(aDestSize)  + aDestSize);
-    Move(aHeader   [0], Pointer(@Result[0])^, aHeaderSize);
-    Move(aOwnerSize,    Pointer(@Result[aHeaderSize])^, SizeOf(aOwnerSize));
-    Move(aOwner    [0], Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize)])^, aOwnerSize);
-    Move(aDestSize,     Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize])^, SizeOf(aDestSize));
-    Move(aDest     [0], Pointer(@Result[aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize)])^, aDestSize);
+    aPackSize         := SizeOf(aPackSize)  + aHeaderSize +
+                         SizeOf(aOwnerSize) + aOwnerSize  +
+                         SizeOf(aDestSize)  + aDestSize;
+    SetLength(Result,  aPackSize);
+    Move(aPackSize,     Pointer(@Result[0])^, SizeOf(aPackSize));
+    Move(aHeader   [0], Pointer(@Result[SizeOf(aPackSize)])^, aHeaderSize);
+    Move(aOwnerSize,    Pointer(@Result[SizeOf(aPackSize) +   aHeaderSize])^, SizeOf(aOwnerSize));
+    Move(aOwner    [0], Pointer(@Result[SizeOf(aPackSize) +   aHeaderSize + SizeOf(aOwnerSize)])^, aOwnerSize);
+    Move(aDestSize,     Pointer(@Result[SizeOf(aPackSize) +   aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize])^, SizeOf(aDestSize));
+    Move(aDest     [0], Pointer(@Result[SizeOf(aPackSize) +   aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize)])^, aDestSize);
    End;
  Except
   Raise Exception.Create('Error Message');
@@ -592,12 +628,95 @@ Begin
 End;
 
 Function TPackList.Add    (PackOwner,
+                           PackDest      : AeString;
+                           aDataMode     : TDataMode;
+                           aDataCheck    : TDataCheck;
+                           aCommandType  : TCommandType;
+                           aCommand      : AeString;
+                           aDestMylist   : Boolean   = False;
+                           aBufferSize   : AEInt64   = 0;
+                           aDelay        : AEInteger = 0) : Integer;
+Var
+ aItem            : TPackClass;
+ bBufferSize,
+ aPacksGeralB,
+ aPackNoB,
+ aPackCount       : AEInt64;
+ atempDataString,
+ atempDataStringB : AeString;
+Begin
+ Result           := -1;
+ aPacksGeralB     := Length(aCommand);
+ If aPacksGeralB > 0 Then
+  Begin
+   If aBufferSize = 0 Then
+    Begin
+     aItem              := TPackClass.Create;
+     aItem.DataCheck    := aDataCheck;
+     aItem.DataMode     := aDataMode;
+     aItem.CommandType  := aCommandType;
+     aItem.vProxyMyList := aDestMylist;
+     aItem.DataSize     := aPacksGeralB;
+     aItem.BufferSize   := aItem.DataSize;
+     aItem.PacksGeral   := 1;
+     aItem.PackNo       := 1;
+     aItem.DataMode     := aDataMode;
+     aItem.DataType     := tdtString;
+     aItem.Command      := aCommand;
+     aItem.Owner        := PackOwner;
+     aItem.Dest         := PackDest;
+     Result             := Add(aItem);
+     aItem.Delay        := aDelay;
+    End
+   Else //Build MultiPack
+    Begin
+     aPackNoB          := 0;
+     atempDataString   := aCommand;
+     bBufferSize       := aBufferSize - SizeOfHeader - Length(PackOwner) - Length(PackDest);
+     If bBufferSize > 0 Then
+      Begin
+       aPackCount        := (aPacksGeralB div bBufferSize);
+       If (aPacksGeralB Mod aBufferSize) > 1 Then
+        Inc(aPackCount)
+       Else If aPackCount = 0 Then
+        Inc(aPackCount);
+       While (atempDataString <> '') Do
+        Begin
+         aItem              := TPackClass.Create;
+         aItem.DataCheck    := aDataCheck;
+         aItem.DataMode     := aDataMode;
+         aItem.CommandType  := aCommandType;
+         aItem.vProxyMyList := aDestMylist;
+         aItem.DataSize     := aPacksGeralB;
+         aItem.PacksGeral   := aPackCount;
+         aItem.PackNo       := aPackNoB;
+         aItem.DataMode     := aDataMode;
+         aItem.DataType     := tdtString;
+         aItem.Owner        := PackOwner;
+         aItem.Dest         := PackDest;
+         atempDataStringB   := Copy(atempDataString, InitStrPos, bBufferSize);
+         DeleteString(atempDataString, InitStrPos, bBufferSize);
+         aItem.Command      := atempDataStringB;
+         aItem.BufferSize   := Length(atempDataStringB);
+         Result             := Add(aItem);
+         aItem.Delay        := aDelay;
+         Inc(aPackNoB);
+        End;
+      End
+     Else
+      Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
+    End;
+  End;
+End;
+
+Function TPackList.Add    (PackOwner,
                            PackDest       : AeString;
                            aDataMode      : TDataMode;
                            aDataCheck     : TDataCheck;
                            aCommandType   : TCommandType;
                            aDataBytes     : TAegysBytes;
                            aBytesOptions  : AeString;
+                           aDestMylist    : Boolean   = False;
                            aBufferSize    : AEInt64   = 0;
                            aDelay         : AEInteger = 0) : Integer;
 Var
@@ -621,6 +740,7 @@ Begin
      aItem              := TPackClass.Create;
      aItem.DataCheck    := aDataCheck;
      aItem.DataSize     := aPacksGeralB;
+     aItem.vProxyMyList := aDestMylist;
      aItem.BufferSize   := aItem.DataSize;
      aItem.PacksGeral   := 1;
      aItem.PackNo       := 1;
@@ -651,6 +771,7 @@ Begin
          aItem              := TPackClass.Create;
          aItem.DataCheck    := aDataCheck;
          aItem.DataSize     := aPacksGeralB;
+         aItem.vProxyMyList := aDestMylist;
          aItem.PacksGeral   := aPackCount;
          aItem.PackNo       := aPackNoB;
          aItem.DataMode     := aDataMode;

@@ -1,5 +1,7 @@
 Unit uAegysConsts;
 
+{$I ..\Includes\uAegys.inc}
+
 {
    Aegys Remote Access Project.
   Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
@@ -41,6 +43,9 @@ Const
  cIDExistsReqPass      = '<|IDEXISTS!REQUESTPASSWORD|>';
  cIDNotFound           = '<|IDNOTFOUND|>';
  cConnectedPeer        = '<|CONNECTED|>';
+ cSendDataError        = '<|SENDDATAERROR|>';
+ cSendDataErrorID      = '<|SENDDATAERRORID|>';
+ cDisconnectedPeer     = '<|DISCONNECTED|>';
  cPing                 = '<|PING|>';
  cPong                 = '<|PONG|>';
  cCheckPass            = '<|CHECKIDPASSWORD|>';
