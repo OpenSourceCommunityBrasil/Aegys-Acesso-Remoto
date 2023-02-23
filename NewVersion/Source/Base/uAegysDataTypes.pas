@@ -35,16 +35,17 @@ Type
                       ticPong,           ticCheckPass,
                       ticAccessGranted,  ticGetMonitorCount,
                       ticChangeMonitor,  ticRelation,
-                      ticConnectedPeer,  ticDisconnectedPeer);
+                      ticConnectedPeer,  ticDisconnectedPeer,
+                      ticIncommingConnect);
  TDataMode         = (tdmServerCommand,  tdmClientCommand,
                       tdmReply);
  TDataType         = (tdtString,         tdtDataBytes);
  TDataCheck        = (tdcAsync,          tdcSync);
- TCommandType      = (tctScreenCapture,
+ TCommandType      = (tctScreenCapture,  tctMonitor,
                       tctAudio,          tctVideo,
                       tctKeyboard,       tctMouse,
                       tctFileTransfer,   tctChat,
-                      tctNone);
+                      tctClipBoard,      tctNone);
  TAegysBytes       = Array of Byte;
  {$IFDEF FPC}
   AEInteger        = Longint;

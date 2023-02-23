@@ -29,6 +29,7 @@ Const
  cAeBufferVersion      = 12;
  cDelayThread          = 2;
  //Messages
+ cCaptureTitle         = 'Remote Access, Connection "%s",ID "%s"';
  cCantJoinDisconnected = 'Can''''t join when Disconnected';
  cInvalidBufferData    = 'Invalid Buffer Data...';
  cInvalidHeaderData    = 'Invalid Header Data...';
@@ -43,6 +44,7 @@ Const
  cIDExistsReqPass      = '<|IDEXISTS!REQUESTPASSWORD|>';
  cIDNotFound           = '<|IDNOTFOUND|>';
  cConnectedPeer        = '<|CONNECTED|>';
+ cIncommingConnect     = '<|INCOMMINGCONNECT|>';
  cSendDataError        = '<|SENDDATAERROR|>';
  cSendDataErrorID      = '<|SENDDATAERRORID|>';
  cDisconnectedPeer     = '<|DISCONNECTED|>';

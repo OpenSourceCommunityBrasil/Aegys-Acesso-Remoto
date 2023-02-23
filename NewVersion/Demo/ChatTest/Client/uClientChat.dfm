@@ -4,19 +4,18 @@ object Form2: TForm2
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Chat'
-  ClientHeight = 414
-  ClientWidth = 649
+  ClientHeight = 696
+  ClientWidth = 1074
   Color = clBtnFace
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 76
@@ -88,13 +87,6 @@ object Form2: TForm2
     Height = 13
     Caption = 'Response'
   end
-  object iImgSend: TImage
-    Left = 336
-    Top = 208
-    Width = 276
-    Height = 198
-    Stretch = True
-  end
   object sbSendMSG: TSpeedButton
     Left = 618
     Top = 58
@@ -117,8 +109,8 @@ object Form2: TForm2
     OnClick = sbSendMSGClick
   end
   object sbSendIMG: TSpeedButton
-    Left = 618
-    Top = 211
+    Left = 660
+    Top = 146
     Width = 23
     Height = 22
     Glyph.Data = {
@@ -173,8 +165,8 @@ object Form2: TForm2
     Caption = 'Password'
   end
   object sbAutoCap: TSpeedButton
-    Left = 618
-    Top = 239
+    Left = 660
+    Top = 183
     Width = 23
     Height = 22
     Glyph.Data = {
@@ -311,6 +303,30 @@ object Form2: TForm2
     Height = 17
     Caption = 'To All'
     TabOrder = 14
+  end
+  object Panel1: TPanel
+    Left = 688
+    Top = 13
+    Width = 369
+    Height = 675
+    Caption = 'SCREEN MIRROR'
+    DoubleBuffered = True
+    ParentDoubleBuffered = False
+    TabOrder = 15
+    object iImgSend: TImage
+      Left = 1
+      Top = 1
+      Width = 367
+      Height = 673
+      Align = alClient
+      IncrementalDisplay = True
+      Proportional = True
+      Stretch = True
+      ExplicitLeft = -7
+      ExplicitTop = 177
+      ExplicitWidth = 261
+      ExplicitHeight = 278
+    end
   end
   object tAutoCap: TTimer
     Interval = 40

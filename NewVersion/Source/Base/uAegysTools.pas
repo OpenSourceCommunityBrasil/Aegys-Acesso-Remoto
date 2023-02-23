@@ -130,6 +130,11 @@ Begin
   Begin
    InternalCommand := ticPong;
    Delete(Command, InitStrPos, Length(cPong));
+  End
+ Else If Copy(Command, InitStrPos, Length(cIncommingConnect)) = cIncommingConnect   Then
+  Begin
+   InternalCommand := ticIncommingConnect;
+   Delete(Command, InitStrPos, Length(cIncommingConnect));
   End;
 End;
 Procedure ParseValues(Var Source : String;

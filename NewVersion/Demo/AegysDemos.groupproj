@@ -15,6 +15,9 @@
         <Projects Include="ChatTest\Client\FMX\ClientFMXChat.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="AegysClient\AegysSuporteCliente.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -59,14 +62,23 @@
     <Target Name="ClientFMXChat:Make">
         <MSBuild Projects="ChatTest\Client\FMX\ClientFMXChat.dproj" Targets="Make"/>
     </Target>
+    <Target Name="AegysSuporteCliente">
+        <MSBuild Projects="AegysClient\AegysSuporteCliente.dproj"/>
+    </Target>
+    <Target Name="AegysSuporteCliente:Clean">
+        <MSBuild Projects="AegysClient\AegysSuporteCliente.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysSuporteCliente:Make">
+        <MSBuild Projects="AegysClient\AegysSuporteCliente.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="BufferTest;ClientChat;AegysServer;ClientFMXChat"/>
+        <CallTarget Targets="BufferTest;ClientChat;AegysServer;ClientFMXChat;AegysSuporteCliente"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="BufferTest:Clean;ClientChat:Clean;AegysServer:Clean;ClientFMXChat:Clean"/>
+        <CallTarget Targets="BufferTest:Clean;ClientChat:Clean;AegysServer:Clean;ClientFMXChat:Clean;AegysSuporteCliente:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="BufferTest:Make;ClientChat:Make;AegysServer:Make;ClientFMXChat:Make"/>
+        <CallTarget Targets="BufferTest:Make;ClientChat:Make;AegysServer:Make;ClientFMXChat:Make;AegysSuporteCliente:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

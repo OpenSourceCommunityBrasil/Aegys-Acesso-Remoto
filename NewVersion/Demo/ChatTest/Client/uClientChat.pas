@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics,    Vcl.Controls,    Vcl.Forms,  Vcl.Dialogs,
-  Vcl.StdCtrls,   Vcl.ExtCtrls,    Vcl.Buttons,     uAegysBase, uAegysDataTypes;
+  Vcl.StdCtrls,   Vcl.ExtCtrls,    Vcl.Buttons,     uAegysBase, uAegysDataTypes,
+  vcl.Imaging.jpeg;
 
 Const
  cDadosRecebidos = 'Dados recebidos...';
@@ -45,6 +46,7 @@ type
     cbToAll: TCheckBox;
     tAutoCap: TTimer;
     sbAutoCap: TSpeedButton;
+    Panel1: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure bConnectClick(Sender: TObject);
@@ -53,6 +55,9 @@ type
     procedure sbSendIMGClick(Sender: TObject);
     procedure tAutoCapTimer(Sender: TObject);
     procedure sbAutoCapClick(Sender: TObject);
+  protected
+    procedure WMEraseBkgnd(var Message: TWMEraseBkgnd);
+      message WM_ERASEBKGND;
   private
     { Private declarations }
    Procedure Connect;
@@ -83,6 +88,7 @@ type
   public
     { Public declarations }
    vAegysClient : TAegysClient;
+   vImgProcessing: boolean;
   end;
 
 var
@@ -215,21 +221,66 @@ Procedure TForm2.OnScreenCapture(Connection,
                                  ID,
                                  Command           : String;
                                  aBuf              : TAegysBytes);
-Var
- vStream : TStream;
- vBitmap : TBitmap;
-Begin
- vStream := TMemoryStream.Create;
- vBitmap := TBitmap.Create;
- Try
-  vStream.Write(aBuf[0], Length(aBuf));
-  vStream.Position := 0;
-  vBitmap.LoadFromStream(vStream);
-  iImgSend.Picture.Assign(vBitmap);
- Finally
-  FreeAndNil(vStream);
-  FreeAndNil(vBitmap);
- End;
+begin
+  if not(vImgProcessing) then
+  begin
+    vImgProcessing := true;
+
+    TThread.CreateAnonymousThread(
+      procedure
+      Var
+        vStream: TStream;
+        vBitmap: TBitmap;
+        vJpg: TJPEGImage;
+      Begin
+        Try
+          vStream := nil;
+          vBitmap := nil;
+          vJpg := nil;
+
+          vStream := TMemoryStream.Create;
+          vBitmap := TBitmap.Create;
+          vJpg := TJPEGImage.Create;
+
+          vStream.Write(aBuf[0], Length(aBuf));
+          vStream.Position := 0;
+
+          if vJpg.CanLoadFromStream(vStream) then
+          begin
+            vJpg.LoadFromStream(vStream);
+
+            TThread.Synchronize(nil,
+              procedure
+              begin
+                iImgSend.Picture.Assign(vJpg);
+              end);
+          end
+          else
+          begin
+            vBitmap.LoadFromStream(vStream);
+
+            TThread.Synchronize(nil,
+              procedure
+              begin
+                iImgSend.Picture.Assign(vBitmap);
+              end);
+          end;
+        Finally
+          if assigned(vStream) then
+            FreeAndNil(vStream);
+
+          if assigned(vBitmap) then
+            FreeAndNil(vBitmap);
+
+          if assigned(vJpg) then
+            FreeAndNil(vJpg);
+
+          vImgProcessing := false;
+        End;
+      end).Start;
+  end;
+
+  Application.ProcessMessages;
 End;
 
 Procedure TForm2.OnChatReceive (Connection,
@@ -296,6 +347,8 @@ begin
  vAegysClient.OnPeerDisconnected  := OnPeerDisconnected;
  vAegysClient.OnScreenCapture     := OnScreenCapture;
  SetControls(False);
+
+ vImgProcessing := false;
 end;
 
 procedure TForm2.FormDestroy(Sender: TObject);
@@ -345,6 +398,11 @@ begin
  Finally
   tAutoCap.Enabled := True;
  End;
+end;
+
+procedure TForm2.WMEraseBkgnd(var Message: TWMEraseBkgnd);
+begin
+  Message.Result := 0;
 end;
 
 procedure TForm2.OnConnect(Sender: TObject);
