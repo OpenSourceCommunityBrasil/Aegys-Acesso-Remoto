@@ -45,8 +45,11 @@ Type
   Protected
   Public
    Destructor Destroy; Override;
-   Function   GetConnection (aConnStr      : String)         : TAegysSession;
+   Function   GetConnection (aConnStr      : String;
+                            Id, PWD        : String)         : TAegysSession;
    Procedure  Delete        (Index         : Integer);                       Overload;
+   Procedure  Delete        (aConnStr,
+                             Id, PWD       : String);                        Overload;
    Function   Add           (Item          : TAegysSession)  : Integer;      Overload;
    Property   Items         [Index         : Integer]        : TAegysSession Read GetRec Write PutRec; Default;
   End;
@@ -263,6 +266,7 @@ Type
   vOnÌncommingConnect,
   vOnAccessGranted,
   vOnPeerConnected         : TAegysOnPeerConnected;
+  vOnPeerKick,
   vOnPeerDisconnected      : TAegysOnPeerDisconnected;
   vOnServerLogin           : TAegysOnServerLogin;
   vOnReceiveCommand        : TAegysOnReceiveCommand;
@@ -366,6 +370,7 @@ Type
   Property    OnPeerConnected            : TAegysOnPeerConnected         Read vOnPeerConnected         Write vOnPeerConnected;
   Property    OnÌncommingConnect         : TAegysOnPeerConnected         Read vOnÌncommingConnect      Write vOnÌncommingConnect;
   Property    OnPeerDisconnected         : TAegysOnPeerDisconnected      Read vOnPeerDisconnected      Write vOnPeerDisconnected;
+  Property    OnPeerKick                 : TAegysOnPeerDisconnected      Read vOnPeerKick              Write vOnPeerKick;
   Property    OnServerLogin              : TAegysOnServerLogin           Read vOnServerLogin           Write vOnServerLogin;
   Property    OnScreenCapture            : TAegysOnClientBuf             Read vOnScreenCapture         Write vOnScreenCapture;
   Property    OnAudioCapture             : TAegysOnClientBuf             Read vOnAudioCapture          Write vOnAudioCapture;
@@ -653,6 +658,7 @@ End;
 
 Procedure TAegysService.Execute(AContext : TIdContext);
 Var
+ I                : Integer;
  vMySession,
  vYouSession,
  vAegysSession    : TAegysSession;
@@ -848,6 +854,79 @@ Begin
                                          vAegysSession.vLatency := GetTickCount - vAegysSession.vBeginPing;
                                         {$ENDIF}
                                        End;
+                  ticDisconnectAllPeers : Begin
+                                           aPackClass  := TPackClass.Create;
+                                           Try
+                                            aPackClass.DataMode    := tdmServerCommand;
+                                            aPackClass.DataCheck   := tdcAsync;
+                                            For I := vAegysSession.SessionList.Count -1 Downto 0 Do
+                                             Begin
+                                              Try
+                                               aPackClass.Command  := cKickPeer + Format('%s&%s&%s', [vAegysSession.Connection,
+                                                                                                                       vAegysSession.vSessionID,
+                                                                                                                       vAegysSession.SessionPWD]);
+                                               vAegysSession.SessionList[I].SendBytes(aPackClass.ToBytes);
+                                              Finally
+                                               aPackClass.Command  := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
+                                                                                                                       vAegysSession.SessionList[I].vSessionID,
+                                                                                                                       vAegysSession.SessionList[I].SessionPWD]);
+                                               vAegysSession.SendBytes(aPackClass.ToBytes);
+                                               vAegysSession.SessionList[I].SessionList.Delete(vAegysSession.Connection,
+                                                                                               vAegysSession.vSessionID,
+                                                                                               vAegysSession.SessionPWD);
+                                               vAegysSession.SessionList.Delete(I);
+                                              End;
+                                             End;
+                                           Finally
+                                            FreeAndNil(aPackClass);
+                                           End;
+                                          End;
+                  ticDisconnectPeer     : Begin
+                                           ArrayOfPointer := [@vYouID, @vYouPass, @vSockCommand];
+                                           ParseValues(vCommand, ArrayOfPointer);
+                                           vYouSession := vAegysSession.SessionList.GetConnection(vYouID, vYouPass, vSockCommand);
+                                           If (vYouSession = Nil) Then //Error defined, no have connection
+                                            Begin
+                                             aPackClass := TPackClass.Create;
+                                             Try
+                                              aPackClass.DataMode  := tdmServerCommand;
+                                              aPackClass.DataCheck := tdcAsync;
+                                              If vInternalCommand = ticCheckPass Then
+                                               aPackClass.Command  := cAccessDenied
+                                              Else
+                                               aPackClass.Command  := cIDNotFound;
+                                              aBuf                 := aPackClass.ToBytes;
+                                              vAegysSession.SendBytes(aBuf);
+                                             Finally
+                                              FreeAndNil(aPackClass);
+                                             End;
+                                            End
+                                           Else //Continue to Relation
+                                            Begin
+                                             aPackClass  := TPackClass.Create;
+                                             Try
+                                              aPackClass.DataMode    := tdmServerCommand;
+                                              aPackClass.DataCheck   := tdcAsync;
+                                              Try
+                                               aPackClass.Command  := cKickPeer + Format('%s&%s&%s', [vAegysSession.Connection,
+                                                                                                      vAegysSession.vSessionID,
+                                                                                                      vAegysSession.SessionPWD]);
+                                               vYouSession.SendBytes(aPackClass.ToBytes);
+                                              Finally
+                                               aPackClass.Command  := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
+                                                                                                                    vAegysSession.SessionList[I].vSessionID,
+                                                                                                                    vAegysSession.SessionList[I].SessionPWD]);
+                                               vAegysSession.SendBytes(aPackClass.ToBytes);
+                                               vYouSession.SessionList.Delete(vAegysSession.Connection,
+                                                                              vAegysSession.vSessionID,
+                                                                              vAegysSession.SessionPWD);
+                                               vAegysSession.SessionList.Delete(vSockCommand, vYouID, vYouPass);
+                                              End;
+                                             Finally
+                                              FreeAndNil(aPackClass);
+                                             End;
+                                            End;
+                                          End;
                   ticCheckPass,
                   ticRelation        : Begin
                                         ArrayOfPointer := [@vMyID, @vYouID, @vYouPass];
@@ -1122,7 +1201,8 @@ Begin
   End;
  Inherited Clear;
 End;
-Function TAegysSessionList.GetConnection(aConnStr   : String)  : TAegysSession;
+Function TAegysSessionList.GetConnection(aConnStr   : String;
+                                         Id, PWD        : String)  : TAegysSession;
 Var
  I : Integer;
 Begin
@@ -1130,9 +1210,26 @@ Begin
  For I := Count -1 DownTo 0 Do
   Begin
    If (Items[I].Connection = aConnStr) Or
-      (Items[I].SessionID  = aConnStr) Then
+      ((Items[I].SessionID  = Id)      And
+       (Items[I].SessionPWD = PWD))    Then
     Begin
      Result := Items[I];
+     Break;
+    End;
+  End;
+End;
+
+Procedure TAegysSessionList.Delete(aConnStr, Id, PWD: String);
+Var
+ I : Integer;
+Begin
+ For I := Count -1 Downto 0 Do
+  Begin
+   If (Items[I].Connection = aConnStr) Or
+      ((Items[I].SessionID  = Id)      And
+       (Items[I].SessionPWD = PWD))    Then
+    Begin
+     Delete(I);
      Break;
     End;
   End;
@@ -1214,7 +1311,7 @@ Begin
   Begin
    If Assigned(vAContext) then
     Begin
-     aAegysSession := SessionList.GetConnection(aPackClass.Dest);
+     aAegysSession := SessionList.GetConnection(aPackClass.Dest, aPackClass.Dest, '');
      If Assigned(aAegysSession) Then
       aAegysSession.SendBytes(aBuf)
      Else
@@ -1245,7 +1342,7 @@ Var
 Begin
  If Assigned(vAContext) then
   Begin
-   aAegysSession := SessionList.GetConnection(aDest);
+   aAegysSession := SessionList.GetConnection(aDest, aDest, '');
    If Assigned(aAegysSession) Then
     aAegysSession.SendBytes(aBuf)
    Else
@@ -1369,14 +1466,20 @@ End;
 
 Procedure TAegysClient.DisconnectAllPeers;
 Begin
-
+ If vTcpRequest.Connected Then
+  aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers)
+ Else
+  Raise Exception.Create(cCantExecDisconnected);
 End;
 
 Procedure TAegysClient.DisconnectPeer(aID,
                                       aPass,
                                       aConnection : String);
 Begin
-
+ If vTcpRequest.Connected Then
+  aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cDisconnectPeer + '%s&%s&%s', [aID, aPass, aConnection]))
+ Else
+  Raise Exception.Create(cCantExecDisconnected);
 End;
 
 Procedure TAegysClient.GetConnectedList;
@@ -1389,7 +1492,7 @@ Begin
  If vTcpRequest.Connected Then
   aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cRelation + '%s&%s&%s', [vSessionID, aID, aPass, aVideoQ]))
  Else
-  Raise Exception.Create(cCantJoinDisconnected);
+  Raise Exception.Create(cCantExecDisconnected);
 End;
 
 Procedure TAegysClient.OnClientCommands(CommandType     : TCommandType;
@@ -1462,6 +1565,12 @@ Begin
                          ParseValues(Command, ArrayOfPointer);
                          If Assigned(vOnPeerDisconnected) Then
                           vOnPeerDisconnected(vConnection,  vClientID,  vClientPassword,  vAlias);
+                        End;
+  ticKick             : Begin
+                         ArrayOfPointer :=  [@vConnection, @vClientID, @vClientPassword, @vAlias];
+                         ParseValues(Command, ArrayOfPointer);
+                         If Assigned(vOnPeerKick) Then
+                          vOnPeerKick(vConnection,  vClientID,  vClientPassword,  vAlias);
                         End;
   ticIncommingConnect : Begin
                          ArrayOfPointer :=  [@vConnection, @vClientID, @vClientPassword, @vAlias];
@@ -1600,7 +1709,7 @@ Begin
  If vTcpRequest.Connected Then
   aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Value)
  Else
-  Raise Exception.Create(cCantJoinDisconnected);
+  Raise Exception.Create(cCantExecDisconnected);
 End;
 
 procedure TAegysClient.SendKeyboard        (aID, Value    : String);

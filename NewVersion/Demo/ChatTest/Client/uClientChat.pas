@@ -47,6 +47,7 @@ type
     tAutoCap: TTimer;
     sbAutoCap: TSpeedButton;
     Panel1: TPanel;
+    SpeedButton1: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure bConnectClick(Sender: TObject);
@@ -55,6 +56,7 @@ type
     procedure sbSendIMGClick(Sender: TObject);
     procedure tAutoCapTimer(Sender: TObject);
     procedure sbAutoCapClick(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
   protected
     procedure WMEraseBkgnd(var Message: TWMEraseBkgnd);
       message WM_ERASEBKGND;
@@ -82,6 +84,10 @@ type
                                 ClientPassword,
                                 Alias             : String);
    Procedure OnPeerDisconnected(Connection        : String;
+                                Var ClientID,
+                                ClientPassword,
+                                Alias             : String);
+   Procedure OnPeerKick        (Connection        : String;
                                 Var ClientID,
                                 ClientPassword,
                                 Alias             : String);
@@ -244,34 +250,26 @@ begin
 
           vStream.Write(aBuf[0], Length(aBuf));
           vStream.Position := 0;
-
-          if vJpg.CanLoadFromStream(vStream) then
-          begin
+          Try
             vJpg.LoadFromStream(vStream);
-
             TThread.Synchronize(nil,
               procedure
               begin
                 iImgSend.Picture.Assign(vJpg);
               end);
-          end
-          else
-          begin
+          Except
             vBitmap.LoadFromStream(vStream);
-
             TThread.Synchronize(nil,
               procedure
               begin
                 iImgSend.Picture.Assign(vBitmap);
               end);
-          end;
+          End;
         Finally
           if assigned(vStream) then
             FreeAndNil(vStream);
-
           if assigned(vBitmap) then
             FreeAndNil(vBitmap);
-
           if assigned(vJpg) then
             FreeAndNil(vJpg);
 
@@ -346,6 +344,7 @@ begin
  vAegysClient.OnPeerConnected     := OnPeerConnected;
  vAegysClient.OnPeerDisconnected  := OnPeerDisconnected;
  vAegysClient.OnScreenCapture     := OnScreenCapture;
+ vAegysClient.OnPeerKick          := OnPeerKick;
  SetControls(False);
 
  vImgProcessing := false;
@@ -385,6 +384,19 @@ Begin
   End;
 End;
 
+procedure TForm2.SpeedButton1Click(Sender: TObject);
+begin
+ Try
+  If cbToAll.Checked Then
+   vAegysClient.DisconnectAllPeers
+  Else
+   Begin
+    If lbPeersConnected.ItemIndex > -1 Then
+     vAegysClient.DisconnectPeer('', '', lbPeersConnected.Items[lbPeersConnected.ItemIndex]);
+   End;
+ Finally
+ End;
+end;
 procedure TForm2.sbAutoCapClick(Sender: TObject);
 begin
  tAutoCap.Enabled := Not tAutoCap.Enabled;
@@ -437,5 +449,14 @@ begin
  If lbPeersConnected.Items.IndexOf(Connection + ' - ' + ClientID) > -1 Then
   lbPeersConnected.Items.Delete(lbPeersConnected.Items.IndexOf(Connection + ' - ' + ClientID));
 end;
+
+Procedure TForm2.OnPeerKick(Connection      : String;
+                            Var ClientID,
+                            ClientPassword,
+                            Alias           : String);
+Begin
+ If lbPeersConnected.Items.IndexOf(Connection + ' - ' + ClientID) > -1 Then
+  lbPeersConnected.Items.Delete(lbPeersConnected.Items.IndexOf(Connection + ' - ' + ClientID));
+End;
 
 end.

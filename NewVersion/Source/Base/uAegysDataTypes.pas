@@ -36,7 +36,8 @@ Type
                       ticAccessGranted,  ticGetMonitorCount,
                       ticChangeMonitor,  ticRelation,
                       ticConnectedPeer,  ticDisconnectedPeer,
-                      ticIncommingConnect);
+                      ticDisconnectPeer, ticDisconnectAllPeers,
+                      ticKick,           ticIncommingConnect);
  TDataMode         = (tdmServerCommand,  tdmClientCommand,
                       tdmReply);
  TDataType         = (tdtString,         tdtDataBytes);

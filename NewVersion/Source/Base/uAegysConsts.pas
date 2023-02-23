@@ -30,6 +30,7 @@ Const
  cDelayThread          = 2;
  //Messages
  cCaptureTitle         = 'Remote Access, Connection "%s",ID "%s"';
+ cCantExecDisconnected = 'Can''''t Execute Action when Disconnected';
  cCantJoinDisconnected = 'Can''''t join when Disconnected';
  cInvalidBufferData    = 'Invalid Buffer Data...';
  cInvalidHeaderData    = 'Invalid Header Data...';
@@ -47,7 +48,10 @@ Const
  cIncommingConnect     = '<|INCOMMINGCONNECT|>';
  cSendDataError        = '<|SENDDATAERROR|>';
  cSendDataErrorID      = '<|SENDDATAERRORID|>';
+ cDisconnectAllPeers   = '<|DISCONNECTALLPEERS|>';
+ cDisconnectPeer       = '<|DISCONNECTPEER|>';
  cDisconnectedPeer     = '<|DISCONNECTED|>';
+ cKickPeer             = '<|KICK|>';
  cPing                 = '<|PING|>';
  cPong                 = '<|PONG|>';
  cCheckPass            = '<|CHECKIDPASSWORD|>';
