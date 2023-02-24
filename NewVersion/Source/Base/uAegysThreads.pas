@@ -141,6 +141,7 @@ Var
  aBuf             : TAegysBytes;
  aPackClass       : TPackClass;
  aPackList        : TPackList;
+ vInExec,
  vInternalC       : Boolean;
  vBytesOptions,
  vOwner,
@@ -165,83 +166,89 @@ Var
  End;
 Begin
  vPackno   := -1;
+ vInExec   := False;
  aPackList := TPackList.Create;
  SetLength(bBuf, 0);
  While (Not(Terminated)) Do
   Begin
    Try
-    //Process Before Execute one Pack
-    If Assigned(vOnBeforeExecuteData) Then
-     vOnBeforeExecuteData(aPackList);
-    ProcessMessages;
-    If aPackList.Count > 0 Then
+    If Not vInExec Then
      Begin
-      vInternalC := False;
-      aPackClass := aPackList.Items[0];
-      If aPackClass.DataType = tdtString Then
+      vInExec := True;
+      //Process Before Execute one Pack
+      If Assigned(vOnBeforeExecuteData) Then
+       vOnBeforeExecuteData(aPackList);
+      ProcessMessages;
+      If aPackList.Count > 0 Then
        Begin
-        vInternalC := True;
-        vCommand   := aPackClass.Command;
-        ParseCommand(vCommand, vInternalCommand);
-        If (aPackClass.CommandType  = tctNone) And
-           (vInternalCommand       <> ticNone) Then
+        vInternalC := False;
+        aPackClass := aPackList.Items[0];
+        If aPackClass.DataType = tdtString Then
          Begin
-          If vInternalCommand in [ticLogin,
-                                  ticDataStatus] Then
-           ParseLogin(vCommand);
-          Synchronize(Procedure
-                      Begin
-                       If Assigned(vOnServiceCommands) Then
-                        vOnServiceCommands(vInternalCommand, vCommand);
-                      End);
-         End
-        Else
-         Begin
-          ArrayOfPointer := [@vOwner, @vID];
-          ParseValues(vCommand, ArrayOfPointer);
-          If (aPackClass.CommandType <> tctNone) Then
+          vInternalC := True;
+          vCommand   := aPackClass.Command;
+          ParseCommand(vCommand, vInternalCommand);
+          If (aPackClass.CommandType  = tctNone) And
+             (vInternalCommand       <> ticNone) Then
            Begin
+            If vInternalCommand in [ticLogin,
+                                    ticDataStatus] Then
+             ParseLogin(vCommand);
             Synchronize(Procedure
                         Begin
-                         If Assigned(vOnClientCommands) Then
-                          vOnClientCommands(aPackClass.CommandType, vOwner, vID, vCommand, bBuf);
+                         If Assigned(vOnServiceCommands) Then
+                          vOnServiceCommands(vInternalCommand, vCommand);
                         End);
+           End
+          Else
+           Begin
+            ArrayOfPointer := [@vOwner, @vID];
+            ParseValues(vCommand, ArrayOfPointer);
+            If (aPackClass.CommandType <> tctNone) Then
+             Begin
+              Synchronize(Procedure
+                          Begin
+                           If Assigned(vOnClientCommands) Then
+                            vOnClientCommands(aPackClass.CommandType, vOwner, vID, vCommand, bBuf);
+                          End);
+             End;
            End;
+          If vInternalC Then
+           aPackList.Delete(0);
          End;
-        If vInternalC Then
-         aPackList.Delete(0);
+        If Not vInternalC Then
+         Begin
+          aBuf := aPackClass.DataBytes;
+          Try
+           ArrayOfPointer := [@vOwner, @vID];
+           vBytesOptions  := aPackClass.BytesOptions;
+           ParseValues(vBytesOptions, ArrayOfPointer);
+           If (aPackClass.CommandType <> tctNone) Then
+            If Assigned(vOnClientCommands) Then
+             vOnClientCommands(aPackClass.CommandType, vOwner, vID, '', aBuf)
+            Else If Assigned(vOnDataReceive) Then
+             vOnDataReceive(aBuf);
+          Finally
+           aPackList.Delete(0);
+           SetLength(aBuf, 0);
+          End;
+         End;
        End;
-      If Not vInternalC Then
+      //Try Process one Pack
+      If (vPackno > 0)                  And
+         (pPackList^.Count > 0)         Then
+       Dec(vPackno)
+      Else If (pPackList^.Count > 0)    Then
+       vPackno := 0;
+      If (pPackList^.Count > 0)         And
+         (vPackno > -1)                 Then
        Begin
-        aBuf := aPackClass.DataBytes;
-        Try
-         ArrayOfPointer := [@vOwner, @vID];
-         vBytesOptions  := aPackClass.BytesOptions;
-         ParseValues(vBytesOptions, ArrayOfPointer);
-         If (aPackClass.CommandType <> tctNone) Then
-          If Assigned(vOnClientCommands) Then
-           vOnClientCommands(aPackClass.CommandType, vOwner, vID, '', aBuf)
-          Else If Assigned(vOnDataReceive) Then
-           vOnDataReceive(aBuf);
-        Finally
-         aPackList.Delete(0);
-         SetLength(aBuf, 0);
-        End;
+        If Assigned(vOnExecuteData)     Then
+         vOnExecuteData(pPackList^, vPackno);
        End;
+      ProcessMessages;
+      vInExec := False;
      End;
-    //Try Process one Pack
-    If (vPackno > 0)                  And
-       (pPackList^.Count > 0)         Then
-     Dec(vPackno)
-    Else If (pPackList^.Count > 0)    Then
-     vPackno := 0;
-    If (pPackList^.Count > 0)         And
-       (vPackno > -1)                 Then
-     Begin
-      If Assigned(vOnExecuteData)     Then
-       vOnExecuteData(pPackList^, vPackno);
-     End;
-    ProcessMessages;
     //Delay Processor
     If vDelayThread > 0 Then
      Sleep(vDelayThread);

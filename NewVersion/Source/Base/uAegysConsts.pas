@@ -70,14 +70,25 @@ Const
  cFileList             = '<|FILESLIST|>';
  cGetFiles             = '<|GETFILES|>';
  cBlockInput           = '<|BLOCKINPUT|>';
+ cUnBlockInput         = '<|UNBLOCKINPUT|>';
+ cSeparatorTag         = '<|>';
  cEndTag               = '<|END|>';
  cMouseClickLeftUp     = '<|SETMOUSELEFTCLICKUP|>';
  cMouseClickRightUp    = '<|SETMOUSERIGHTCLICKUP|>';
  cMouseClickMiddleUp   = '<|SETMOUSEMIDDLEUP|>';
  cMousePos             = '<|SETMOUSEPOS|>';
+ cShowMouse            = '<|SHOWMOUSE|>';
+ cHideMouse            = '<|HIDEMOUSE|>';
+ cWheelMouse           = '<|WHEELMOUSE|>';
  cMouseClickLeftDown   = '<|SETMOUSELEFTCLICKDOWN|>';
  cMouseClickRightDown  = '<|SETMOUSERIGHTCLICKDOWN|>';
  cMouseClickMiddleDown = '<|SETMOUSEMIDDLEDOWN|>';
+ cAltDown              = '<|ALTDOWN|>';
+ cAltUp                = '<|ALTUP|>';
+ cCtrlDown             = '<|CTRLDOWN|>';
+ cCtrlUp               = '<|CTRLUP|>';
+ cShiftDown            = '<|SHIFTDOWN|>';
+ cShiftUp              = '<|SHIFTUP|>';
 
 Implementation
 

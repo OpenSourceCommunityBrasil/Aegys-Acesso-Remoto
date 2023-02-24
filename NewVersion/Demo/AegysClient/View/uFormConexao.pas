@@ -22,13 +22,13 @@ interface
 uses
   System.SysUtils, System.Types,       System.UITypes,            System.Classes,
   System.Variants, System.Actions,     System.Win.ScktComp,       System.Messaging,
-  FMX.Types,       FMX.Controls,       FMX.Forms,                 FMX.Dialogs,
+  FMX.Types,       FMX.Controls,       Vcl.Forms,                 FMX.Dialogs,
   FMX.Edit,        FMX.Objects,        FMX.Controls.Presentation, FMX.Layouts,
   FMX.Ani,         FMX.TabControl,     FMX.ListBox, FMX.Menus,    FMX.StdCtrls,
   uAegysBase,      uAegysDataTypes,    uFunctions, CCR.Clipboard, windows, shellapi,
   Messages,        uSQLiteConfig,      uAegysConsts,              uAegysClientMotor,
   FireDAC.UI.Intf, FireDAC.FMXUI.Wait, FireDAC.Stan.Intf,         FireDAC.Comp.UI,
-  FMX.ActnList,    uAegysBufferPack,   FMX.Graphics;
+  FMX.Forms,       FMX.ActnList,       uAegysBufferPack,          FMX.Graphics;
 
 type
   TFormConexao = class(TForm)
@@ -100,22 +100,29 @@ type
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
     procedure FormShow(Sender: TObject);
   private
+    Position,
+    MousePosX,
+    MousePosY         : Integer;
     aPackList         : TPackList;
     Locale            : TLocale;
+    aConnection,
+    aMonitor,
     vOldClipboardFile,
     vOldClipboardText : String;
     TrayWnd           : HWND;
     TrayIconData      : TNotifyIconData;
+    BInputsBlock,
     TrayIconAdded,
     vVisualizador,
     isvisible         : Boolean;
     SendDataThread,                       //Envio de Desktop
     SendCommandEvents : TAegysMotorThread;//Envio de Comandos
-    function MascaraID(AText, AMascara: string): string;
+    Function  MascaraID              (AText,
+                                      AMascara          : String) : String;
     procedure Translate;
     procedure SetColors;
-    function  ClipboardGetAsFile: string;
-    procedure TrayWndProc(var Message: TMessage);
+    function  ClipboardGetAsFile                        : String;
+    procedure TrayWndProc            (Var Message       : TMessage);
     procedure ShowAppOnTaskbar;
     procedure HideApponTaskbar;
     procedure SetTrayIcon;
@@ -150,8 +157,16 @@ type
     procedure OnScreenCapture        (Connection,
                                       ID, Command       : String;
                                       aBuf              : TAegysBytes);
+    procedure OnKeyboardCapture      (Connection,
+                                      ID,
+                                      Command           : String);
+    procedure OnMouseCapture         (Connection,
+                                      ID,
+                                      Command           : String);
     procedure KillThreads;
+    procedure ExecuteCommand         (aLine             : String);
   public
+    Procedure Kick;
     procedure SetPeerDisconnected;
     procedure LimparConexao;
     procedure MudarStatusConexao     (AStatus           : Integer;
@@ -164,6 +179,7 @@ type
 var
   FormConexao        : TFormConexao;
   Conexao            : TAegysClient;
+  Bblockinput        : Boolean;
   vResolucaoLargura,
   vResolucaoAltura,
   CF_FILE            : Integer;
@@ -179,7 +195,276 @@ implementation
 uses uFormTelaRemota,  uFileTransfer,    uFormChat,        FMX.Clipboard,
      System.IOUtils,   System.Rtti,      uLibClass,        uConstants,
      BCrypt,           System.DateUtils, FMX.Platform.Win, uFormConfig,
-     StreamManager,    uFormSenha;
+     StreamManager,    uFormSenha,       uSendKeyClass;
+
+
+Procedure TFormConexao.ExecuteCommand(aLine : String);
+Var
+ aTempID,
+ BufferTemp     : String;
+ InicioPalavra,
+ TamanhoPalavra : Integer;
+Begin
+ If aLine.Contains(cShowMouse)    Then
+  vMostrarMouse := True;
+ If aLine.Contains(cHideMouse)    Then
+  vMostrarMouse := False;
+ If aLine.Contains(cBlockInput)   Then
+  Begin
+   BInputsBlock := True;
+   Blockinput(BInputsBlock);
+  End;
+ If aLine.Contains(cUnBlockInput) Then
+  Begin
+   BInputsBlock := False;
+   Blockinput(BInputsBlock);
+  End;
+ Position := Pos(cMousePos, aLine);
+ If Position > 0 then
+  Begin
+   BufferTemp := aLine;
+   Delete(BufferTemp, InitStrPos, Position + Length(cMousePos));
+   Position := Pos(cSeparatorTag, BufferTemp);
+   aTempID  := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
+   Delete(BufferTemp, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   If aLine.Contains(cBlockInput) then
+    Begin
+     BlockInput(False);
+     SetCursorPos(MousePosX, MousePosY);
+     ProcessMessages;
+     BlockInput(True);
+    End
+   Else
+    SetCursorPos(MousePosX, MousePosY);
+  End;
+ Position := Pos(cMouseClickLeftDown, aLine);
+ If Position > 0 then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   BufferTemp := aLine;
+   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickLeftDown));
+   Position   := Pos(cSeparatorTag, BufferTemp);
+   MousePosX  := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
+   Delete(BufferTemp, 1, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickLeftUp, aLine);
+ If Position > 0 then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   BufferTemp := aLine;
+   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickLeftUp));
+   Position := Pos(cSeparatorTag, BufferTemp);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
+   Delete(BufferTemp, 1, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   If aLine.Contains(cBlockInput) then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+     ProcessMessages;
+     blockinput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickRightDown, aLine);
+ If Position > 0 Then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   BufferTemp := aLine;
+   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickRightDown));
+   Position := Pos(cSeparatorTag, BufferTemp);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
+   Delete(BufferTemp, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+     ProcessMessages;
+     Blockinput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickRightUp, aLine);
+ If Position > 0 Then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   BufferTemp := aLine;
+   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickRightUp));
+   Position := Pos(cSeparatorTag, BufferTemp);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
+   Delete(BufferTemp, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   If aLine.Contains(cBlockInput) then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickMiddleDown, aLine);
+ If Position > 0 Then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   BufferTemp := aLine;
+   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickMiddleDown));
+   Position := Pos(cSeparatorTag, BufferTemp);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
+   Delete(BufferTemp, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos,  Pos(cEndTag, BufferTemp) - 1));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickMiddleUp, aLine);
+ If Position > 0 Then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   BufferTemp := aLine;
+   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickMiddleUp));
+   Position := Pos(cSeparatorTag, BufferTemp);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
+   Delete(BufferTemp, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cWheelMouse, aLine);
+ If Position > 0 then
+  Begin
+   BufferTemp := aLine;
+   Delete(BufferTemp, InitStrPos, Position + Length(cWheelMouse));
+   BufferTemp := Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1);
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(BufferTemp)), 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(BufferTemp)), 0);
+  End;
+ Bblockinput := aLine.Contains(cBlockInput);
+ If Bblockinput Then
+  Begin
+   InicioPalavra  := pos(cBlockInput, aLine);
+   TamanhoPalavra := Length(cBlockInput);
+   If InicioPalavra > 0          Then
+    Delete(aLine, InicioPalavra, TamanhoPalavra);
+   BlockInput(false);
+  End;
+ If aLine.Contains(cAltDown)     Then
+  Begin
+   aLine := StringReplace(aLine, cAltDown, '', [rfReplaceAll]);
+   keybd_event(18, 0, 0, 0);
+  End;
+ If aLine.Contains(cAltUp)       Then
+  Begin
+   aLine := StringReplace(aLine, cAltUp, '', [rfReplaceAll]);
+   keybd_event(18, 0, KEYEVENTF_KEYUP, 0);
+  End;
+ If aLine.Contains(cCtrlDown)    Then
+  Begin
+   aLine := StringReplace(aLine, cCtrlDown, '', [rfReplaceAll]);
+   keybd_event(17, 0, 0, 0);
+  End;
+ If aLine.Contains(cCtrlUp) Then
+  Begin
+   aLine := StringReplace(aLine, cCtrlUp, '', [rfReplaceAll]);
+   keybd_event(17, 0, KEYEVENTF_KEYUP, 0);
+  End;
+ If aLine.Contains(cShiftDown) then
+  Begin
+   aLine := StringReplace(aLine, cShiftDown, '', [rfReplaceAll]);
+   keybd_event(16, 0, 0, 0);
+  End;
+ If aLine.Contains(cShiftUp) then
+  Begin
+   aLine := StringReplace(aLine, cShiftUp, '', [rfReplaceAll]);
+   keybd_event(16, 0, KEYEVENTF_KEYUP, 0);
+  End;
+ If aLine.Contains('?') Then
+  Begin
+   If GetKeyState(VK_SHIFT) < 0 Then
+    Begin
+     keybd_event(16, 0, KEYEVENTF_KEYUP, 0);
+     SendKeys(PWideChar(aLine), False);
+     keybd_event(16, 0, 0, 0);
+    End;
+  End
+ Else
+  SendKeys(PWideChar(aLine), False);
+ BlockInput(Bblockinput);
+End;
 
 Procedure TFormConexao.LimparConexao;
 Begin
@@ -229,6 +514,7 @@ Begin
              FileStream.Position := 0;
              FileStream.Read(aFileStream, FileStream.Size);
              Conexao.SendBytes(EGuestID.Text, aFileStream);
+             Processmessages;
             Finally
              SetLength(aFileStream, 0);
              FreeAndNil(FileStream);
@@ -278,6 +564,9 @@ begin
  aPackList         := TPackList.Create;
  SendDataThread    := Nil;
  SendCommandEvents := Nil;
+ Position          := 0;
+ MousePosX         := 0;
+ MousePosY         := 0;
 end;
 
 procedure TFormConexao.FormDestroy(Sender: TObject);
@@ -479,6 +768,11 @@ begin
 end;
 
 
+Procedure TFormConexao.Kick;
+Begin
+ Conexao.DisconnectAllPeers;
+End;
+
 Procedure TFormConexao.KillThreads;
 Begin
  If Assigned(SendDataThread) Then //Thread da Area de Trabalho
@@ -515,6 +809,7 @@ End;
 
 procedure TFormConexao.SetPeerDisconnected;
 begin
+  Kick;
   KillThreads;
   btnConectar.Enabled  := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
@@ -618,6 +913,20 @@ begin
  SetOffline;
 end;
 
+Procedure TFormConexao.OnKeyboardCapture (Connection,
+                                          ID,
+                                          Command           : String);
+Begin
+ OnMouseCapture(Connection, ID, Command);
+End;
+
+Procedure TFormConexao.OnMouseCapture    (Connection,
+                                          ID,
+                                          Command           : String);
+Begin
+ ExecuteCommand(Command);
+End;
+
 Procedure TFormConexao.OnÌncommingConnect(Connection        : String;
                                           Var ClientID,
                                           ClientPassword,
@@ -631,7 +940,13 @@ Function TFormConexao.OnPulseData(aPack       : TAegysBytes;
 Begin
  Result := Conexao.Active;
  If Result Then
-  Conexao.SendBytes(aPack, True, CommandType);
+  Begin
+   If CommandType = tctScreenCapture Then
+    Conexao.SendBytes(aConnection, aPack, CommandType)
+   Else
+    Conexao.SendCommand(aConnection, aPack);
+  End;
+ Processmessages;
 End;
 
 Procedure TFormConexao.OnProcessData;
@@ -669,6 +984,8 @@ Begin
   If Not Assigned(FormTelaRemota) Then
    FormTelaRemota                 := TFormTelaRemota.Create(Self);
   FormTelaRemota.Caption          := Format(cCaptureTitle, [Connection, ClientID]);
+  FormTelaRemota.Connection       := Connection;
+  aConnection                     := FormTelaRemota.Connection;
   FormTelaRemota.Show;
   SendCommandEvents               := TAegysMotorThread.Create(FormTelaRemota.aPackList);
   SendCommandEvents.OnPulseData   := OnPulseData;
@@ -684,6 +1001,7 @@ Procedure TFormConexao.OnPeerConnected(Connection        : String;
                                        Alias             : String); //Captura de tela
 Begin
  SendDataThread                := TAegysMotorThread.Create(aPackList);
+ aConnection                   := Connection;
  Try
   SendDataThread.OnProcessData := OnProcessData;
   SendDataThread.OnPulseData   := OnPulseData;
@@ -744,6 +1062,8 @@ Begin
   Conexao.OnPeerConnected         := OnPeerConnected;
   Conexao.OnPeerDisconnected      := OnPeerDisconnected;
   Conexao.OnScreenCapture         := OnScreenCapture;
+  Conexao.OnKeyboardCapture       := OnKeyboardCapture;
+  Conexao.OnMouseCapture          := OnMouseCapture;
   Conexao.Host                    := Host;
   Conexao.Port                    := PORTA;
   Sleep(FOLGAPROCESSAMENTO);

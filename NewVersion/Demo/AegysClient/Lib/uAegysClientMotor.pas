@@ -55,43 +55,53 @@ Implementation
 
 procedure TAegysMotorThread.Execute;
 Var
- I : Integer;
+ I       : Integer;
+ vInExec : Boolean;
 Begin
+ vInExec := False;
  While (Not(Terminated)) Do
   Begin
-   If Assigned(vOnProcessData) Then
+   If Not vInExec Then
     Begin
-     Synchronize(Procedure
-                 Begin
-                  vOnProcessData;
-                 End);
-    End;
-   If Assigned(pPackList) Then
-    Begin
-     If Assigned(pPackList^) Then
-      Begin
-       If pPackList^.Count > 0 Then
-        Begin
-         Try
-          //Process Before Execute one Pack
-          If Assigned(vOnPulseData) Then
+     vInExec := True;
+     Try
+      If Assigned(vOnProcessData) Then
+       Begin
+        Synchronize(Procedure
+                    Begin
+                     vOnProcessData;
+                    End);
+       End;
+      If Assigned(pPackList) Then
+       Begin
+        If Assigned(pPackList^) Then
+         Begin
+          If pPackList^.Count > 0 Then
            Begin
-            vOnPulseData(pPackList^[0].ToBytes,
-                         pPackList^[0].CommandType);
-            pPackList^.Delete(0);
+            Try
+             //Process Before Execute one Pack
+             If Assigned(vOnPulseData) Then
+              Begin
+               vOnPulseData(pPackList^[0].ToBytes,
+                            pPackList^[0].CommandType);
+               pPackList^.Delete(0);
+              End;
+             ProcessMessages;
+            Except
+             Break;
+            End;
            End;
-          ProcessMessages;
-         Except
-          Break;
-         End;
-        End;
-      End
-     Else
-      Break;
-    End
-   Else
-    Break;
-   ProcessMessages;
+         End
+        Else
+         Break;
+       End
+      Else
+       Break;
+     Finally
+      ProcessMessages;
+      vInExec := False;
+     End;
+    End;
    //Delay Processor
    If vDelayThread > 0 Then
     Sleep(vDelayThread);

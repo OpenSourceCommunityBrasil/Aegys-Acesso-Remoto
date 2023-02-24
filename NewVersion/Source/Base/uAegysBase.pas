@@ -319,7 +319,9 @@ Type
   Procedure   Join          (aID,
                              aPass,
                              aVideoQ     : String);
-  Procedure   SendCommand   (Value       : String);
+  Procedure   SendCommand   (Value       : String);                         Overload;
+  Procedure   SendCommand   (aDest       : String;
+                             aBuffer     : TAegysBytes);                    Overload;
   Procedure   SendMessage   (Value       : String;
                              aDestMyConn : Boolean;
                              CommandType : TCommandType = tctChat);         Overload;
@@ -1466,20 +1468,26 @@ End;
 
 Procedure TAegysClient.DisconnectAllPeers;
 Begin
- If vTcpRequest.Connected Then
-  aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers)
- Else
-  Raise Exception.Create(cCantExecDisconnected);
+ If Assigned(vTcpRequest) Then
+  Begin
+   If vTcpRequest.Connected Then
+    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers)
+   Else
+    Raise Exception.Create(cCantExecDisconnected);
+  End;
 End;
 
 Procedure TAegysClient.DisconnectPeer(aID,
                                       aPass,
                                       aConnection : String);
 Begin
- If vTcpRequest.Connected Then
-  aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cDisconnectPeer + '%s&%s&%s', [aID, aPass, aConnection]))
- Else
-  Raise Exception.Create(cCantExecDisconnected);
+ If Assigned(vTcpRequest) Then
+  Begin
+   If vTcpRequest.Connected Then
+    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cDisconnectPeer + '%s&%s&%s', [aID, aPass, aConnection]))
+   Else
+    Raise Exception.Create(cCantExecDisconnected);
+  End;
 End;
 
 Procedure TAegysClient.GetConnectedList;
@@ -1489,10 +1497,13 @@ End;
 
 Procedure TAegysClient.Join(aID, aPass, aVideoQ : String);
 Begin
- If vTcpRequest.Connected Then
-  aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cRelation + '%s&%s&%s', [vSessionID, aID, aPass, aVideoQ]))
- Else
-  Raise Exception.Create(cCantExecDisconnected);
+ If Assigned(vTcpRequest) Then
+  Begin
+   If vTcpRequest.Connected Then
+    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cRelation + '%s&%s&%s', [vSessionID, aID, aPass, aVideoQ]))
+   Else
+    Raise Exception.Create(cCantExecDisconnected);
+  End;
 End;
 
 Procedure TAegysClient.OnClientCommands(CommandType     : TCommandType;
@@ -1613,43 +1624,47 @@ Procedure TAegysClient.OnBeforeExecuteData (Var aPackList : TPackList);
   bPackSize     : AEInt64;
  Begin
   SetLength(aBuf, 0);
-  If vTcpRequest.Connected Then
+  If Assigned(vTcpRequest) Then
    Begin
-    Try
-     If Not (vTcpRequest.IOHandler.InputBufferIsEmpty) Then
-      Begin
-       Try
-        aBuffSize     := vTcpRequest.IOHandler.InputBuffer.Size;
-        vTcpRequest.IOHandler.ReadBytes(TIdBytes(aBuf), SizeOf(aPackSize));
-        Move(aBuf[0], aPackSize, SizeOf(aPackSize));
-        aFirstBufSize := Length(aBuf);
-        bPackSize     := 0;
-        While (aPackSize <> Length(aBuf))                   Do
-         Begin
-          If bPackSize = 0 Then
-           bPackSize := aBuffSize - SizeOf(aPackSize)
-          Else
+    If vTcpRequest.Connected Then
+     Begin
+      Try
+       If Not (vTcpRequest.IOHandler.InputBufferIsEmpty) Then
+        Begin
+         Try
+          aBuffSize     := vTcpRequest.IOHandler.InputBuffer.Size;
+          vTcpRequest.IOHandler.ReadBytes(TIdBytes(aBuf), SizeOf(aPackSize));
+          Move(aBuf[0], aPackSize, SizeOf(aPackSize));
+          aFirstBufSize := Length(aBuf);
+          bPackSize     := 0;
+          While (aPackSize <> Length(aBuf)) Do
            Begin
-            Processmessages;
-            vTcpRequest.IOHandler.CheckForDataOnSource;
-            bPackSize := vTcpRequest.IOHandler.InputBuffer.Size;
+            If bPackSize = 0 Then
+             bPackSize := aBuffSize - SizeOf(aPackSize)
+            Else
+             Begin
+              Processmessages;
+              vTcpRequest.IOHandler.CheckForDataOnSource;
+              bPackSize := vTcpRequest.IOHandler.InputBuffer.Size;
+             End;
+            If (Length(aBuf) + bPackSize) > aPackSize Then
+             bPackSize := aPackSize - Length(aBuf);
+            vTcpRequest.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize);
            End;
-          If (Length(aBuf) + bPackSize) > aPackSize Then
-           bPackSize := aPackSize - Length(aBuf);
-          vTcpRequest.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize);
+          If (aPackSize = Length(aBuf)) And
+             (aPackSize > 0)            Then
+           aPackList.Add(aBuf);
+         Finally
+          SetLength(aBuf, 0);
          End;
-        If (aPackSize = Length(aBuf)) And (aPackSize > 0) Then
-         aPackList.Add(aBuf);
-       Finally
-        SetLength(aBuf, 0);
-       End;
-      End;
-    Except
+        End;
+      Except
 
-    End;
-   End
-  Else
-   Raise Exception.Create(cDisconnectedByServer);
+      End;
+     End
+    Else
+     Raise Exception.Create(cDisconnectedByServer);
+   End;
  End;
 Begin
  If Assigned(aPackList) Then
@@ -1686,30 +1701,58 @@ Procedure TAegysClient.SendBytes           (aID           : String;
                                             aBuffer       : TAegysBytes;
                                             CommandType   : TCommandType = tctScreenCapture);
 Begin
- If vTcpRequest.Connected Then
-  aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, aBuffer, Format('%s&%s', [vConnection, vSessionID]));
+ If Assigned(vTcpRequest) Then
+  If vTcpRequest.Connected Then
+   aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, aBuffer, Format('%s&%s', [vConnection, vSessionID]));
 End;
 
 Procedure TAegysClient.SendBytes           (aBuffer       : TAegysBytes;
                                             aDestMyConn   : Boolean;
                                             CommandType   : TCommandType = tctScreenCapture);
 Begin
- If vTcpRequest.Connected Then
-  aPackList.Add(vConnection, '', tdmClientCommand, tdcAsync, CommandType, aBuffer, Format('%s&%s', [vConnection, vSessionID]), aDestMyConn);
+ If Assigned(vTcpRequest) Then
+  If vTcpRequest.Connected Then
+   aPackList.Add(vConnection, '', tdmClientCommand, tdcAsync, CommandType, aBuffer, Format('%s&%s', [vConnection, vSessionID]), aDestMyConn);
 End;
 
 Procedure TAegysClient.SendBytes           (aBuffer       : TAegysBytes);
 Begin
- If vTcpRequest.Connected Then
-  vTcpRequest.IOHandler.WriteDirect(TIdBytes(aBuffer));
+ If Assigned(vTcpRequest) Then
+  If vTcpRequest.Connected Then
+   vTcpRequest.IOHandler.WriteDirect(TIdBytes(aBuffer));
 End;
 
 Procedure TAegysClient.SendCommand         (Value         : String);
 Begin
- If vTcpRequest.Connected Then
-  aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Value)
- Else
-  Raise Exception.Create(cCantExecDisconnected);
+ If Assigned(vTcpRequest) Then
+  Begin
+   If vTcpRequest.Connected Then
+    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Value)
+   Else
+    Raise Exception.Create(cCantExecDisconnected);
+  End;
+End;
+
+Procedure TAegysClient.SendCommand         (aDest         : String;
+                                            aBuffer       : TAegysBytes);
+Var
+ aPack : TPackClass;
+Begin
+ If Assigned(vTcpRequest) Then
+  Begin
+   If vTcpRequest.Connected Then
+    Begin
+     aPack := TPackClass.Create;
+     Try
+      aPack.FromBytes(aBuffer);
+      aPackList.Add(vConnection, aDest, tdmClientCommand, tdcAsync, aPack.Command);
+     Finally
+      FreeAndNil(aPack);
+     End;
+    End
+   Else
+    Raise Exception.Create(cCantExecDisconnected);
+  End;
 End;
 
 procedure TAegysClient.SendKeyboard        (aID, Value    : String);
@@ -1727,19 +1770,27 @@ Procedure TAegysClient.SendMessage         (Value         : String;
                                             aDestMyConn   : Boolean;
                                             CommandType   : TCommandType = tctChat);
 Begin
- If vTcpRequest.Connected Then
-  aPackList.Add(vConnection, '', tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), aDestMyConn);
+ If Assigned(vTcpRequest) Then
+  If vTcpRequest.Connected Then
+   aPackList.Add(vConnection, '', tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), aDestMyConn);
 End;
 
 Procedure TAegysClient.SendMessage         (aID,
                                             Value         : String;
                                             CommandType   : TCommandType = tctChat);
 Begin
- If vTcpRequest.Connected Then
-  aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), False);
+ If Assigned(vTcpRequest) Then
+  If vTcpRequest.Connected Then
+   aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), False);
 End;
 
 Procedure TAegysClient.SendMouse  (aID,
+                                   Value       : String);
+Begin
+
+End;
+
+Procedure TAegysClient.SendMouse  (aDestMyConn : Boolean;
                                    Value       : String);
 Begin
 
@@ -1752,12 +1803,6 @@ Begin
 End;
 
 Procedure TAegysClient.SendMonitor(aDestMyConn : Boolean;
-                                   Value       : String);
-Begin
-
-End;
-
-Procedure TAegysClient.SendMouse  (aDestMyConn : Boolean;
                                    Value       : String);
 Begin
 

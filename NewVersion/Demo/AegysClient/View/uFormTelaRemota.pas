@@ -118,11 +118,13 @@ type
     procedure ToggleDropDown        (forceClose  : Boolean = false);
   public
    vLastMon,
+   vConnection,
    vActualIDConnected : String;
    aPackList          : TPackList;
    Procedure AddItems(MoniNum  : Integer);
    Property  ActualIDConnected : String Read vActualIDConnected Write vActualIDConnected;
    Property  ActualScreen      : String Read vLastMon           Write vLastMon;
+   Property  Connection        : String Read vConnection        Write vConnection;
   end;
 
 Var
@@ -739,7 +741,7 @@ Begin
   aPackClass.DataCheck   := tdcAsync;
   aPackClass.CommandType := tctKeyboard;
   aPackClass.Command     := AKeys + Sblockinput;
-  aPackClass.Dest        := vActualIDConnected;
+  aPackClass.Dest        := vConnection;
   aPackList.Add(aPackClass);
  Finally
  End;
@@ -757,7 +759,7 @@ Begin
   aPackClass.DataCheck   := tdcAsync;
   aPackClass.CommandType := tctMouse;
   aPackClass.Command     := AKeys + Sblockinput;
-  aPackClass.Dest        := vActualIDConnected;
+  aPackClass.Dest        := vConnection;
   aPackList.Add(aPackClass);
  Finally
  End;

@@ -23,7 +23,7 @@ type
 const
   PORTA = 9092;
   FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '177.10.144.78';
+  SERVIDOR = '192.168.15.10'; //'177.10.144.78';
   {
   !!!Deixe em branco para liberar a combobox na config!!!
   segue lista de servidores disponíveis:
