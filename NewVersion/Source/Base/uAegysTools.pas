@@ -52,10 +52,100 @@ Uses
                           Var InternalCommand : TInternalCommand);
   Procedure ParseValues  (Var Source          : String;
                           Values              : TArrayOfPointer);
+  Function  StreamToHex  (Stream              : TStream;
+                          QQuoted             : Boolean = True) : String;
+  Procedure HexToStream  (Str                 : String;
+                          Stream              : TStream);
 
 Implementation
 
 Uses uAegysConsts;
+
+Procedure LimpaLixoHex(Var Value : String);
+Begin
+ If Length(Value) > 0 Then
+  Begin
+   If Value[1] = '{' Then
+    Delete(Value, 1, 1);
+  End;
+ If Length(Value) > 0 Then
+  Begin
+   If Value[1] = #13 Then
+    Delete(Value, 1, 1);
+  End;
+ If Length(Value) > 0 Then
+  Begin
+   If Value[1] = '"' Then
+    Delete(Value, 1, 1);
+  End;
+ If Length(Value) > 0 Then
+  Begin
+   If Value[1] = 'L' Then
+    Delete(Value, 1, 1);
+  End;
+ If Length(Value) > 0 Then
+  Begin
+   If Value[Length(Value)] = '"' Then
+    Delete(Value, Length(Value), 1);
+  End;
+End;
+
+Procedure HexToStream(Str    : String;
+                      Stream : TStream);
+{$IFDEF POSIX} //Android}
+var bytes: TBytes;
+{$ENDIF}
+Begin
+ LimpaLixoHex(Str);
+ {$IF Defined(ANDROID) or Defined(IOS)} //Alteardo para IOS Brito
+  SetLength(bytes, Length(str) div 2);
+  HexToBin(PChar(str), 0, bytes, 0, Length(bytes));
+  stream.WriteBuffer(bytes[0], length(bytes));
+ {$ELSE}
+   TMemoryStream(Stream).Size := Length(Str) Div 2;
+   {$IFDEF FPC}
+   HexToBin(PChar(Str), TMemoryStream(Stream).Memory, TMemoryStream(Stream).Size);
+   {$ELSE}
+    {$IF CompilerVersion > 21} // Delphi 2010 pra cima
+    {$IF (NOT Defined(FPC) AND Defined(LINUX))} //Alteardo para Lazarus LINUX Brito
+     SetLength(bytes, Length(str) div 2);
+     HexToBin(PChar(str), 0, bytes, 0, Length(bytes));
+     stream.WriteBuffer(bytes[0], length(bytes));
+    {$ELSE}
+     HexToBin(PWideChar (Str),   TMemoryStream(Stream).Memory, TMemoryStream(Stream).Size);
+    {$IFEND}
+    {$ELSE}
+     HexToBin(PChar (Str),   TMemoryStream(Stream).Memory, TMemoryStream(Stream).Size);
+    {$IFEND}
+   {$ENDIF}
+ {$IFEND}
+ Stream.Position := 0;
+End;
+
+Function StreamToHex(Stream  : TStream; QQuoted : Boolean = True) : String;
+{$IFDEF POSIX} //Android}
+var bytes, bytes2: TBytes;
+{$ENDIF}
+Begin
+ Stream.Position := 0;
+ {$IFNDEF FPC}
+  {$IF Defined(ANDROID) or Defined(IOS)} //Alteardo para IOS Brito
+   Result := abbintohexstring(stream);
+  {$ELSE}
+   {$IFDEF LINUX} // Android}
+    Result := abbintohexstring(stream); // BytesToString(bytes2);  // TEncoding.UTF8.GetString(bytes2);
+   {$ELSE}
+    SetLength     (Result, Stream.Size * 2);
+    BinToHex      (TMemoryStream(Stream).Memory, PChar(Result), Stream.Size);
+   {$ENDIF}
+  {$IFEND}
+ {$ELSE}
+  SetLength     (Result, Stream.Size * 2);
+  BinToHex      (TMemoryStream(Stream).Memory, PChar(Result), Stream.Size);
+ {$ENDIF}
+ If QQuoted Then
+  Result := '"' + Result + '"';
+End;
 
 Procedure ParseCommand(Var Command         : String;
                        Var InternalCommand : TInternalCommand);

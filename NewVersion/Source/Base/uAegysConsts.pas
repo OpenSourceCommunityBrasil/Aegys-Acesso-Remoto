@@ -69,6 +69,15 @@ Const
  cGetDrivers           = '<|GETDRIVERS|>';
  cFileList             = '<|FILESLIST|>';
  cGetFiles             = '<|GETFILES|>';
+ cBlockInput           = '<|BLOCKINPUT|>';
+ cEndTag               = '<|END|>';
+ cMouseClickLeftUp     = '<|SETMOUSELEFTCLICKUP|>';
+ cMouseClickRightUp    = '<|SETMOUSERIGHTCLICKUP|>';
+ cMouseClickMiddleUp   = '<|SETMOUSEMIDDLEUP|>';
+ cMousePos             = '<|SETMOUSEPOS|>';
+ cMouseClickLeftDown   = '<|SETMOUSELEFTCLICKDOWN|>';
+ cMouseClickRightDown  = '<|SETMOUSERIGHTCLICKDOWN|>';
+ cMouseClickMiddleDown = '<|SETMOUSEMIDDLEDOWN|>';
 
 Implementation
 

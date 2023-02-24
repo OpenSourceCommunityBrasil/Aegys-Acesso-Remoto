@@ -24,7 +24,7 @@ Interface
 Uses
  SysUtils, Classes, Variants,
  {$IF Defined(HAS_FMX)}{$IF Not Defined(HAS_UTF8)}FMX.Forms{$IFEND}
- {$ELSE}Vcl.Forms,{$ELSE}Forms{$IFEND} uAegysBufferPack, uAegysConsts,
+ {$ELSE}Vcl.Forms{$ELSE}Forms{$IFEND}, uAegysBufferPack, uAegysConsts,
  uAegysDataTypes;
 
 Type

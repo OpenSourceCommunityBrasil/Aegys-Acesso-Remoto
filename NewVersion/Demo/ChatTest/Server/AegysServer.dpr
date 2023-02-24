@@ -9,7 +9,8 @@ uses
   uAegysTools in '..\..\..\Source\Base\uAegysTools.pas',
   uAegysBase in '..\..\..\Source\Base\uAegysBase.pas',
   uAegysThreads in '..\..\..\Source\Base\uAegysThreads.pas',
-  uConsts in 'uConsts.pas';
+  uConsts in 'uConsts.pas',
+  uAegysZlib in '..\..\..\Source\Libs\uAegysZlib.pas';
 
 {$R *.res}
 

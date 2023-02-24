@@ -22,7 +22,7 @@ Unit uAegysBufferPack;
 Interface
 
 Uses
- SysUtils, Classes, Variants, uAegysConsts, uAegysDataTypes;
+ SysUtils, Classes, Variants, uAegysConsts, uAegysDataTypes, uAegysZlib;
 
  Type
   TPackClass = Class;//DummyClass
@@ -52,6 +52,7 @@ Uses
    Procedure    CleanBytes;
    Procedure    SetDataBytes  (Value       : TAegysBytes);
    Procedure    SetDataType   (Value       : TDataType);
+   Function     GetDataBytes               : TAegysBytes;
   Public
    Constructor Create;
    Destructor  Destroy;Override;
@@ -64,7 +65,7 @@ Uses
    Property    BufferVersion               : AeInteger    Read vHeaderVersion;
    Property    ProxyToMyConnectionList     : Boolean      Read vProxyMyList    Write vProxyMyList;
    Property    Checked                     : Boolean      Read vChecked        Write vChecked;
-   Property    DataBytes                   : TAegysBytes  Read vDataBytes      Write SetDataBytes;
+   Property    DataBytes                   : TAegysBytes  Read GetDataBytes    Write SetDataBytes;
    Property    BytesOptions                : AeString     Read vBytesOptions   Write vBytesOptions;
    Property    DataMode                    : TDataMode    Read vDataMode       Write vDataMode;
    Property    DataType                    : TDataType    Read vDataType       Write SetDataType;
@@ -226,10 +227,46 @@ Begin
 End;
 
 Procedure TPackClass.SetDataBytes (Value    : TAegysBytes);
+Var
+ aStringStream,
+ StringStream   : TStream;
 Begin
  CleanBytes;
- SetLength(vDataBytes, Length(Value));
- Move(Value[0], vDataBytes[0], Length(Value));
+ aStringStream := TMemoryStream.Create;
+ StringStream  := Nil;
+ Try
+  aStringStream.Write(Value[0], Length(Value));
+  aStringStream.Position := 0;
+  ZCompressStreamD(aStringStream, StringStream);
+  StringStream.Position  := 0;
+  SetLength(vDataBytes, StringStream.Size);
+  StringStream.Read(vDataBytes[0], Length(vDataBytes));
+//  Move(Value[0], vDataBytes[0], Length(Value));
+ Finally
+  FreeAndNil(aStringStream);
+  If Assigned(StringStream) Then
+   FreeAndNil(StringStream);
+ End;
+End;
+
+Function TPackClass.GetDataBytes : TAegysBytes;
+Var
+ aStringStream,
+ StringStream   : TStream;
+Begin
+ aStringStream := TMemoryStream.Create;
+ aStringStream.Write(vDataBytes[0], Length(vDataBytes));
+ Try
+  StringStream := ZDecompressStreamNew(aStringStream);
+  StringStream.Position  := 0;
+  SetLength(Result, StringStream.Size);
+  StringStream.Read(Result[0], Length(Result));
+//  Move(Value[0], vDataBytes[0], Length(Value));
+ Finally
+  FreeAndNil(aStringStream);
+  If Assigned(StringStream) Then
+   FreeAndNil(StringStream);
+ End;
 End;
 
 Procedure TPackClass.SetDataType  (Value    : TDataType);
