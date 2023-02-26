@@ -28,6 +28,8 @@ Const
  //Aegys Basics
  cAeBufferVersion      = 12;
  cDelayThread          = 2;
+ cServiceTimeout       = 500;
+ cLimitSource          = 1000;
  //Messages
  cCaptureTitle         = 'Remote Access, Connection "%s",ID "%s"';
  cCantExecDisconnected = 'Can''''t Execute Action when Disconnected';
@@ -89,6 +91,9 @@ Const
  cCtrlUp               = '<|CTRLUP|>';
  cShiftDown            = '<|SHIFTDOWN|>';
  cShiftUp              = '<|SHIFTUP|>';
+ cNewID                = '<|SETNEWID|>';
+ cSetPortSend          = '<|SETPORTSEND|>';
+ cSetPortRec           = '<|SETPORTREC|>';
 
 Implementation
 

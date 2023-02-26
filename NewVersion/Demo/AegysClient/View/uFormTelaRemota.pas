@@ -107,6 +107,8 @@ type
     procedure rrToolBarToggleClick  (Sender      : TObject);
     procedure SetColors;
     procedure lyCloseDropDownClick  (Sender      : TObject);
+    procedure imgTelaRemotaMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; var Handled: Boolean);
   private
     procedure RetornaMargem;
     procedure SendSocketKeys        (AKeys       : String);
@@ -504,7 +506,6 @@ Begin
   FreeAndNil(FormChat);
  Try
   Conexao.DisconnectAllPeers;
-  FormConexao.SetSockets;
   FormConexao.SetOnline;
  Finally
   FormConexao.Show;
@@ -709,6 +710,12 @@ Begin
   SendSocketMouse(cMouseClickMiddleUp + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput);
 End;
 
+procedure TFormTelaRemota.imgTelaRemotaMouseWheel(Sender: TObject;
+  Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
+begin
+ //
+end;
+
 Procedure TFormTelaRemota.lyCloseDropDownClick(Sender : TObject);
 Begin
  ToggleDropDown(True);
@@ -742,8 +749,11 @@ Begin
   aPackClass.CommandType := tctKeyboard;
   aPackClass.Command     := AKeys + Sblockinput;
   aPackClass.Dest        := vConnection;
-  aPackList.Add(aPackClass);
+  Conexao.SendBytes(vConnection, aPackClass.ToBytes, '', aPackClass.CommandType);
+  Processmessages;
+//  aPackList.Add(aPackClass);
  Finally
+  FreeAndNil(aPackClass);
  End;
 End;
 
@@ -760,8 +770,11 @@ Begin
   aPackClass.CommandType := tctMouse;
   aPackClass.Command     := AKeys + Sblockinput;
   aPackClass.Dest        := vConnection;
-  aPackList.Add(aPackClass);
+  Conexao.SendBytes(vConnection, aPackClass.ToBytes, '', aPackClass.CommandType);
+  Processmessages;
+//  aPackList.Add(aPackClass);
  Finally
+  FreeAndNil(aPackClass);
  End;
 End;
 

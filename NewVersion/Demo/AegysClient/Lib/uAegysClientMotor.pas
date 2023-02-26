@@ -27,8 +27,8 @@ Uses
 Type
  TOnPulseData   = Function (aPack         : TAegysBytes;
                             CommandType   : TCommandType = tctScreenCapture) : Boolean Of Object;
- TOnProcessData = Procedure                                        Of Object;
- TOnAbortData   = Procedure                                        Of Object;
+ TOnProcessData = Procedure(aPackList     : TPackList)                                 Of Object;
+ TOnAbortData   = Procedure                                                            Of Object;
 
 Type
  TAegysMotorThread = Class(TThread)
@@ -36,7 +36,7 @@ Type
   Procedure ProcessMessages;
   Procedure Execute;Override;
  Private
-  pPackList      : PPackList;
+  aPackList      : TPackList;
   vDelayThread   : Integer;
   vOnPulseData   : TOnPulseData;
   vOnProcessData : TOnProcessData;
@@ -44,14 +44,15 @@ Type
  Public
   Procedure   Kill;
   Destructor  Destroy; Override;
-  Constructor Create(Var aPackList : TPackList;
-                     aDelayThread  : Integer = cDelayThread);
+  Constructor Create(aDelayThread  : Integer = cDelayThread);
   Property    OnPulseData          : TOnPulseData   Read vOnPulseData   Write vOnPulseData;
   Property    OnProcessData        : TOnProcessData Read vOnProcessData Write vOnProcessData;
   Property    AbortData            : TOnAbortData   Read vAbortData     Write vAbortData;
 End;
 
 Implementation
+
+Uses uConstants;
 
 procedure TAegysMotorThread.Execute;
 Var
@@ -61,47 +62,47 @@ Begin
  vInExec := False;
  While (Not(Terminated)) Do
   Begin
-   If Not vInExec Then
+   ProcessMessages;
+   If Assigned(aPackList) Then
     Begin
-     vInExec := True;
-     Try
-      If Assigned(vOnProcessData) Then
-       Begin
-        Synchronize(Procedure
-                    Begin
-                     vOnProcessData;
-                    End);
-       End;
-      If Assigned(pPackList) Then
-       Begin
-        If Assigned(pPackList^) Then
-         Begin
-          If pPackList^.Count > 0 Then
-           Begin
-            Try
-             //Process Before Execute one Pack
-             If Assigned(vOnPulseData) Then
-              Begin
-               vOnPulseData(pPackList^[0].ToBytes,
-                            pPackList^[0].CommandType);
-               pPackList^.Delete(0);
-              End;
-             ProcessMessages;
-            Except
-             Break;
-            End;
+     If Not vInExec Then
+      Begin
+       vInExec := True;
+       If aPackList.Count <= cDelayThread Then
+        Begin
+         If Assigned(vOnProcessData) Then
+          Begin
+           Try
+            ProcessMessages;
+            vOnProcessData(aPackList);
+           Except
            End;
-         End
-        Else
-         Break;
-       End
-      Else
-       Break;
-     Finally
-      ProcessMessages;
-      vInExec := False;
-     End;
-    End;
+          End;
+        End;
+       Try
+        If aPackList.Count = cDelayThread Then
+         Begin
+          Try
+           //Process Before Execute one Pack
+           If Assigned(vOnPulseData) Then
+            Begin
+             vOnPulseData(aPackList[0].ToBytes,
+                          aPackList[0].CommandType);
+             aPackList.Delete(0);
+             ProcessMessages;
+            End;
+          Except
+         //  Break;
+          End;
+         End;
+       Finally
+        vInExec := False;
+       End;
+       vInExec := False;
+      End;
+    End
+   Else
+    Break;
    //Delay Processor
    If vDelayThread > 0 Then
     Sleep(vDelayThread);
@@ -117,11 +118,10 @@ Begin
  ProcessMessages;
 End;
 
-Constructor TAegysMotorThread.Create(Var aPackList : TPackList;
-                                     aDelayThread  : Integer = cDelayThread);
+Constructor TAegysMotorThread.Create(aDelayThread  : Integer = cDelayThread);
 Begin
  Inherited Create(False);
- PPackList             := @aPackList;
+ aPackList             := TPackList.Create;
  vDelayThread          := aDelayThread;
  {$IFNDEF FPC}
   {$IF Defined(HAS_FMX)}
@@ -138,6 +138,7 @@ End;
 
 Destructor TAegysMotorThread.Destroy;
 Begin
+ FreeAndNil(aPackList);
  Inherited;
 End;
 

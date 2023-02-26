@@ -115,8 +115,8 @@ type
     TrayIconAdded,
     vVisualizador,
     isvisible         : Boolean;
-    SendDataThread,                       //Envio de Desktop
-    SendCommandEvents : TAegysMotorThread;//Envio de Comandos
+    SendDataThread    : TAegysMotorThread;//Envio de Desktop
+//    SendCommandEvents : TAegysMotorThread;//Envio de Comandos
     Function  MascaraID              (AText,
                                       AMascara          : String) : String;
     procedure Translate;
@@ -142,7 +142,7 @@ type
     procedure OnAccessGranted        (Connection        : String;
                                       Var ClientID,
                                       ClientPassword,
-                                      Alias             : String);
+                                      SpecialData       : String);
     procedure OnPeerConnected        (Connection        : String;
                                       Var ClientID,
                                       ClientPassword,
@@ -153,16 +153,12 @@ type
                                       Alias             : String);
     function  OnPulseData            (aPack             : TAegysBytes;
                                       CommandType       : TCommandType = tctScreenCapture): Boolean;
-    procedure OnProcessData;
+    procedure OnProcessData          (aPackList         : TPackList);
     procedure OnScreenCapture        (Connection,
                                       ID, Command       : String;
                                       aBuf              : TAegysBytes);
-    procedure OnKeyboardCapture      (Connection,
-                                      ID,
-                                      Command           : String);
-    procedure OnMouseCapture         (Connection,
-                                      ID,
-                                      Command           : String);
+    procedure OnKeyboardCapture      (Command           : String);
+    procedure OnMouseCapture         (Command           : String);
     procedure KillThreads;
     procedure ExecuteCommand         (aLine             : String);
   public
@@ -195,13 +191,12 @@ implementation
 uses uFormTelaRemota,  uFileTransfer,    uFormChat,        FMX.Clipboard,
      System.IOUtils,   System.Rtti,      uLibClass,        uConstants,
      BCrypt,           System.DateUtils, FMX.Platform.Win, uFormConfig,
-     StreamManager,    uFormSenha,       uSendKeyClass;
+     StreamManager,    uFormSenha,       uSendKeyClass,    uAegysTools;
 
 
 Procedure TFormConexao.ExecuteCommand(aLine : String);
 Var
- aTempID,
- BufferTemp     : String;
+ aTempID        : String;
  InicioPalavra,
  TamanhoPalavra : Integer;
 Begin
@@ -222,15 +217,15 @@ Begin
  Position := Pos(cMousePos, aLine);
  If Position > 0 then
   Begin
-   BufferTemp := aLine;
-   Delete(BufferTemp, InitStrPos, Position + Length(cMousePos));
-   Position := Pos(cSeparatorTag, BufferTemp);
+   Delete(aLine, InitStrPos, Position + Length(cMousePos) -1);
+   Position := Pos(cSeparatorTag, aLine);
    aTempID  := aMonitor;
    If Trim(aTempID) = '' Then
     aTempID := '0';
-   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
-   Delete(BufferTemp, InitStrPos, Position + 2);
-   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
    If aLine.Contains(cBlockInput) then
     Begin
      BlockInput(False);
@@ -247,12 +242,12 @@ Begin
    aTempID   := aMonitor;
    If Trim(aTempID) = '' Then
     aTempID := '0';
-   BufferTemp := aLine;
-   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickLeftDown));
-   Position   := Pos(cSeparatorTag, BufferTemp);
-   MousePosX  := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
-   Delete(BufferTemp, 1, Position + 2);
-   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickLeftDown) -1);
+   Position   := Pos(cSeparatorTag, aLine);
+   MousePosX  := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, 1, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -273,12 +268,12 @@ Begin
    aTempID   := aMonitor;
    If Trim(aTempID) = '' Then
     aTempID := '0';
-   BufferTemp := aLine;
-   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickLeftUp));
-   Position := Pos(cSeparatorTag, BufferTemp);
-   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
-   Delete(BufferTemp, 1, Position + 2);
-   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickLeftUp) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, 1, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
    If aLine.Contains(cBlockInput) then
     Begin
      BlockInput(false);
@@ -299,12 +294,12 @@ Begin
    aTempID   := aMonitor;
    If Trim(aTempID) = '' Then
     aTempID := '0';
-   BufferTemp := aLine;
-   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickRightDown));
-   Position := Pos(cSeparatorTag, BufferTemp);
-   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
-   Delete(BufferTemp, InitStrPos, Position + 2);
-   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickRightDown) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -325,12 +320,12 @@ Begin
    aTempID   := aMonitor;
    If Trim(aTempID) = '' Then
     aTempID := '0';
-   BufferTemp := aLine;
-   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickRightUp));
-   Position := Pos(cSeparatorTag, BufferTemp);
-   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
-   Delete(BufferTemp, InitStrPos, Position + 2);
-   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickRightUp) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
    If aLine.Contains(cBlockInput) then
     Begin
      BlockInput(false);
@@ -351,12 +346,12 @@ Begin
    aTempID   := aMonitor;
    If Trim(aTempID) = '' Then
     aTempID := '0';
-   BufferTemp := aLine;
-   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickMiddleDown));
-   Position := Pos(cSeparatorTag, BufferTemp);
-   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
-   Delete(BufferTemp, InitStrPos, Position + 2);
-   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(BufferTemp, InitStrPos,  Pos(cEndTag, BufferTemp) - 1));
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickMiddleDown) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos,  Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -377,12 +372,12 @@ Begin
    aTempID   := aMonitor;
    If Trim(aTempID) = '' Then
     aTempID := '0';
-   BufferTemp := aLine;
-   Delete(BufferTemp, InitStrPos, Position + Length(cMouseClickMiddleUp));
-   Position := Pos(cSeparatorTag, BufferTemp);
-   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(BufferTemp, InitStrPos, Position - 1));
-   Delete(BufferTemp, InitStrPos, Position + 2);
-   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1));
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickMiddleUp) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -400,18 +395,18 @@ Begin
  Position := Pos(cWheelMouse, aLine);
  If Position > 0 then
   Begin
-   BufferTemp := aLine;
-   Delete(BufferTemp, InitStrPos, Position + Length(cWheelMouse));
-   BufferTemp := Copy(BufferTemp, InitStrPos, Pos(cEndTag, BufferTemp) - 1);
+   Delete(aLine, InitStrPos, Position + Length(cWheelMouse) -1);
+   aLine := Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1);
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
-     Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(BufferTemp)), 0);
+     Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(aLine)), 0);
      ProcessMessages;
      BlockInput(true);
     End
    Else
-    Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(BufferTemp)), 0);
+    Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(aLine)), 0);
   End;
  Bblockinput := aLine.Contains(cBlockInput);
  If Bblockinput Then
@@ -461,9 +456,10 @@ Begin
      keybd_event(16, 0, 0, 0);
     End;
   End
- Else
+ Else If aLine <> '' Then
   SendKeys(PWideChar(aLine), False);
- BlockInput(Bblockinput);
+// Processmessages;
+// BlockInput(Bblockinput);
 End;
 
 Procedure TFormConexao.LimparConexao;
@@ -563,7 +559,7 @@ begin
   end;
  aPackList         := TPackList.Create;
  SendDataThread    := Nil;
- SendCommandEvents := Nil;
+// SendCommandEvents := Nil;
  Position          := 0;
  MousePosX         := 0;
  MousePosY         := 0;
@@ -790,27 +786,27 @@ Begin
    {$ENDIF}
    FreeAndNil(SendDataThread);
   End;
- If Assigned(SendCommandEvents) Then //Thread de Comandos
-  Begin
-   Try
-    SendCommandEvents.Kill;
-   Except
-   End;
-   {$IFDEF FPC}
-    WaitForThreadTerminate(SendCommandEvents.Handle, 100);
-   {$ELSE}
-    {$IF Not Defined(HAS_FMX)}
-     WaitForSingleObject  (SendCommandEvents.Handle, 100);
-    {$IFEND}
-   {$ENDIF}
-   FreeAndNil(SendCommandEvents);
-  End;
+// If Assigned(SendCommandEvents) Then //Thread de Comandos
+//  Begin
+//   Try
+//    SendCommandEvents.Kill;
+//   Except
+//   End;
+//   {$IFDEF FPC}
+//    WaitForThreadTerminate(SendCommandEvents.Handle, 100);
+//   {$ELSE}
+//    {$IF Not Defined(HAS_FMX)}
+//     WaitForSingleObject  (SendCommandEvents.Handle, 100);
+//    {$IFEND}
+//   {$ENDIF}
+//   FreeAndNil(SendCommandEvents);
+//  End;
 End;
 
 procedure TFormConexao.SetPeerDisconnected;
 begin
   Kick;
-  KillThreads;
+//  KillThreads;
   btnConectar.Enabled  := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
   tmrIntervalo.Enabled := False;
@@ -913,16 +909,12 @@ begin
  SetOffline;
 end;
 
-Procedure TFormConexao.OnKeyboardCapture (Connection,
-                                          ID,
-                                          Command           : String);
+Procedure TFormConexao.OnKeyboardCapture (Command           : String);
 Begin
- OnMouseCapture(Connection, ID, Command);
+ OnMouseCapture(Command);
 End;
 
-Procedure TFormConexao.OnMouseCapture    (Connection,
-                                          ID,
-                                          Command           : String);
+Procedure TFormConexao.OnMouseCapture    (Command           : String);
 Begin
  ExecuteCommand(Command);
 End;
@@ -942,18 +934,19 @@ Begin
  If Result Then
   Begin
    If CommandType = tctScreenCapture Then
-    Conexao.SendBytes(aConnection, aPack, CommandType)
+    Conexao.SendBytes(aPack)
    Else
     Conexao.SendCommand(aConnection, aPack);
   End;
  Processmessages;
 End;
 
-Procedure TFormConexao.OnProcessData;
+Procedure TFormConexao.OnProcessData(aPackList : TPackList);
 Var
  aPackClass  : TPackClass;
  aBytes      : TAegysBytes;
  aScreenShot : TStream;
+ aResolution : String;
  Function aCapture : TStream;
  Begin
   Result := TMemoryStream.Create;
@@ -964,12 +957,13 @@ Var
   End;
  End;
 Begin
- aScreenShot             := aCapture;
  Try
+  aScreenShot             := aCapture;
   SetLength(aBytes, aScreenShot.Size);
   aScreenShot.Read(aBytes[0], Length(aBytes));
-  Conexao.SendBytes(aBytes, True);
-  Processmessages;
+  aResolution := Format('%d&%d', [Screen.Height, Screen.Width]);
+  aPackList.Add(Conexao.Connection, '', tdmClientCommand, tdcAsync, tctScreenCapture, aBytes, Format('%s&%s&%s', [Conexao.Connection, Conexao.SessionID, aResolution]), True);
+//  Conexao.SendBytes(aBytes, True, aResolution);
  Finally
   FreeAndNil(aScreenShot);
  End;
@@ -978,18 +972,19 @@ End;
 Procedure TFormConexao.OnAccessGranted(Connection        : String;
                                        Var ClientID,
                                        ClientPassword,
-                                       Alias             : String); //tela remota
+                                       SpecialData       : String); //tela remota
 Begin
  Try
+  //ResolucaoLargura
   If Not Assigned(FormTelaRemota) Then
    FormTelaRemota                 := TFormTelaRemota.Create(Self);
   FormTelaRemota.Caption          := Format(cCaptureTitle, [Connection, ClientID]);
   FormTelaRemota.Connection       := Connection;
   aConnection                     := FormTelaRemota.Connection;
   FormTelaRemota.Show;
-  SendCommandEvents               := TAegysMotorThread.Create(FormTelaRemota.aPackList);
-  SendCommandEvents.OnPulseData   := OnPulseData;
-  SendCommandEvents.Resume;
+//  SendCommandEvents               := TAegysMotorThread.Create(FormTelaRemota.aPackList);
+//  SendCommandEvents.OnPulseData   := OnPulseData;
+//  SendCommandEvents.Resume;
  Finally
 
  End;
@@ -1000,7 +995,7 @@ Procedure TFormConexao.OnPeerConnected(Connection        : String;
                                        ClientPassword,
                                        Alias             : String); //Captura de tela
 Begin
- SendDataThread                := TAegysMotorThread.Create(aPackList);
+ SendDataThread                := TAegysMotorThread.Create;
  aConnection                   := Connection;
  Try
   SendDataThread.OnProcessData := OnProcessData;
@@ -1024,12 +1019,24 @@ Procedure TFormConexao.OnScreenCapture(Connection,
                                        Command         : String;
                                        aBuf            : TAegysBytes);
 Var
- vStream : TMemoryStream;
+ ArrayOfPointer : TArrayOfPointer;
+ vStream        : TMemoryStream;
+ vAltura,
+ vLargura       : String;
 Begin
  If Assigned(FormTelaRemota) Then
   Begin
    vStream := TMemoryStream.Create;
    Try
+    If Command <> '' Then
+     Begin
+      ArrayOfPointer := [@vAltura, @vLargura];
+      ParseValues(Command, ArrayOfPointer);
+      If vAltura <> '' Then
+       vResolucaoAltura  := StrToInt(vAltura);
+      If vLargura <> '' Then
+       vResolucaoLargura := StrToInt(vLargura);
+     End;
     vStream.Write(aBuf[0], Length(aBuf));
     vStream.Position := 0;
     FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vStream);

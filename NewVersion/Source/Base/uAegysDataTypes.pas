@@ -37,7 +37,9 @@ Type
                       ticChangeMonitor,  ticRelation,
                       ticConnectedPeer,  ticDisconnectedPeer,
                       ticDisconnectPeer, ticDisconnectAllPeers,
-                      ticKick,           ticIncommingConnect);
+                      ticKick,           ticIncommingConnect,
+                      ticNewID,          ticSetPortSend,
+                      ticSetPortRec);
  TDataMode         = (tdmServerCommand,  tdmClientCommand,
                       tdmReply);
  TDataType         = (tdtString,         tdtDataBytes);
@@ -47,6 +49,7 @@ Type
                       tctKeyboard,       tctMouse,
                       tctFileTransfer,   tctChat,
                       tctClipBoard,      tctNone);
+ TPortDirection    = (tpdInBound,        tpdOutBound);
  TAegysBytes       = Array of Byte;
  {$IFDEF FPC}
   AEInteger        = Longint;

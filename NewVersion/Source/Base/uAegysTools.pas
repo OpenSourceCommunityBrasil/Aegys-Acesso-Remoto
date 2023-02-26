@@ -151,95 +151,110 @@ Procedure ParseCommand(Var Command         : String;
                        Var InternalCommand : TInternalCommand);
 Begin
  InternalCommand := ticNone;
- If Copy(Command, InitStrPos, Length(cStatusDesc))            = cStatusDesc           Then
+ If Copy(Command, InitStrPos, Length(cStatusDesc))             = cStatusDesc           Then
   Begin
    InternalCommand := ticDataStatus;
    Delete(Command, InitStrPos, Length(cStatusDesc));
   End
- Else If Copy(Command, InitStrPos, Length(cFindID))           = cFindID               Then
+ Else If Copy(Command, InitStrPos, Length(cFindID))            = cFindID               Then
   Begin
    InternalCommand := ticFindID;
    Delete(Command, InitStrPos, Length(cFindID));
   End
- Else If Copy(Command, InitStrPos, Length(cIDExistsReqPass))  = cIDExistsReqPass      Then
+ Else If Copy(Command, InitStrPos, Length(cIDExistsReqPass))   = cIDExistsReqPass      Then
   Begin
    InternalCommand := ticIDExistsReqPass;
    Delete(Command, InitStrPos, Length(cIDExistsReqPass));
   End
- Else If Copy(Command, InitStrPos, Length(cIDNotFound))       = cIDNotFound           Then
+ Else If Copy(Command, InitStrPos, Length(cIDNotFound))        = cIDNotFound           Then
   Begin
    InternalCommand := ticIDNotFound;
    Delete(Command, InitStrPos, Length(cIDNotFound));
   End
- Else If Copy(Command, InitStrPos, Length(cPing))             = cPing                 Then
+ Else If Copy(Command, InitStrPos, Length(cPing))              = cPing                 Then
   Begin
    InternalCommand := ticPing;
    Delete(Command, InitStrPos, Length(cPing));
   End
- Else If Copy(Command, InitStrPos, Length(cCheckPass))        = cCheckPass            Then
+ Else If Copy(Command, InitStrPos, Length(cCheckPass))         = cCheckPass            Then
   Begin
    InternalCommand := ticCheckPass;
    Delete(Command, InitStrPos, Length(cCheckPass));
   End
- Else If Copy(Command, InitStrPos, Length(cAccessGranted))    = cAccessGranted        Then
+ Else If Copy(Command, InitStrPos, Length(cAccessGranted))     = cAccessGranted        Then
   Begin
    InternalCommand := ticAccessGranted;
    Delete(Command, InitStrPos, Length(cAccessGranted));
   End
- Else If Copy(Command, InitStrPos, Length(cGetMonitorCount))  = cGetMonitorCount      Then
+ Else If Copy(Command, InitStrPos, Length(cGetMonitorCount))   = cGetMonitorCount      Then
   Begin
    InternalCommand := ticGetMonitorCount;
    Delete(Command, InitStrPos, Length(cGetMonitorCount));
   End
- Else If Copy(Command, InitStrPos, Length(cChangeMonitor))    = cChangeMonitor        Then
+ Else If Copy(Command, InitStrPos, Length(cChangeMonitor))     = cChangeMonitor        Then
   Begin
    InternalCommand := ticChangeMonitor;
    Delete(Command, InitStrPos, Length(cChangeMonitor));
   End
- Else If Copy(Command, InitStrPos, Length(cRelation))         = cRelation             Then
+ Else If Copy(Command, InitStrPos, Length(cRelation))          = cRelation             Then
   Begin
    InternalCommand := ticRelation;
    Delete(Command, InitStrPos, Length(cRelation));
   End
- Else If Copy(Command, InitStrPos, Length(cConnectedPeer))    = cConnectedPeer        Then
+ Else If Copy(Command, InitStrPos, Length(cConnectedPeer))     = cConnectedPeer        Then
   Begin
    InternalCommand := ticConnectedPeer;
    Delete(Command, InitStrPos, Length(cConnectedPeer));
   End
- Else If Copy(Command, InitStrPos, Length(cDisconnectedPeer)) = cDisconnectedPeer     Then
+ Else If Copy(Command, InitStrPos, Length(cDisconnectedPeer))  = cDisconnectedPeer     Then
   Begin
    InternalCommand := ticDisconnectedPeer;
    Delete(Command, InitStrPos, Length(cDisconnectedPeer));
   End
- Else If Copy(Command, InitStrPos, Length(cPing))             = cPing                 Then
+ Else If Copy(Command, InitStrPos, Length(cPing))              = cPing                 Then
   Begin
    InternalCommand := ticPing;
    Delete(Command, InitStrPos, Length(cPing));
   End
- Else If Copy(Command, InitStrPos, Length(cPong))             = cPong                 Then
+ Else If Copy(Command, InitStrPos, Length(cPong))              = cPong                 Then
   Begin
    InternalCommand := ticPong;
    Delete(Command, InitStrPos, Length(cPong));
   End
- Else If Copy(Command, InitStrPos, Length(cIncommingConnect)) = cIncommingConnect     Then
+ Else If Copy(Command, InitStrPos, Length(cIncommingConnect))  = cIncommingConnect     Then
   Begin
    InternalCommand := ticIncommingConnect;
    Delete(Command, InitStrPos, Length(cIncommingConnect));
   End
- Else If Copy(Command, InitStrPos, Length(cDisconnectPeer)) = cDisconnectPeer         Then
+ Else If Copy(Command, InitStrPos, Length(cDisconnectPeer))     = cDisconnectPeer      Then
   Begin
    InternalCommand := ticDisconnectPeer;
    Delete(Command, InitStrPos, Length(cDisconnectPeer));
   End
- Else If Copy(Command, InitStrPos, Length(cDisconnectAllPeers)) = cDisconnectAllPeers Then
+ Else If Copy(Command, InitStrPos, Length(cDisconnectAllPeers)) = cDisconnectAllPeers  Then
   Begin
    InternalCommand := ticDisconnectAllPeers;
    Delete(Command, InitStrPos, Length(cDisconnectAllPeers));
   End
- Else If Copy(Command, InitStrPos, Length(cKickPeer))           = cKickPeer Then
+ Else If Copy(Command, InitStrPos, Length(cKickPeer))           = cKickPeer            Then
   Begin
    InternalCommand := ticKick;
    Delete(Command, InitStrPos, Length(cKickPeer));
+  End
+ Else If Copy(Command, InitStrPos, Length(cNewID))              = cNewID               Then
+  Begin
+   InternalCommand := ticNewID;
+   Delete(Command, InitStrPos, Length(cNewID));
+  End
+ Else If Copy(Command, InitStrPos, Length(cSetPortSend))        = cSetPortSend         Then
+  Begin
+   InternalCommand := ticSetPortSend;
+   Delete(Command, InitStrPos, Length(cSetPortSend));
+  End
+ Else If Copy(Command, InitStrPos, Length(cSetPortRec))         = cSetPortRec          Then
+  Begin
+   InternalCommand := ticSetPortRec;
+   Delete(Command, InitStrPos, Length(cSetPortRec));
   End;
 End;
 Procedure ParseValues(Var Source : String;

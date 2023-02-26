@@ -179,10 +179,7 @@ Begin
      QryConexoesSENHA.Value     := Conexao.SessionFixedPWD;
      QryConexoesSENHA2.Value    := Conexao.SessionPWD;
      QryConexoesLATENCIA.Value  := IntToStr(Conexao.Latency);
-     If (Conexao.Latency         = 0)  Then
-      QryConexoesLATENCIA.Value := 'Calculando...'
-     Else
-      QryConexoesLATENCIA.Value  := IntToStr(Conexao.Latency);
+//     QryConexoesLATENCIA.Value  := IntToStr(Conexao.Latency);
      QryConexoes.Post;
     Except
      Continue;

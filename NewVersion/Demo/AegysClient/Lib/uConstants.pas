@@ -21,9 +21,10 @@ type
   IDThreadType = (ttPrincipal, ttAreaRemota, ttTeclado, ttArquivos);
 
 const
-  PORTA = 9092;
-  FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '192.168.15.10'; //'177.10.144.78';
+  PORTA              = 9092;
+  FOLGAPROCESSAMENTO = 1;
+  SERVIDOR           = '177.10.144.78'; //'177.10.144.78';//'192.168.15.200';
+  cMaxFramesBuffer   = 1;
   {
   !!!Deixe em branco para liberar a combobox na config!!!
   segue lista de servidores disponíveis:

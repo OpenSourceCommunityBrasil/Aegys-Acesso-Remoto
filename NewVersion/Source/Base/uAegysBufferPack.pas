@@ -22,7 +22,7 @@ Unit uAegysBufferPack;
 Interface
 
 Uses
- SysUtils, Classes, Variants, uAegysConsts, uAegysDataTypes, uAegysZlib;
+ SysUtils, Classes, Variants, SyncObjs, uAegysConsts, uAegysDataTypes, uAegysZlib;
 
  Type
   TPackClass = Class;//DummyClass
@@ -86,18 +86,20 @@ Uses
   PPackList = ^TPackList;
   TPackList = Class(TList)
   Private
+   vCriticalSection : TCriticalSection;
    Function  GetRec         (Index         : Integer) : TPackClass;   Overload;
    Procedure PutRec         (Index         : Integer;
                              Item          : TPackClass);             Overload;
    Procedure ClearAll;
   Protected
   Public
-   Destructor Destroy; Override;
-   Procedure  Delete        (Index         : Integer);                Overload;
-   Function   Add           (Item          : TPackClass)    : Integer;Overload;
-   Function   Add           (aBytes        : TAegysBytes)   : Integer;Overload;
-   Function   Add           (aStream       : TStream)       : Integer;Overload;
-   Function   Add           (PackOwner,
+   Constructor Create;
+   Destructor Destroy;  Override;
+   Procedure  Delete       (Index         : Integer);                Overload;
+   Function   Add          (Item          : TPackClass)    : Integer;Overload;
+   Function   Add          (aBytes        : TAegysBytes)   : Integer;Overload;
+   Function   Add          (aStream       : TStream)       : Integer;Overload;
+   Function   Add          (PackOwner,
                              PackDest      : AeString;
                              aDataMode     : TDataMode;
                              aDataCheck    : TDataCheck;
@@ -110,6 +112,14 @@ Uses
                              PackDest      : AeString;
                              aDataMode     : TDataMode;
                              aDataCheck    : TDataCheck;
+                             aCommand      : AeString;
+                             aBufferSize   : AEInt64   = 0;
+                             aDelay        : AEInteger = 0) : Integer;Overload;
+   Function   Add           (PackOwner,
+                             PackDest      : AeString;
+                             aDataMode     : TDataMode;
+                             aDataCheck    : TDataCheck;
+                             aCommandType  : TCommandType;
                              aCommand      : AeString;
                              aBufferSize   : AEInt64   = 0;
                              aDelay        : AEInteger = 0) : Integer;Overload;
@@ -257,11 +267,15 @@ Begin
  aStringStream := TMemoryStream.Create;
  aStringStream.Write(vDataBytes[0], Length(vDataBytes));
  Try
-  StringStream := ZDecompressStreamNew(aStringStream);
-  StringStream.Position  := 0;
-  SetLength(Result, StringStream.Size);
-  StringStream.Read(Result[0], Length(Result));
+  Try
+   StringStream := ZDecompressStreamNew(aStringStream);
+   StringStream.Position  := 0;
+   SetLength(Result, StringStream.Size);
+   StringStream.Read(Result[0], Length(Result));
 //  Move(Value[0], vDataBytes[0], Length(Value));
+  Except
+
+  End;
  Finally
   FreeAndNil(aStringStream);
   If Assigned(StringStream) Then
@@ -554,9 +568,11 @@ Var
 Begin
  aItem := TPackClass.Create;
  Try
+  vCriticalSection.Acquire;
   aItem.FromBytes(aBytes);
   Add(aItem);
  Except
+  vCriticalSection.Release;
   FreeAndNil(aItem);
  End;
 End;
@@ -571,9 +587,11 @@ Begin
     Begin
      SetLength(aBytesValue, aStream.Size);
      Try
+      vCriticalSection.Acquire;
       aStream.Read(aBytesValue, aStream.Size);
       Add(aBytesValue);
      Finally
+      vCriticalSection.Release;
       SetLength(aBytesValue, 0);
      End;
     End;
@@ -585,9 +603,14 @@ Var
  vItem: PPackClass;
 Begin
  New(vItem);
- vItem^        := Item;
- Result        := Inherited Add(vItem);
- vItem^.PackNo := 1;
+ Try
+  vCriticalSection.Acquire;
+  vItem^        := Item;
+  Result        := Inherited Add(vItem);
+  vItem^.PackNo := 1;
+ Finally
+  vCriticalSection.Release;
+ End;
 End;
 
 Function TPackList.Add    (PackOwner,
@@ -608,60 +631,65 @@ Var
 Begin
  Result           := -1;
  aPacksGeralB     := Length(aCommand);
- If aPacksGeralB > 0 Then
-  Begin
-   If aBufferSize = 0 Then
-    Begin
-     aItem             := TPackClass.Create;
-     aItem.DataCheck   := aDataCheck;
-     aItem.DataSize    := aPacksGeralB;
-     aItem.BufferSize  := aItem.DataSize;
-     aItem.PacksGeral  := 1;
-     aItem.PackNo      := 1;
-     aItem.DataMode    := aDataMode;
-     aItem.DataType    := tdtString;
-     aItem.Command     := aCommand;
-     aItem.Owner       := PackOwner;
-     aItem.Dest        := PackDest;
-     Result            := Add(aItem);
-     aItem.Delay       := aDelay;
-    End
-   Else //Build MultiPack
-    Begin
-     aPackNoB          := 0;
-     atempDataString   := aCommand;
-     bBufferSize       := aBufferSize - SizeOfHeader - Length(PackOwner) - Length(PackDest);
-     If bBufferSize > 0 Then
-      Begin
-       aPackCount        := (aPacksGeralB div bBufferSize);
-       If (aPacksGeralB Mod aBufferSize) > 1 Then
-        Inc(aPackCount)
-       Else If aPackCount = 0 Then
-        Inc(aPackCount);
-       While (atempDataString <> '') Do
-        Begin
-         aItem             := TPackClass.Create;
-         aItem.DataCheck   := aDataCheck;
-         aItem.DataSize    := aPacksGeralB;
-         aItem.PacksGeral  := aPackCount;
-         aItem.PackNo      := aPackNoB;
-         aItem.DataMode    := aDataMode;
-         aItem.DataType    := tdtString;
-         aItem.Owner       := PackOwner;
-         aItem.Dest        := PackDest;
-         atempDataStringB  := Copy(atempDataString, InitStrPos, bBufferSize);
-         DeleteString(atempDataString, InitStrPos, bBufferSize);
-         aItem.Command     := atempDataStringB;
-         aItem.BufferSize  := Length(atempDataStringB);
-         Result            := Add(aItem);
-         aItem.Delay       := aDelay;
-         Inc(aPackNoB);
-        End;
-      End
-     Else
-      Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
-    End;
-  End;
+ Try
+  vCriticalSection.Acquire;
+  If aPacksGeralB > 0 Then
+   Begin
+    If aBufferSize = 0 Then
+     Begin
+      aItem             := TPackClass.Create;
+      aItem.DataCheck   := aDataCheck;
+      aItem.DataSize    := aPacksGeralB;
+      aItem.BufferSize  := aItem.DataSize;
+      aItem.PacksGeral  := 1;
+      aItem.PackNo      := 1;
+      aItem.DataMode    := aDataMode;
+      aItem.DataType    := tdtString;
+      aItem.Command     := aCommand;
+      aItem.Owner       := PackOwner;
+      aItem.Dest        := PackDest;
+      Result            := Add(aItem);
+      aItem.Delay       := aDelay;
+     End
+    Else //Build MultiPack
+     Begin
+      aPackNoB          := 0;
+      atempDataString   := aCommand;
+      bBufferSize       := aBufferSize - SizeOfHeader - Length(PackOwner) - Length(PackDest);
+      If bBufferSize > 0 Then
+       Begin
+        aPackCount        := (aPacksGeralB div bBufferSize);
+        If (aPacksGeralB Mod aBufferSize) > 1 Then
+         Inc(aPackCount)
+        Else If aPackCount = 0 Then
+         Inc(aPackCount);
+        While (atempDataString <> '') Do
+         Begin
+          aItem             := TPackClass.Create;
+          aItem.DataCheck   := aDataCheck;
+          aItem.DataSize    := aPacksGeralB;
+          aItem.PacksGeral  := aPackCount;
+          aItem.PackNo      := aPackNoB;
+          aItem.DataMode    := aDataMode;
+          aItem.DataType    := tdtString;
+          aItem.Owner       := PackOwner;
+          aItem.Dest        := PackDest;
+          atempDataStringB  := Copy(atempDataString, InitStrPos, bBufferSize);
+          DeleteString(atempDataString, InitStrPos, bBufferSize);
+          aItem.Command     := atempDataStringB;
+          aItem.BufferSize  := Length(atempDataStringB);
+          Result            := Add(aItem);
+          aItem.Delay       := aDelay;
+          Inc(aPackNoB);
+         End;
+       End
+      Else
+       Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
+     End;
+   End;
+ Finally
+  vCriticalSection.Release;
+ End;
 End;
 
 Function TPackList.Add    (PackOwner,
@@ -684,66 +712,71 @@ Var
 Begin
  Result           := -1;
  aPacksGeralB     := Length(aCommand);
- If aPacksGeralB > 0 Then
-  Begin
-   If aBufferSize = 0 Then
-    Begin
-     aItem              := TPackClass.Create;
-     aItem.DataCheck    := aDataCheck;
-     aItem.DataMode     := aDataMode;
-     aItem.CommandType  := aCommandType;
-     aItem.vProxyMyList := aDestMylist;
-     aItem.DataSize     := aPacksGeralB;
-     aItem.BufferSize   := aItem.DataSize;
-     aItem.PacksGeral   := 1;
-     aItem.PackNo       := 1;
-     aItem.DataMode     := aDataMode;
-     aItem.DataType     := tdtString;
-     aItem.Command      := aCommand;
-     aItem.Owner        := PackOwner;
-     aItem.Dest         := PackDest;
-     Result             := Add(aItem);
-     aItem.Delay        := aDelay;
-    End
-   Else //Build MultiPack
-    Begin
-     aPackNoB          := 0;
-     atempDataString   := aCommand;
-     bBufferSize       := aBufferSize - SizeOfHeader - Length(PackOwner) - Length(PackDest);
-     If bBufferSize > 0 Then
-      Begin
-       aPackCount        := (aPacksGeralB div bBufferSize);
-       If (aPacksGeralB Mod aBufferSize) > 1 Then
-        Inc(aPackCount)
-       Else If aPackCount = 0 Then
-        Inc(aPackCount);
-       While (atempDataString <> '') Do
-        Begin
-         aItem              := TPackClass.Create;
-         aItem.DataCheck    := aDataCheck;
-         aItem.DataMode     := aDataMode;
-         aItem.CommandType  := aCommandType;
-         aItem.vProxyMyList := aDestMylist;
-         aItem.DataSize     := aPacksGeralB;
-         aItem.PacksGeral   := aPackCount;
-         aItem.PackNo       := aPackNoB;
-         aItem.DataMode     := aDataMode;
-         aItem.DataType     := tdtString;
-         aItem.Owner        := PackOwner;
-         aItem.Dest         := PackDest;
-         atempDataStringB   := Copy(atempDataString, InitStrPos, bBufferSize);
-         DeleteString(atempDataString, InitStrPos, bBufferSize);
-         aItem.Command      := atempDataStringB;
-         aItem.BufferSize   := Length(atempDataStringB);
-         Result             := Add(aItem);
-         aItem.Delay        := aDelay;
-         Inc(aPackNoB);
-        End;
-      End
-     Else
-      Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
-    End;
-  End;
+ Try
+  vCriticalSection.Acquire;
+  If aPacksGeralB > 0 Then
+   Begin
+    If aBufferSize = 0 Then
+     Begin
+      aItem              := TPackClass.Create;
+      aItem.DataCheck    := aDataCheck;
+      aItem.DataMode     := aDataMode;
+      aItem.CommandType  := aCommandType;
+      aItem.vProxyMyList := aDestMylist;
+      aItem.DataSize     := aPacksGeralB;
+      aItem.BufferSize   := aItem.DataSize;
+      aItem.PacksGeral   := 1;
+      aItem.PackNo       := 1;
+      aItem.DataMode     := aDataMode;
+      aItem.DataType     := tdtString;
+      aItem.Command      := aCommand;
+      aItem.Owner        := PackOwner;
+      aItem.Dest         := PackDest;
+      Result             := Add(aItem);
+      aItem.Delay        := aDelay;
+     End
+    Else //Build MultiPack
+     Begin
+      aPackNoB          := 0;
+      atempDataString   := aCommand;
+      bBufferSize       := aBufferSize - SizeOfHeader - Length(PackOwner) - Length(PackDest);
+      If bBufferSize > 0 Then
+       Begin
+        aPackCount        := (aPacksGeralB div bBufferSize);
+        If (aPacksGeralB Mod aBufferSize) > 1 Then
+         Inc(aPackCount)
+        Else If aPackCount = 0 Then
+         Inc(aPackCount);
+        While (atempDataString <> '') Do
+         Begin
+          aItem              := TPackClass.Create;
+          aItem.DataCheck    := aDataCheck;
+          aItem.DataMode     := aDataMode;
+          aItem.CommandType  := aCommandType;
+          aItem.vProxyMyList := aDestMylist;
+          aItem.DataSize     := aPacksGeralB;
+          aItem.PacksGeral   := aPackCount;
+          aItem.PackNo       := aPackNoB;
+          aItem.DataMode     := aDataMode;
+          aItem.DataType     := tdtString;
+          aItem.Owner        := PackOwner;
+          aItem.Dest         := PackDest;
+          atempDataStringB   := Copy(atempDataString, InitStrPos, bBufferSize);
+          DeleteString(atempDataString, InitStrPos, bBufferSize);
+          aItem.Command      := atempDataStringB;
+          aItem.BufferSize   := Length(atempDataStringB);
+          Result             := Add(aItem);
+          aItem.Delay        := aDelay;
+          Inc(aPackNoB);
+         End;
+       End
+      Else
+       Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
+     End;
+   End;
+ Finally
+  vCriticalSection.Release;
+ End;
 End;
 
 Function TPackList.Add    (PackOwner,
@@ -770,72 +803,159 @@ Var
 Begin
  Result           := -1;
  aPacksGeralB     := Length(aDataBytes);
- If aPacksGeralB > 0 Then
-  Begin
-   If aBufferSize = 0 Then
-    Begin
-     aItem              := TPackClass.Create;
-     aItem.DataCheck    := aDataCheck;
-     aItem.DataSize     := aPacksGeralB;
-     aItem.vProxyMyList := aDestMylist;
-     aItem.BufferSize   := aItem.DataSize;
-     aItem.PacksGeral   := 1;
-     aItem.PackNo       := 1;
-     aItem.DataMode     := aDataMode;
-     aItem.DataType     := tdtDataBytes;
-     aItem.CommandType  := aCommandType;
-     aItem.DataBytes    := aDataBytes;
-     aItem.BytesOptions := aBytesOptions;
-     aItem.Owner        := PackOwner;
-     aItem.Dest         := PackDest;
-     Result             := Add(aItem);
-     aItem.Delay        := aDelay;
-    End
-   Else //Build MultiPack
-    Begin
-     atempDataBytes    := aDataBytes;
-     bBufferSize       := aBufferSize - SizeOfHeader - Length(PackOwner) - Length(PackDest) - Length(aBytesOptions);
-     If bBufferSize > 0 Then
-      Begin
-       aPackNoB            := 0;
-       aPackCount          := (aPacksGeralB div bBufferSize);
-       If (aPacksGeralB Mod aBufferSize) > 0 Then
-        Inc(aPackCount);
-       aEOF := Length(atempDataBytes) = 0;
-       aInitPosition := 0;
-       While Not aEOF Do
-        Begin
-         aItem              := TPackClass.Create;
-         aItem.DataCheck    := aDataCheck;
-         aItem.DataSize     := aPacksGeralB;
-         aItem.vProxyMyList := aDestMylist;
-         aItem.PacksGeral   := aPackCount;
-         aItem.PackNo       := aPackNoB;
-         aItem.DataMode     := aDataMode;
-         aItem.DataType     := tdtDataBytes;
-         aItem.CommandType  := aCommandType;
-         aItem.Owner        := PackOwner;
-         aItem.Dest         := PackDest;
-         aItem.BytesOptions := aBytesOptions;
-         SetLength(atempDataBytesB, 0);
-         If (aInitPosition + bBufferSize) < Length(atempDataBytes) Then
-          aActualBufferSize := bBufferSize
-         Else
-          aActualBufferSize := Length(atempDataBytes) - aInitPosition;
-         MoveBytes(atempDataBytes, atempDataBytesB, aInitPosition, aActualBufferSize);
-         aInitPosition      := aInitPosition + Length(atempDataBytesB);
-         aEOF               := aInitPosition >= aPacksGeralB;
-         aItem.DataBytes    := atempDataBytesB;
-         aItem.BufferSize   := Length(atempDataBytesB);
-         Result             := Add(aItem);
-         aItem.Delay        := aDelay;
-         Inc(aPackNoB);
-        End;
-      End
-     Else
-      Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
-    End;
-  End;
+ Try
+  vCriticalSection.Acquire;
+  If aPacksGeralB > 0 Then
+   Begin
+    If aBufferSize = 0 Then
+     Begin
+      aItem              := TPackClass.Create;
+      aItem.DataCheck    := aDataCheck;
+      aItem.DataSize     := aPacksGeralB;
+      aItem.vProxyMyList := aDestMylist;
+      aItem.BufferSize   := aItem.DataSize;
+      aItem.PacksGeral   := 1;
+      aItem.PackNo       := 1;
+      aItem.DataMode     := aDataMode;
+      aItem.DataType     := tdtDataBytes;
+      aItem.CommandType  := aCommandType;
+      aItem.DataBytes    := aDataBytes;
+      aItem.BytesOptions := aBytesOptions;
+      aItem.Owner        := PackOwner;
+      aItem.Dest         := PackDest;
+      Result             := Add(aItem);
+      aItem.Delay        := aDelay;
+     End
+    Else //Build MultiPack
+     Begin
+      atempDataBytes    := aDataBytes;
+      bBufferSize       := aBufferSize - SizeOfHeader - Length(PackOwner) - Length(PackDest) - Length(aBytesOptions);
+      If bBufferSize > 0 Then
+       Begin
+        aPackNoB            := 0;
+        aPackCount          := (aPacksGeralB div bBufferSize);
+        If (aPacksGeralB Mod aBufferSize) > 0 Then
+         Inc(aPackCount);
+        aEOF := Length(atempDataBytes) = 0;
+        aInitPosition := 0;
+        While Not aEOF Do
+         Begin
+          aItem              := TPackClass.Create;
+          aItem.DataCheck    := aDataCheck;
+          aItem.DataSize     := aPacksGeralB;
+          aItem.vProxyMyList := aDestMylist;
+          aItem.PacksGeral   := aPackCount;
+          aItem.PackNo       := aPackNoB;
+          aItem.DataMode     := aDataMode;
+          aItem.DataType     := tdtDataBytes;
+          aItem.CommandType  := aCommandType;
+          aItem.Owner        := PackOwner;
+          aItem.Dest         := PackDest;
+          aItem.BytesOptions := aBytesOptions;
+          SetLength(atempDataBytesB, 0);
+          If (aInitPosition + bBufferSize) < Length(atempDataBytes) Then
+           aActualBufferSize := bBufferSize
+          Else
+           aActualBufferSize := Length(atempDataBytes) - aInitPosition;
+          MoveBytes(atempDataBytes, atempDataBytesB, aInitPosition, aActualBufferSize);
+          aInitPosition      := aInitPosition + Length(atempDataBytesB);
+          aEOF               := aInitPosition >= aPacksGeralB;
+          aItem.DataBytes    := atempDataBytesB;
+          aItem.BufferSize   := Length(atempDataBytesB);
+          Result             := Add(aItem);
+          aItem.Delay        := aDelay;
+          Inc(aPackNoB);
+         End;
+       End
+      Else
+       Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
+     End;
+   End;
+ Finally
+  vCriticalSection.Release;
+ End;
+End;
+
+Function TPackList.Add(PackOwner,
+                       PackDest     : AeString;
+                       aDataMode    : TDataMode;
+                       aDataCheck   : TDataCheck;
+                       aCommandType : TCommandType;
+                       aCommand     : AeString;
+                       aBufferSize  : AEInt64;
+                       aDelay       : AEInteger): Integer;
+Var
+ aItem            : TPackClass;
+ bBufferSize,
+ aPacksGeralB,
+ aPackNoB,
+ aPackCount       : AEInt64;
+ atempDataString,
+ atempDataStringB : AeString;
+Begin
+ Result           := -1;
+ aPacksGeralB     := Length(aCommand);
+ Try
+  vCriticalSection.Acquire;
+  If aPacksGeralB > 0 Then
+   Begin
+    If aBufferSize = 0 Then
+     Begin
+      aItem             := TPackClass.Create;
+      aItem.DataCheck   := aDataCheck;
+      aItem.DataSize    := aPacksGeralB;
+      aItem.BufferSize  := aItem.DataSize;
+      aItem.PacksGeral  := 1;
+      aItem.PackNo      := 1;
+      aItem.DataMode    := aDataMode;
+      aItem.DataType    := tdtString;
+      aItem.CommandType := aCommandType;
+      aItem.Command     := aCommand;
+      aItem.Owner       := PackOwner;
+      aItem.Dest        := PackDest;
+      Result            := Add(aItem);
+      aItem.Delay       := aDelay;
+     End
+    Else //Build MultiPack
+     Begin
+      aPackNoB          := 0;
+      atempDataString   := aCommand;
+      bBufferSize       := aBufferSize - SizeOfHeader - Length(PackOwner) - Length(PackDest);
+      If bBufferSize > 0 Then
+       Begin
+        aPackCount        := (aPacksGeralB div bBufferSize);
+        If (aPacksGeralB Mod aBufferSize) > 1 Then
+         Inc(aPackCount)
+        Else If aPackCount = 0 Then
+         Inc(aPackCount);
+        While (atempDataString <> '') Do
+         Begin
+          aItem             := TPackClass.Create;
+          aItem.DataCheck   := aDataCheck;
+          aItem.DataSize    := aPacksGeralB;
+          aItem.PacksGeral  := aPackCount;
+          aItem.PackNo      := aPackNoB;
+          aItem.DataMode    := aDataMode;
+          aItem.CommandType := aCommandType;
+          aItem.DataType    := tdtString;
+          aItem.Owner       := PackOwner;
+          aItem.Dest        := PackDest;
+          atempDataStringB  := Copy(atempDataString, InitStrPos, bBufferSize);
+          DeleteString(atempDataString, InitStrPos, bBufferSize);
+          aItem.Command     := atempDataStringB;
+          aItem.BufferSize  := Length(atempDataStringB);
+          Result            := Add(aItem);
+          aItem.Delay       := aDelay;
+          Inc(aPackNoB);
+         End;
+       End
+      Else
+       Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
+     End;
+   End;
+ Finally
+  vCriticalSection.Release;
+ End;
 End;
 
 Procedure TPackList.ClearAll;
@@ -851,40 +971,52 @@ Begin
  Inherited Clear;
 End;
 
+Constructor TPackList.Create;
+Begin
+ Inherited;
+ vCriticalSection := TCriticalSection.Create;
+End;
+
 Procedure TPackList.Delete       (Index  : Integer);
 Begin
- If (Index > -1)        And
-    (Index <= Count -1) Then
-  Begin
-   Try
-    If Assigned(TList(Self).Items[Index]) Then
-     Begin
-      If Assigned(TPackClass(TList(Self).Items[Index]^)) Then
-       Begin
-       {$IFDEF FPC}
-        FreeAndNil(TList(Self).Items[Index]^);
-       {$ELSE}
-        {$IF CompilerVersion > 33}
-         FreeAndNil(TPackClass(TList(Self).Items[Index]^));
-        {$ELSE}
+// Try
+//  vCriticalSection.Acquire;
+  If (Index > -1)        And
+     (Index <= Count -1) Then
+   Begin
+    Try
+     If Assigned(TList(Self).Items[Index]) Then
+      Begin
+       If Assigned(TPackClass(TList(Self).Items[Index]^)) Then
+        Begin
+        {$IFDEF FPC}
          FreeAndNil(TList(Self).Items[Index]^);
-        {$IFEND}
-       {$ENDIF}
-       End;
-     End;
-    {$IFDEF FPC}
-     Dispose(PPackClass(TList(Self).Items[Index]));
-    {$ELSE}
-     Dispose(TList(Self).Items[Index]);
-    {$ENDIF}
-   Except
+        {$ELSE}
+         {$IF CompilerVersion > 33}
+          FreeAndNil(TPackClass(TList(Self).Items[Index]^));
+         {$ELSE}
+          FreeAndNil(TList(Self).Items[Index]^);
+         {$IFEND}
+        {$ENDIF}
+        End;
+      End;
+     {$IFDEF FPC}
+      Dispose(PPackClass(TList(Self).Items[Index]));
+     {$ELSE}
+      Dispose(TList(Self).Items[Index]);
+     {$ENDIF}
+    Except
+    End;
+    TList(Self).Delete(Index);
    End;
-   TList(Self).Delete(Index);
-  End;
+// Finally
+//  vCriticalSection.Release;
+// End;
 End;
 
 Destructor TPackList.Destroy;
 Begin
+ FreeAndNil(vCriticalSection);
  ClearAll;
  Inherited;
 End;
