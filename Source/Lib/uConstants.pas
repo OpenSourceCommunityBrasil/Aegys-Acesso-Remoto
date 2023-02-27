@@ -23,7 +23,7 @@ type
 const
   PORTA              = 9092;
   FOLGAPROCESSAMENTO = 1;
-  SERVIDOR           = '177.10.144.78'; //'177.10.144.78';//'192.168.15.200';
+  SERVIDOR           = ''; //'177.10.144.78';//'192.168.15.200';
   cMaxFramesBuffer   = 1;
   {
   !!!Deixe em branco para liberar a combobox na config!!!
@@ -34,11 +34,12 @@ const
   Svr: MMHospedagem '177.93.106.240';
   }
   INTERVALOCONEXAO = 60;
+  cTitle = 'Aegys Support Server';
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
 
   // Controle de Versão
-  APPVERSION = '2.0.1';
-  APPBUILDV = '161';
+  APPVERSION = '2.1.0';
+  APPBUILDV = '1';
 
   // frescuragem do app
   PRIMARY_COLOR = $FF0070BA;

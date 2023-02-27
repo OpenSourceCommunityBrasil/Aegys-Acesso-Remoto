@@ -1,4 +1,4 @@
-object Form3: TForm3
+object fServer: TfServer
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu]
@@ -12,11 +12,9 @@ object Form3: TForm3
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PixelsPerInch = 96
   TextHeight = 13
   object DBGrid1: TDBGrid
     Left = 0
@@ -70,7 +68,7 @@ object Form3: TForm3
   object DataSource1: TDataSource
     DataSet = QryConexoes
     Left = 64
-    Top = 144
+    Top = 160
   end
   object QryConexoes: TFDMemTable
     FieldDefs = <>

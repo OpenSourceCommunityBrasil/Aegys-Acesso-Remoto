@@ -14,6 +14,7 @@ object FormConexao: TFormConexao
   FormFactor.Height = 0
   FormFactor.Orientations = []
   FormFactor.Devices = []
+  OnActivate = FormActivate
   OnCreate = FormCreate
   OnClose = FormClose
   OnDestroy = FormDestroy
@@ -277,7 +278,6 @@ object FormConexao: TFormConexao
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
-            Visible = True
             object PhMachineIDCopy: TPath
               Align = Client
               Data.Path = {
@@ -417,7 +417,6 @@ object FormConexao: TFormConexao
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
-            Visible = True
             object PhPasteID: TPath
               Align = Client
               Data.Path = {
@@ -473,7 +472,6 @@ object FormConexao: TFormConexao
             TextSettings.Font.Size = 20.000000000000000000
             TextSettings.FontColor = claWhite
             TextSettings.HorzAlign = Center
-            Visible = True
           end
           object aniBtnLogin: TFloatAnimation
             Duration = 0.500000000000000000
@@ -590,7 +588,6 @@ object FormConexao: TFormConexao
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
-            Visible = True
             object PhPasswordCopy: TPath
               Align = Client
               Data.Path = {

@@ -1,10 +1,10 @@
 ﻿unit uFormConfig;
 
 {
-   Aegys Remote Access Project.
+  Aegys Remote Access Project.
   Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
   Gratuito para utilização de pessoas em geral.
-   O Aegys Remote Access Project tem como desenvolvedores e mantedores hoje
+  O Aegys Remote Access Project tem como desenvolvedores e mantedores hoje
 
   Membros do Grupo :
 
@@ -81,8 +81,8 @@ type
   end;
 
 var
-  fConfig : TfConfig;
-  Conexao : TAegysClient;
+  fConfig: TfConfig;
+  Conexao: TAegysClient;
 
 implementation
 
@@ -99,7 +99,7 @@ var
 begin
   server.Enabled := SERVIDOR = '';
   if Not server.Enabled then
-   server.ItemIndex := -1;
+    server.ItemIndex := -1;
   Locale := TLocale.Create;
   Cfg := TSQLiteConfig.Create;
   try

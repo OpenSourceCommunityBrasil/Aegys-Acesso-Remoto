@@ -31,7 +31,8 @@ Uses
  IdContext,         IdTCPConnection,  IdTCPClient,     IdComponent,     IdBaseComponent,
  IdCustomTCPServer, IdTCPServer,      IdStack,         IdExceptionCore, IdGlobal,
  //Aegys Basic Units
- uAegysBufferPack, uAegysConsts,    uAegysDataTypes, uAegysThreads;
+ uAegysBufferPack, uAegysConsts,    uAegysDataTypes, uAegysThreads, uConstants,
+ uSQLiteConfig;
 
 Type
  TAegysClientStage   = (csNone, csWaitLogon, csWaitPWD, csLoggedIn, csRejected);
@@ -1660,8 +1661,18 @@ End;
 { TAegysClient }
 
 Procedure TAegysClient.Connect;
+var
+  cfg: TSQLiteConfig;
 Begin
- SetActive(True);
+  cfg := TSQLiteConfig.Create;
+  try
+  if (SERVIDOR <> '') or (cfg.getValue('server') <> '') then
+    SetActive(True);
+  finally
+    cfg.Free;
+  end;
+
+
 End;
 
 Constructor TAegysClient.Create(AOwner: TComponent);
