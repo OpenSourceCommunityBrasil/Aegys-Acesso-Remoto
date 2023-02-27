@@ -44,6 +44,7 @@ type
     procedure actSendTextExecute(Sender: TObject);
     procedure sbSendMessageClick(Sender: TObject);
   private
+    aDest    : String;
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
     procedure ExtractSoundandPlay;
@@ -102,8 +103,7 @@ begin
   if not mmMessage.Text.IsEmpty then
   begin
     Mensagem(mmMessage.Lines.Text, False);
-    Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CHAT|>' +
-      mmMessage.Lines.Text + '<|END|>');
+    Conexao.SendMessage(aDest, '<|CHAT|>' + mmMessage.Lines.Text + '<|END|>');
     mmMessage.Lines.Clear;
     lstMensagens.ScrollToItem(lstMensagens.ListItems
       [lstMensagens.Items.Count - 1]);

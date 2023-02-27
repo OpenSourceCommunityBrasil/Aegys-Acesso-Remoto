@@ -1,18 +1,20 @@
 ﻿unit uSendKeyClass;
 
 {
- Project Aegys Remote Support.
+   Aegys Remote Access Project.
+  Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
+  Gratuito para utilização de pessoas em geral.
+   O Aegys Remote Access Project tem como desenvolvedores e mantedores hoje
 
-   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
- and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
- higly esteemed collaborators:
+  Membros do Grupo :
 
-  Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
-  Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
-  Rai Duarte Jales (Raí Duarte) (Aegys Server Developer)
-  Roniery Santos Cardoso (Aegys Developer)
-  Alexandre Carlos Silva Abade (Aegys Developer)
-  Mobius One (Aegys Developer)
+  XyberX (Gilberto Rocha)    - Admin - Criador e Administrador  do pacote.
+  Wendel Fassarela           - Devel and Admin
+  Mobius One                 - Devel, Tester and Admin.
+  Gustavo                    - Devel and Admin.
+  Roniery                    - Devel and Admin.
+  Alexandre Abbade           - Devel and Admin.
+  e Outros como você, venha participar também.
 }
 
 interface

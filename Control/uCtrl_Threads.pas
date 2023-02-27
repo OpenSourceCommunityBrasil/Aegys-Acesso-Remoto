@@ -1,53 +1,36 @@
 ﻿unit uCtrl_Threads;
 
 {
-  Project Aegys Remote Support.
+   Aegys Remote Access Project.
+  Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
+  Gratuito para utilização de pessoas em geral.
+   O Aegys Remote Access Project tem como desenvolvedores e mantedores hoje
 
-  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
-  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
-  higly esteemed collaborators:
+  Membros do Grupo :
 
-  Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
-  Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
-  Rai Duarte Jales (Raí Duarte) (Aegys Server Developer)
-  Roniery Santos Cardoso (Aegys Developer)
-  Alexandre Carlos Silva Abade (Aegys Developer)
-  Mobius One (Aegys Developer)
+  XyberX (Gilberto Rocha)    - Admin - Criador e Administrador  do pacote.
+  Wendel Fassarela           - Devel and Admin
+  Mobius One                 - Devel, Tester and Admin.
+  Gustavo                    - Devel and Admin.
+  Roniery                    - Devel and Admin.
+  Alexandre Abbade           - Devel and Admin.
+  e Outros como você, venha participar também.
 }
+
 
 interface
 
 uses
-  System.Classes,
-
-  IdBaseComponent,
-  IdComponent, IdUDPBase, IdUDPClient, IdCustomTCPServer, IdSocksServer
-  , VCL.Forms
-{$IF DEFINED (ANDROID) || (IOS)}
-    , Fmx.Graphics
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
-    , System.Win.ScktComp, Vcl.Graphics
-{$ENDIF}
-    , uFunctions, Fmx.Types;
+  System.Classes, VCL.Forms,
+  uAegysBase, uFunctions, Fmx.Types;
 
 Type
  TThreadConexaoPrincipal = class(TThread)
  Private
-  {$IF DEFINED (ANDROID) || (IOS)}
-   Socket: IdUDPClient;
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
-   Socket: TCustomWinSocket;
-  {$ENDIF}
+  Socket : TAegysClient;
   Function GetMonitorCount : Integer;
  Public
-  {$IF DEFINED (ANDROID) || (IOS)}
-   Constructor Create(ASocket : IdUDPClient);    Overload;
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
-   Constructor Create(ASocket : TCustomWinSocket);Overload;
-  {$ENDIF}
+  Constructor Create(ASocket : TAegysClient);Overload;
   Procedure Execute; Override;
   Procedure ThreadTerminate(ASender : TObject);
  End;
@@ -57,20 +40,10 @@ Type
    vBreak   : Boolean;
    vInitbuffer,
    vMonitor : String;
-   {$IF DEFINED (ANDROID) || (IOS)}
-    Socket: IdUDPClient;
-   {$ENDIF}
-   {$IF DEFINED (MSWINDOWS)}
-    Socket: TCustomWinSocket;
-   {$ENDIF}
+   Socket : TAegysClient;
    Procedure SetMonitor(Value : String);
   Public
-   {$IF DEFINED (ANDROID) || (IOS)}
-    Constructor Create(ASocket: IdUDPClient); overload;
-   {$ENDIF}
-   {$IF DEFINED (MSWINDOWS)}
-    Constructor Create(ASocket: TCustomWinSocket); overload;
-   {$ENDIF}
+    Constructor Create(ASocket: TAegysClient); overload;
     Property  Capture    : Boolean Read vBreak      Write vBreak;
     Property  Monitor    : String  Read vMonitor    Write SetMonitor;
     Property  Initbuffer : String  Read vInitbuffer Write vInitbuffer;
@@ -79,27 +52,17 @@ Type
   end;
 
   TThreadConexaoTeclado = class(TThread)
-{$IF DEFINED (ANDROID) || (IOS)}
-    Socket: IdUDPClient;
-    constructor Create(ASocket: IdUDPClient); overload;
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
-    Socket: TCustomWinSocket;
-    constructor Create(ASocket: TCustomWinSocket); overload;
-{$ENDIF}
+  Private
+    Socket: TAegysClient;
+  Public
+    constructor Create(ASocket: TAegysClient); overload;
     procedure Execute; override;
     procedure ThreadTerminate(ASender: TObject);
   end;
 
   TThreadConexaoArquivos = class(TThread)
-{$IF DEFINED (ANDROID) || (IOS)}
-    Socket: IdUDPClient;
-    constructor Create(ASocket: IdUDPClient); overload;
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
-    Socket: TCustomWinSocket;
-    constructor Create(ASocket: TCustomWinSocket); overload;
-{$ENDIF}
+    Socket: TAegysClient;
+    constructor Create(ASocket: TAegysClient); overload;
     procedure Execute; override;
     procedure ThreadTerminate(ASender: TObject);
   end;
@@ -122,12 +85,8 @@ uses uFormChat, uFormConexao, uFormTelaRemota,
   System.Rtti, Fmx.Platform, Fmx.Surfaces, StreamManager,
   uConstants
 
-{$IF DEFINED (ANDROID) || (IOS)}
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
     , Winapi.Windows,
   Fmx.Platform.Win
-{$ENDIF}
     , CCR.Clipboard, uFilesFoldersOP, uFileTransfer;
 
 
@@ -183,13 +142,7 @@ Begin
  Result := VCL.Forms.Screen.MonitorCount;
 End;
 
-{$IF DEFINED (ANDROID) || (IOS)}
-
-constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
-  constructor TThreadConexaoPrincipal.Create(ASocket: TCustomWinSocket);
-{$ENDIF}
+constructor TThreadConexaoPrincipal.Create(ASocket: TAegysClient);
   begin
     inherited Create(True);
     Socket := ASocket;
@@ -212,9 +165,6 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
     FoldersAndFiles: TStringList;
     L: TListItem;
     FileToUpload: TFileStream;
-
-{$IF DEFINED (ANDROID) || (IOS)}
-{$ENDIF}
 {$IF DEFINED (MSWINDOWS)}
     hDesktop: HDESK;
 {$ENDIF}
@@ -289,16 +239,11 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
 
     FoldersAndFiles := nil;
     FileToUpload := nil;
-{$IF DEFINED (ANDROID) || (IOS)}
-    while (Socket.Connected) and (not Terminated) do
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
-      while (Socket.Connected) and (not Terminated) do
-{$ENDIF}
+      while (Socket.Active) and (not Terminated) do
       begin
         Sleep(FOLGAPROCESSAMENTO); // Avoids using 100% CPU
 
-        if (Socket = nil) or not(Socket.Connected) or (Terminated) then
+        if (Socket = nil) or not(Socket.Active) or (Terminated) then
           Break;
 
         if Socket.ReceiveLength < 1 then
@@ -489,9 +434,7 @@ constructor TThreadConexaoPrincipal.Create(ASocket: IdUDPClient);
             end);
           Socket.SendText('<|RELATION|>' + Conexao.ID + '<|>' +
                           FormConexao.EGuestID.Text + '<|>' + '<|BESTQ|>' +
-                          '2'
-//                          IntToStr(FormConexao.cbQuality.ItemIndex)
-                          + '<|END|>');
+                          IntToStr(FormConexao.cbQuality.ItemIndex) + '<|END|>');
         end;
 
         if Buffer.Contains('<|DISCONNECTED|>') then

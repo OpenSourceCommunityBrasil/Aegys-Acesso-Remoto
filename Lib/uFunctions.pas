@@ -120,7 +120,6 @@ begin
             aCombo.ListItems[i].ItemData.Detail := Items.KeyNames[i];
             aCombo.ListItems[i].ItemData.Text :=
               UTF8Decode(Items.ValueFromIndex[i]);
-            aCombo.ListItems[i].ImageIndex := i;
           end;
         end;
       tcbLanguage:

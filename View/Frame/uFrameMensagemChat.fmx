@@ -20,13 +20,12 @@ object FrameMensagemChat: TFrameMensagemChat
       Position.X = 15.000000000000000000
       Position.Y = 20.000000000000000000
       Size.Width = 256.000000000000000000
-      Size.Height = 19.000000000000000000
+      Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Quicksand'
       TextSettings.Font.Size = 15.000000000000000000
       TextSettings.FontColor = xFF424242
       TextSettings.VertAlign = Leading
-      TabOrder = 0
     end
     object lblTitulo: TLabel
       Align = Top
@@ -37,7 +36,6 @@ object FrameMensagemChat: TFrameMensagemChat
       TextSettings.Font.Family = 'Quicksand'
       TextSettings.Font.Size = 15.000000000000000000
       TextSettings.FontColor = xFF424242
-      TabOrder = 1
     end
   end
 end

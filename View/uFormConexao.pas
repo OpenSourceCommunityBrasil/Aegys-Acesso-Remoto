@@ -1,31 +1,34 @@
 unit uFormConexao;
 
 {
-  Project Aegys Remote Support.
+   Aegys Remote Access Project.
+  Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
+  Gratuito para utilização de pessoas em geral.
+   O Aegys Remote Access Project tem como desenvolvedores e mantedores hoje
 
-  Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
-  and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
-  higly esteemed collaborators:
+  Membros do Grupo :
 
-  Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
-  Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
-  Rai Duarte Jales (Raí Duarte) (Aegys Server Developer)
-  Roniery Santos Cardoso (Aegys Developer)
-  Alexandre Carlos Silva Abade (Aegys Developer)
-  Mobius One (Aegys Developer)
+  XyberX (Gilberto Rocha)    - Admin - Criador e Administrador  do pacote.
+  Wendel Fassarela           - Devel and Admin
+  Mobius One                 - Devel, Tester and Admin.
+  Gustavo                    - Devel and Admin.
+  Roniery                    - Devel and Admin.
+  Alexandre Abbade           - Devel and Admin.
+  e Outros como você, venha participar também.
 }
 
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes,
-  System.Variants, System.Actions,
-  System.Win.ScktComp, System.Messaging,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Edit, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
-  FMX.Ani, FMX.TabControl, FMX.ListBox, FMX.Menus,
-  uCtrl_Threads, uCtrl_Conexao, uFunctions, CCR.Clipboard, windows, shellapi,
-  Messages, uSQLiteConfig, System.ImageList, FMX.ImgList;
+  System.SysUtils, System.Types,       System.UITypes,            System.Classes,
+  System.Variants, System.Actions,     System.Win.ScktComp,       System.Messaging,
+  FMX.Types,       FMX.Controls,       Vcl.Forms,                 FMX.Dialogs,
+  FMX.Edit,        FMX.Objects,        FMX.Controls.Presentation, FMX.Layouts,
+  FMX.Ani,         FMX.TabControl,     FMX.ListBox, FMX.Menus,    FMX.StdCtrls,
+  uAegysBase,      uAegysDataTypes,    uFunctions, CCR.Clipboard, windows, shellapi,
+  Messages,        uSQLiteConfig,      uAegysConsts,              uAegysClientMotor,
+  FireDAC.UI.Intf, FireDAC.FMXUI.Wait, FireDAC.Stan.Intf,         FireDAC.Comp.UI,
+  FMX.Forms,       FMX.ActnList,       uAegysBufferPack,          FMX.Graphics;
 
 type
   TFormConexao = class(TForm)
@@ -56,7 +59,6 @@ type
     lyStatus: TLayout;
     PhStatus: TPath;
     LStatus: TLabel;
-    tmrReconnect: TTimer;
     tmrIntervalo: TTimer;
     tmrClipboard: TTimer;
     actCopyID: TAction;
@@ -71,6 +73,7 @@ type
     lyQuality: TLayout;
     rQuality: TRectangle;
     LlyResolutionCaption: TLabel;
+    cbQuality: TComboBox;
     lyPassword: TLayout;
     RPassword: TRectangle;
     LlyPasswordCaption: TLabel;
@@ -81,12 +84,7 @@ type
     Pm_systemtray: TPopupMenu;
     MenuItem1: TMenuItem;
     TmrSystemTray: TTimer;
-    ImageList1: TImageList;
-    Layout1: TLayout;
-    Image1: TImage;
-    Label1: TLabel;
-    Label2: TLabel;
-    Rectangle1: TRectangle;
+    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure actPasteIDExecute(Sender: TObject);
@@ -94,7 +92,6 @@ type
     procedure actCopyIDExecute(Sender: TObject);
     procedure actCopyPasswordExecute(Sender: TObject);
     procedure tmrClipboardTimer(Sender: TObject);
-    procedure tmrReconnectTimer(Sender: TObject);
     procedure tmrIntervaloTimer(Sender: TObject);
     procedure EGuestIDTyping(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -102,34 +99,87 @@ type
     procedure TmrSystemTrayTimer(Sender: TObject);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
     procedure FormShow(Sender: TObject);
-    procedure Rectangle1Click(Sender: TObject);
   private
-    Locale: TLocale;
-    TrayWnd: HWND;
-    TrayIconData: TNotifyIconData;
-    TrayIconAdded: Boolean;
-    isvisible: Boolean;
-    function MascaraID(AText, AMascara: string): string;
+    Position,
+    MousePosX,
+    MousePosY         : Integer;
+    aPackList         : TPackList;
+    Locale            : TLocale;
+    aConnection,
+    aMonitor,
+    vOldClipboardFile,
+    vOldClipboardText : String;
+    TrayWnd           : HWND;
+    TrayIconData      : TNotifyIconData;
+    BInputsBlock,
+    TrayIconAdded,
+    vVisualizador,
+    isvisible         : Boolean;
+    SendDataThread    : TAegysMotorThread;//Envio de Desktop
+//    SendCommandEvents : TAegysMotorThread;//Envio de Comandos
+    Function  MascaraID              (AText,
+                                      AMascara          : String) : String;
     procedure Translate;
     procedure SetColors;
-    function ClipboardGetAsFile: string;
-    procedure TrayWndProc(var Message: TMessage);
+    function  ClipboardGetAsFile                        : String;
+    procedure TrayWndProc            (Var Message       : TMessage);
     procedure ShowAppOnTaskbar;
     procedure HideApponTaskbar;
     procedure SetTrayIcon;
-    procedure SetSockets;
+    procedure OnBeforeConnect        (Sender            : TObject;
+                                      Var WelcomeString : String);
+    procedure OnConnect              (Sender            : TObject);
+    procedure OnServerLogin          (Sender            : TObject);
+    procedure OnDisconnect           (Sender            : TObject);
+    procedure OnBeginTransactionError(Connection        : String);
+    procedure OnBeginTransaction     (Connection        : String;
+                                      Var ClientID,
+                                      Alias             : String);
+    procedure OnÌncommingConnect     (Connection        : String;
+                                      Var ClientID,
+                                      ClientPassword,
+                                      Alias             : String);
+    procedure OnAccessGranted        (Connection        : String;
+                                      Var ClientID,
+                                      ClientPassword,
+                                      SpecialData       : String);
+    procedure OnPeerConnected        (Connection        : String;
+                                      Var ClientID,
+                                      ClientPassword,
+                                      Alias             : String);
+    procedure OnPeerDisconnected     (Connection        : String;
+                                      Var ClientID,
+                                      ClientPassword,
+                                      Alias             : String);
+    function  OnPulseData            (aPack             : TAegysBytes;
+                                      CommandType       : TCommandType = tctScreenCapture): Boolean;
+    procedure OnProcessData          (aPackList         : TPackList);
+    procedure OnScreenCapture        (Connection,
+                                      ID, Command       : String;
+                                      aBuf              : TAegysBytes);
+    procedure OnKeyboardCapture      (Command           : String);
+    procedure OnMouseCapture         (Command           : String);
+    procedure KillThreads;
+    procedure ExecuteCommand         (aLine             : String);
   public
+    Procedure Kick;
+    procedure SetPeerDisconnected;
     procedure LimparConexao;
-    procedure MudarStatusConexao(AStatus: Integer; AMensagem: string);
+    procedure MudarStatusConexao     (AStatus           : Integer;
+                                      AMensagem         : String);
     procedure SetOffline;
     procedure SetOnline;
+    procedure SetSockets;
   end;
 
 var
-  FormConexao: TFormConexao;
-  Conexao: TConexao;
-  CF_FILE: Integer;
-  mx, my: Single;
+  FormConexao        : TFormConexao;
+  Conexao            : TAegysClient;
+  Bblockinput        : Boolean;
+  vResolucaoLargura,
+  vResolucaoAltura,
+  CF_FILE            : Integer;
+  mx, my             : Single;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -138,37 +188,292 @@ implementation
 
 {$R *.fmx}
 
-uses uFormTelaRemota, uFileTransfer, uFormChat, FMX.Clipboard,
-  System.IOUtils, System.Rtti, uLibClass,
-  uConstants, BCrypt, System.DateUtils, uHttpClass,
-  System.Threading, FMX.Platform.Win, uFormConfig;
+uses uFormTelaRemota,  uFileTransfer,    uFormChat,        FMX.Clipboard,
+     System.IOUtils,   System.Rtti,      uLibClass,        uConstants,
+     BCrypt,           System.DateUtils, FMX.Platform.Win, uFormConfig,
+     StreamManager,    uFormSenha,       uSendKeyClass,    uAegysTools;
+
+
+Procedure TFormConexao.ExecuteCommand(aLine : String);
+Var
+ aTempID        : String;
+ InicioPalavra,
+ TamanhoPalavra : Integer;
+Begin
+ If aLine.Contains(cShowMouse)    Then
+  vMostrarMouse := True;
+ If aLine.Contains(cHideMouse)    Then
+  vMostrarMouse := False;
+ If aLine.Contains(cBlockInput)   Then
+  Begin
+   BInputsBlock := True;
+   Blockinput(BInputsBlock);
+  End;
+ If aLine.Contains(cUnBlockInput) Then
+  Begin
+   BInputsBlock := False;
+   Blockinput(BInputsBlock);
+  End;
+ Position := Pos(cMousePos, aLine);
+ If Position > 0 then
+  Begin
+   Delete(aLine, InitStrPos, Position + Length(cMousePos) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   aTempID  := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   If aLine.Contains(cBlockInput) then
+    Begin
+     BlockInput(False);
+     SetCursorPos(MousePosX, MousePosY);
+     ProcessMessages;
+     BlockInput(True);
+    End
+   Else
+    SetCursorPos(MousePosX, MousePosY);
+  End;
+ Position := Pos(cMouseClickLeftDown, aLine);
+ If Position > 0 then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickLeftDown) -1);
+   Position   := Pos(cSeparatorTag, aLine);
+   MousePosX  := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, 1, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickLeftUp, aLine);
+ If Position > 0 then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickLeftUp) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, 1, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   If aLine.Contains(cBlockInput) then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+     ProcessMessages;
+     blockinput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickRightDown, aLine);
+ If Position > 0 Then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickRightDown) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+     ProcessMessages;
+     Blockinput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickRightUp, aLine);
+ If Position > 0 Then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickRightUp) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   If aLine.Contains(cBlockInput) then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickMiddleDown, aLine);
+ If Position > 0 Then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickMiddleDown) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos,  Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cMouseClickMiddleUp, aLine);
+ If Position > 0 Then
+  Begin
+   aTempID   := aMonitor;
+   If Trim(aTempID) = '' Then
+    aTempID := '0';
+   Delete(aLine, InitStrPos, Position + Length(cMouseClickMiddleUp) -1);
+   Position := Pos(cSeparatorTag, aLine);
+   MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
+   Delete(aLine, InitStrPos, Position + 2);
+   MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Begin
+     SetCursorPos(MousePosX, MousePosY);
+     Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+    End;
+  End;
+ Position := Pos(cWheelMouse, aLine);
+ If Position > 0 then
+  Begin
+   Delete(aLine, InitStrPos, Position + Length(cWheelMouse) -1);
+   aLine := Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1);
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   If aLine.Contains(cBlockInput) Then
+    Begin
+     BlockInput(false);
+     Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(aLine)), 0);
+     ProcessMessages;
+     BlockInput(true);
+    End
+   Else
+    Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(aLine)), 0);
+  End;
+ Bblockinput := aLine.Contains(cBlockInput);
+ If Bblockinput Then
+  Begin
+   InicioPalavra  := pos(cBlockInput, aLine);
+   TamanhoPalavra := Length(cBlockInput);
+   If InicioPalavra > 0          Then
+    Delete(aLine, InicioPalavra, TamanhoPalavra);
+   BlockInput(false);
+  End;
+ If aLine.Contains(cAltDown)     Then
+  Begin
+   aLine := StringReplace(aLine, cAltDown, '', [rfReplaceAll]);
+   keybd_event(18, 0, 0, 0);
+  End;
+ If aLine.Contains(cAltUp)       Then
+  Begin
+   aLine := StringReplace(aLine, cAltUp, '', [rfReplaceAll]);
+   keybd_event(18, 0, KEYEVENTF_KEYUP, 0);
+  End;
+ If aLine.Contains(cCtrlDown)    Then
+  Begin
+   aLine := StringReplace(aLine, cCtrlDown, '', [rfReplaceAll]);
+   keybd_event(17, 0, 0, 0);
+  End;
+ If aLine.Contains(cCtrlUp) Then
+  Begin
+   aLine := StringReplace(aLine, cCtrlUp, '', [rfReplaceAll]);
+   keybd_event(17, 0, KEYEVENTF_KEYUP, 0);
+  End;
+ If aLine.Contains(cShiftDown) then
+  Begin
+   aLine := StringReplace(aLine, cShiftDown, '', [rfReplaceAll]);
+   keybd_event(16, 0, 0, 0);
+  End;
+ If aLine.Contains(cShiftUp) then
+  Begin
+   aLine := StringReplace(aLine, cShiftUp, '', [rfReplaceAll]);
+   keybd_event(16, 0, KEYEVENTF_KEYUP, 0);
+  End;
+ If aLine.Contains('?') Then
+  Begin
+   If GetKeyState(VK_SHIFT) < 0 Then
+    Begin
+     keybd_event(16, 0, KEYEVENTF_KEYUP, 0);
+     SendKeys(PWideChar(aLine), False);
+     keybd_event(16, 0, 0, 0);
+    End;
+  End
+ Else If aLine <> '' Then
+  SendKeys(PWideChar(aLine), False);
+// Processmessages;
+// BlockInput(Bblockinput);
+End;
 
 Procedure TFormConexao.LimparConexao;
 Begin
-  Conexao.ResolucaoLargura := 986;
-  Conexao.ResolucaoAltura := 600;
-  FormTelaRemota.tCapturarComandos.Enabled := True;
-  FormTelaRemota.tCapturarComandos.Enabled := False;
-  // FormTelaRemota.imgTelaRemota.Fill.Kind            := TbrushKind.Bitmap;
-  // FormTelaRemota.imgTelaRemota.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
-  FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.Assign
-    (FormTelaRemota.imgTelaInicial.Bitmap);
+  vResolucaoLargura := 986;
+  vResolucaoAltura  := 600;
+  vVisualizador     := False;
+  vOldClipboardText := '';
+  If Assigned(FormTelaRemota) Then
+   FreeAndNil(FormTelaRemota);
   If Assigned(fFileTransfer) Then
-   Begin
-    fFileTransfer.pgbDownload.Value := 0;
-    fFileTransfer.pgbUpload.Value := 0;
-    fFileTransfer.LDownloadSize.Text := Locale.GetLocale(MAIN, 'Size');
-    fFileTransfer.LUploadSize.Text := Locale.GetLocale(MAIN, 'Size');
-    If (fFileTransfer.Visible) Then
-      fFileTransfer.Close;
-   End;
-  FormChat.Width := 230;
-  FormChat.Height := 340;
-  FormChat.Left := Trunc(Screen.WorkAreaWidth - FormChat.Width);
-  FormChat.Top := Trunc(Screen.WorkAreaHeight - FormChat.Height);
-  FormChat.lstMensagens.Clear;
-  If (FormChat.Visible) Then
-    FormChat.Close;
+   FreeAndNil(fFileTransfer);
+  If Assigned(FormChat) Then
+   FreeAndNil(FormChat);
 End;
 
 Procedure TFormConexao.tmrClipboardTimer(Sender: TObject);
@@ -177,17 +482,17 @@ Var
   FileStream: TFileStream;
   s, FileName: string;
   ClipFormat: TClipboardFormat;
+  aFileStream : TAegysBytes;
 Begin
-  tmrClipboard.Enabled := Conexao.Visualizador;
+  tmrClipboard.Enabled := vVisualizador;
   try
 
     if Clipboard.HasText then
     begin
-      if (Conexao.OldClipboardText <> Clipboard.AsText) Then
+      if (vOldClipboardText <> Clipboard.AsText) Then
       Begin
-        Conexao.OldClipboardText := Clipboard.AsText;
-        Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|CLIPBOARD|>' +
-          Conexao.OldClipboardText + '<|END|>');
+        vOldClipboardText := Clipboard.AsText;
+        Conexao.SendMessage(EGuestID.Text, '<|CLIPBOARD|>' + vOldClipboardText + '<|END|>', tctClipBoard);
       End;
     end
     else
@@ -195,15 +500,21 @@ Begin
       for s in Clipboard.GetFileNames do
       begin
         if s <> '' then
-          if (Conexao.OldClipboardFile <> s) And (FileExists(s)) Then
+          if (vOldClipboardFile <> s) And (FileExists(s)) Then
           begin
             FileStream := TFileStream.Create(s, fmOpenRead);
-            FileName := ExtractFileName(s);
-            Conexao.OldClipboardFile := s;
-            Conexao.SocketArquivos.Socket.SendText('<|DIRECTORYTOSAVE|>' +
-              FileName + '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
-            FileStream.Position := 0;
-            Conexao.SocketArquivos.Socket.SendStream(FileStream);
+            Try
+             FileName := ExtractFileName(s);
+             vOldClipboardFile := s;
+             Conexao.SendMessage(EGuestID.Text, '<|DIRECTORYTOSAVE|>' + FileName + '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>', tctFileTransfer);
+             FileStream.Position := 0;
+             FileStream.Read(aFileStream, FileStream.Size);
+             Conexao.SendBytes(EGuestID.Text, aFileStream);
+             Processmessages;
+            Finally
+             SetLength(aFileStream, 0);
+             FreeAndNil(FileStream);
+            End;
           end;
       end;
     end;
@@ -228,14 +539,12 @@ begin
   CF_FILE := RegisterClipboardFormat('FileName');
   // inicializando os objetos
   Locale := TLocale.Create;
-  Conexao := TConexao.Create;
+  Conexao := TAegysClient.Create(Self);
   // --------------------------
   SetColors;
   SetOffline;
   Translate;
-
   isvisible := True;
-
   // load confg
   CFG := TSQLiteConfig.Create;
   try
@@ -248,11 +557,18 @@ begin
   finally
     CFG.DisposeOf;
   end;
+ aPackList         := TPackList.Create;
+ SendDataThread    := Nil;
+// SendCommandEvents := Nil;
+ Position          := 0;
+ MousePosX         := 0;
+ MousePosY         := 0;
 end;
 
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
-  Locale.DisposeOf;
+ FreeAndNil(aPackList);
+ Locale.DisposeOf;
 end;
 
 procedure TFormConexao.FormMouseMove(Sender: TObject; Shift: TShiftState;
@@ -319,11 +635,7 @@ begin
   PhStatus.Fill.Color := cColor;
   PhStatus.Tag := AStatus;
   LStatus.Text := AMensagem;
-end;
-
-procedure TFormConexao.Rectangle1Click(Sender: TObject);
-begin
-//
+//  SetOnline;
 end;
 
 procedure TFormConexao.sbOptionsClick(Sender: TObject);
@@ -335,7 +647,7 @@ end;
 
 procedure TFormConexao.actPasteIDExecute(Sender: TObject);
 begin
-  EGuestID.Text := MascaraID(TRDLib.ColarTexto, '999-999-999');
+  EGuestID.Text := MascaraID(TRDLib.ColarTexto, '99-999-999');
   EGuestID.GoToTextEnd;
 end;
 
@@ -363,15 +675,14 @@ begin
   Begin
     If not(LlyGuestIDCaption.Text = '   -   -   ') then
     begin
-      if (LlyGuestIDCaption.Text = Conexao.ID) then
+      if (LlyGuestIDCaption.Text = Conexao.SessionID) then
         MessageBox(0, Locale.GetLocaleDlg(DLGS, 'ErrorSelfConnect'),
           Locale.GetLocaleDlg(DLGS, 'RemoteSupport'),
           MB_ICONASTERISK + MB_TOPMOST)
       else
       begin
         LbtnConectar.Enabled := False;
-        Conexao.SocketPrincipal.Socket.SendText('<|FINDID|>' + EGuestID.Text +
-          '<|END|>');
+        Conexao.SendCommand(cFindID + EGuestID.Text);
         btnConectar.Enabled := False;
         MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
       end;
@@ -389,11 +700,6 @@ begin
   TRDLib.CopiarTexto(LPassword.Text)
 end;
 
-procedure TFormConexao.tmrReconnectTimer(Sender: TObject);
-begin
-  Conexao.ReconectarSocket;
-end;
-
 procedure TFormConexao.Translate;
 begin
   self.Caption := Locale.GetLocale(FRMS, 'MainTitle');
@@ -405,7 +711,7 @@ begin
   LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
   LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
   LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
-//  Locale.GetLocale(cbQuality, tcbQuality);
+  Locale.GetLocale(cbQuality, tcbQuality);
   SetSockets;
 
 end;
@@ -448,53 +754,331 @@ end;
 
 procedure TFormConexao.SetOffline;
 begin
-  LMachineID.Text := Locale.GetLocale(MSGS, 'Disconnected');
-  LPassword.Text := Locale.GetLocale(MSGS, 'Disconnected');
-  btnConectar.Enabled := False;
+  LMachineID.Text      := Locale.GetLocale(MSGS, 'Offline');
+  LPassword.Text       := LMachineID.Text;
+  btnConectar.Enabled  := False;
   LbtnConectar.Enabled := btnConectar.Enabled;
   tmrIntervalo.Enabled := False;
   tmrClipboard.Enabled := False;
+  MudarStatusConexao(1, 'Offline');
+end;
+
+
+Procedure TFormConexao.Kick;
+Begin
+ Conexao.DisconnectAllPeers;
+End;
+
+Procedure TFormConexao.KillThreads;
+Begin
+ If Assigned(SendDataThread) Then //Thread da Area de Trabalho
+  Begin
+   Try
+    SendDataThread.Kill;
+   Except
+   End;
+   {$IFDEF FPC}
+    WaitForThreadTerminate(SendDataThread.Handle, 100);
+   {$ELSE}
+    {$IF Not Defined(HAS_FMX)}
+     WaitForSingleObject  (SendDataThread.Handle, 100);
+    {$IFEND}
+   {$ENDIF}
+   FreeAndNil(SendDataThread);
+  End;
+// If Assigned(SendCommandEvents) Then //Thread de Comandos
+//  Begin
+//   Try
+//    SendCommandEvents.Kill;
+//   Except
+//   End;
+//   {$IFDEF FPC}
+//    WaitForThreadTerminate(SendCommandEvents.Handle, 100);
+//   {$ELSE}
+//    {$IF Not Defined(HAS_FMX)}
+//     WaitForSingleObject  (SendCommandEvents.Handle, 100);
+//    {$IFEND}
+//   {$ENDIF}
+//   FreeAndNil(SendCommandEvents);
+//  End;
+End;
+
+procedure TFormConexao.SetPeerDisconnected;
+begin
+  Kick;
+//  KillThreads;
+  btnConectar.Enabled  := True;
+  LbtnConectar.Enabled := btnConectar.Enabled;
+  tmrIntervalo.Enabled := False;
+  tmrClipboard.Enabled := False;
+  MudarStatusConexao(1, 'Peer Disconnected');
 end;
 
 procedure TFormConexao.SetOnline;
 begin
-  LMachineID.Text := Conexao.ID;
-  LPassword.Text := Conexao.SenhaGerada;
-  btnConectar.Enabled := True;
+  LMachineID.Text      := Conexao.SessionID;
+  LPassword.Text       := Conexao.SessionPWD;
+  btnConectar.Enabled  := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
+  MudarStatusConexao(3, 'Online');
 end;
 
-procedure TFormConexao.SetSockets;
-var
-  CFG: TSQLiteConfig;
-  host: string;
+Function SerialNumHardDisk(FDrive : String): String;
+Var
+ Serial,
+ DirLen,
+ Flags   : DWORD;
+ DLabel  : Array [0 .. 11] of Char;
+Begin
+ Try
+  GetVolumeInformation(PChar(Copy(FDrive, 1, 1) + ':\'), DLabel, 12, @Serial, DirLen, Flags, nil, 0);
+  Result := IntToHex(Serial, 8);
+ Except
+  Result := '';
+ End;
+End;
+
+Function MacAddress : String;
+Var
+ Lib    : Cardinal;
+ Func   : Function(GUID: PGUID): longint; Stdcall;
+ GUID1,
+ GUID2  : TGUID;
+Begin
+ Result := '';
+ Lib := LoadLibrary('rpcrt4.dll');
+ If Lib <> 0 Then
+  Begin
+   @Func := GetProcAddress(Lib, 'UuidCreateSequential');
+   If assigned(Func) Then
+    Begin
+     If (Func(@GUID1) = 0) And
+        (Func(@GUID2) = 0) And
+        (GUID1.D4[2] = GUID2.D4[2]) And
+        (GUID1.D4[3] = GUID2.D4[3]) And
+        (GUID1.D4[4] = GUID2.D4[4]) And
+        (GUID1.D4[5] = GUID2.D4[5]) And
+        (GUID1.D4[6] = GUID2.D4[6]) And
+        (GUID1.D4[7] = GUID2.D4[7]) Then
+      Result := IntToHex(GUID1.D4[2], 2) + '-' +
+                IntToHex(GUID1.D4[3], 2) + '-' +
+                IntToHex(GUID1.D4[4], 2) + '-' +
+                IntToHex(GUID1.D4[5], 2) + '-' +
+                IntToHex(GUID1.D4[6], 2) + '-' +
+                IntToHex(GUID1.D4[7], 2);
+    End;
+  End;
+End;
+
+Procedure TFormConexao.OnBeforeConnect(Sender            : TObject;
+                                       Var WelcomeString : String);
+Var
+ vDrive : String;
+Begin
+ vDrive        := Uppercase(Copy(ParamStr(0), 1, 1));
+ Welcomestring := MacAddress + '|' + SerialNumHardDisk(vDrive);
+End;
+
+procedure TFormConexao.OnServerLogin(Sender: TObject);
 begin
-  CFG := TSQLiteConfig.Create;
-  try
-   if SERVIDOR <> '' then
-    host := SERVIDOR
-   Else
-    host := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
-    Conexao.SocketPrincipal.Close;
-    Conexao.SocketAreaRemota.Close;
-    Conexao.SocketArquivos.Close;
-    Conexao.SocketTeclado.Close;
-
-    Conexao.SocketPrincipal.host := host;
-    Conexao.SocketAreaRemota.host := host;
-    Conexao.SocketArquivos.host := host;
-    Conexao.SocketTeclado.host := host;
-
-    sleep(FOLGAPROCESSAMENTO);
-
-    Conexao.SocketPrincipal.Open;
-//    Conexao.SocketAreaRemota.Open;
-//    Conexao.SocketArquivos.Open;
-//    Conexao.SocketTeclado.Open;
-  finally
-    CFG.Free;
-  end;
+ SetOnline;
 end;
+
+procedure TFormConexao.OnConnect(Sender: TObject);
+begin
+ //SetOnline;
+end;
+
+procedure TFormConexao.OnBeginTransaction(Connection        : String;
+                                          Var ClientID,
+                                          Alias             : String);
+Begin
+ If Not Assigned(FormSenha) Then
+  FormSenha := TFormSenha.Create(Self);
+ FormSenha.Showmodal;
+End;
+
+procedure TFormConexao.OnBeginTransactionError(Connection : String);
+Begin
+ SetOnline;
+ MudarStatusConexao(2, Format('Id "%s" not found...', [Connection]));
+End;
+
+procedure TFormConexao.OnDisconnect(Sender: TObject);
+begin
+ SetOffline;
+end;
+
+Procedure TFormConexao.OnKeyboardCapture (Command           : String);
+Begin
+ OnMouseCapture(Command);
+End;
+
+Procedure TFormConexao.OnMouseCapture    (Command           : String);
+Begin
+ ExecuteCommand(Command);
+End;
+
+Procedure TFormConexao.OnÌncommingConnect(Connection        : String;
+                                          Var ClientID,
+                                          ClientPassword,
+                                          Alias             : String);
+Begin
+ MudarStatusConexao(1, Format('ÌncommingConnect "%s"...', [Connection]));
+End;
+
+Function TFormConexao.OnPulseData(aPack       : TAegysBytes;
+                                  CommandType : TCommandType = tctScreenCapture) : Boolean;
+Begin
+ Result := Conexao.Active;
+ If Result Then
+  Begin
+   If CommandType = tctScreenCapture Then
+    Conexao.SendBytes(aPack)
+   Else
+    Conexao.SendCommand(aConnection, aPack);
+  End;
+ Processmessages;
+End;
+
+Procedure TFormConexao.OnProcessData(aPackList : TPackList);
+Var
+ aPackClass  : TPackClass;
+ aBytes      : TAegysBytes;
+ aScreenShot : TStream;
+ aResolution : String;
+ Function aCapture : TStream;
+ Begin
+  Result := TMemoryStream.Create;
+  Try
+   GetScreenToMemoryStream(True, TMemoryStream(Result));
+  Finally
+   Result.Position := 0;
+  End;
+ End;
+Begin
+ Try
+  aScreenShot             := aCapture;
+  SetLength(aBytes, aScreenShot.Size);
+  aScreenShot.Read(aBytes[0], Length(aBytes));
+  aResolution := Format('%d&%d', [Screen.Height, Screen.Width]);
+  aPackList.Add(Conexao.Connection, '', tdmClientCommand, tdcAsync, tctScreenCapture, aBytes, Format('%s&%s&%s', [Conexao.Connection, Conexao.SessionID, aResolution]), True);
+//  Conexao.SendBytes(aBytes, True, aResolution);
+ Finally
+  FreeAndNil(aScreenShot);
+ End;
+End;
+
+Procedure TFormConexao.OnAccessGranted(Connection        : String;
+                                       Var ClientID,
+                                       ClientPassword,
+                                       SpecialData       : String); //tela remota
+Begin
+ Try
+  //ResolucaoLargura
+  If Not Assigned(FormTelaRemota) Then
+   FormTelaRemota                 := TFormTelaRemota.Create(Self);
+  FormTelaRemota.Caption          := Format(cCaptureTitle, [Connection, ClientID]);
+  FormTelaRemota.Connection       := Connection;
+  aConnection                     := FormTelaRemota.Connection;
+  FormTelaRemota.Show;
+//  SendCommandEvents               := TAegysMotorThread.Create(FormTelaRemota.aPackList);
+//  SendCommandEvents.OnPulseData   := OnPulseData;
+//  SendCommandEvents.Resume;
+ Finally
+
+ End;
+End;
+
+Procedure TFormConexao.OnPeerConnected(Connection        : String;
+                                       Var ClientID,
+                                       ClientPassword,
+                                       Alias             : String); //Captura de tela
+Begin
+ SendDataThread                := TAegysMotorThread.Create;
+ aConnection                   := Connection;
+ Try
+  SendDataThread.OnProcessData := OnProcessData;
+  SendDataThread.OnPulseData   := OnPulseData;
+  SendDataThread.Resume;
+ Finally
+
+ End;
+End;
+
+Procedure TFormConexao.OnPeerDisconnected(Connection        : String;
+                                          Var ClientID,
+                                          ClientPassword,
+                                          Alias             : String); //Captura de tela
+Begin
+ SetPeerDisconnected;
+End;
+
+Procedure TFormConexao.OnScreenCapture(Connection,
+                                       ID,
+                                       Command         : String;
+                                       aBuf            : TAegysBytes);
+Var
+ ArrayOfPointer : TArrayOfPointer;
+ vStream        : TMemoryStream;
+ vAltura,
+ vLargura       : String;
+Begin
+ If Assigned(FormTelaRemota) Then
+  Begin
+   vStream := TMemoryStream.Create;
+   Try
+    If Command <> '' Then
+     Begin
+      ArrayOfPointer := [@vAltura, @vLargura];
+      ParseValues(Command, ArrayOfPointer);
+      If vAltura <> '' Then
+       vResolucaoAltura  := StrToInt(vAltura);
+      If vLargura <> '' Then
+       vResolucaoLargura := StrToInt(vLargura);
+     End;
+    vStream.Write(aBuf[0], Length(aBuf));
+    vStream.Position := 0;
+    FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vStream);
+   Finally
+    FreeAndNil(vStream);
+   End;
+  End;
+End;
+
+Procedure TFormConexao.SetSockets;
+Var
+ CFG : TSQLiteConfig;
+ host : string;
+Begin
+ CFG := TSQLiteConfig.Create;
+ Try
+  If SERVIDOR <> '' Then
+   host := SERVIDOR
+  Else
+   host := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
+  Conexao.Disconnect;
+  Conexao.OnBeforeConnect         := OnBeforeConnect;
+  Conexao.OnConnect               := OnConnect;
+  Conexao.OnDisconnect            := OnDisconnect;
+  Conexao.OnServerLogin           := OnServerLogin;
+  Conexao.OnBeginTransactionError := OnBeginTransactionError;
+  Conexao.OnBeginTransaction      := OnBeginTransaction;
+  Conexao.OnÌncommingConnect      := OnÌncommingConnect;
+  Conexao.OnAccessGranted         := OnAccessGranted;
+  Conexao.OnPeerConnected         := OnPeerConnected;
+  Conexao.OnPeerDisconnected      := OnPeerDisconnected;
+  Conexao.OnScreenCapture         := OnScreenCapture;
+  Conexao.OnKeyboardCapture       := OnKeyboardCapture;
+  Conexao.OnMouseCapture          := OnMouseCapture;
+  Conexao.Host                    := Host;
+  Conexao.Port                    := PORTA;
+  Sleep(FOLGAPROCESSAMENTO);
+  Conexao.Connect;
+ Finally
+  CFG.DisposeOf;
+ End;
+End;
 
 procedure TFormConexao.SetTrayIcon;
 begin
@@ -542,24 +1126,24 @@ end;
 
 procedure TFormConexao.EGuestIDTyping(Sender: TObject);
 begin
-  TEdit(Sender).Text := MascaraID(TEdit(Sender).Text, '999-999-999');
+  TEdit(Sender).Text := MascaraID(TEdit(Sender).Text, '99-999-999');
   TEdit(Sender).GoToTextEnd;
 end;
 
-procedure TFormConexao.tmrIntervaloTimer(Sender: TObject);
-begin
-  if (Conexao.Intervalo > INTERVALOCONEXAO) then
-  begin
-    if (FormTelaRemota.Visible) then
-      FormTelaRemota.Close
-    else
-    begin
-      SetOffline;
-      Conexao.FecharSockets;
-      Conexao.ReconectarSocket;
-    end;
-  end;
-  Conexao.Intervalo := Conexao.Intervalo + 1;
-end;
+Procedure TFormConexao.tmrIntervaloTimer(Sender: TObject);
+Begin
+ If (Conexao.SessionTime > INTERVALOCONEXAO) Then
+  Begin
+   If (FormTelaRemota.Visible) Then
+    FormTelaRemota.Close
+   Else
+    Begin
+     SetOffline;
+     Conexao.Disconnect;
+     SetSockets;
+    End;
+  End;
+ Conexao.SessionTime := Conexao.SessionTime + 1;
+End;
 
 end.

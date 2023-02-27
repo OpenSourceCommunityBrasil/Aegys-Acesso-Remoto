@@ -71,28 +71,41 @@ type
     eRemotePath: TEdit;
     sbLocalGo: TSpeedButton;
     sbRemoteGo: TSpeedButton;
-    procedure SGLocalDrawColumnCell(Sender: TObject; const Canvas: FMX.Graphics.TCanvas;
-      const Column: TColumn; const Bounds: TRectF; const Row: Integer;
-      const Value: TValue; const State: TGridDrawStates);
-    procedure FormCreate(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure cbLocalDriversChange(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure TActiveLoadTimer(Sender: TObject);
-    procedure ceRemotePathChange(Sender: TObject);
-    procedure SGRemoteDrawColumnCell(Sender: TObject; const Canvas: FMX.Graphics.TCanvas;
-      const Column: TColumn; const Bounds: TRectF; const Row: Integer;
-      const Value: TValue; const State: TGridDrawStates);
-    procedure tLoadActionTimer(Sender: TObject);
-    procedure sbDownloadClick(Sender: TObject);
-    procedure sbUploadClick(Sender: TObject);
-    procedure sbLocalGoClick(Sender: TObject);
-    procedure eLocalPathKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
-      Shift: TShiftState);
+    procedure SGLocalDrawColumnCell (Sender       : TObject;
+                                     Const Canvas : FMX.Graphics.TCanvas;
+                                     Const Column : TColumn;
+                                     Const Bounds : TRectF;
+                                     Const Row    : Integer;
+                                     Const Value  : TValue;
+                                     Const State  : TGridDrawStates);
+    procedure FormCreate            (Sender       : TObject);
+    procedure FormShow              (Sender       : TObject);
+    procedure cbLocalDriversChange  (Sender       : TObject);
+    procedure FormClose             (Sender       : TObject;
+                                     Var Action   : TCloseAction);
+    procedure TActiveLoadTimer      (Sender       : TObject);
+    procedure ceRemotePathChange    (Sender       : TObject);
+    procedure SGRemoteDrawColumnCell(Sender       : TObject;
+                                     Const Canvas : FMX.Graphics.TCanvas;
+                                     Const Column : TColumn;
+                                     Const Bounds : TRectF;
+                                     Const Row    : Integer;
+                                     Const Value  : TValue;
+                                     Const State  : TGridDrawStates);
+    procedure tLoadActionTimer      (Sender       : TObject);
+    procedure sbDownloadClick       (Sender       : TObject);
+    procedure sbUploadClick         (Sender       : TObject);
+    procedure sbLocalGoClick        (Sender       : TObject);
+    procedure eLocalPathKeyUp       (Sender       : TObject;
+                                     Var Key      : Word;
+                                     Var KeyChar  : Char;
+                                     Shift        : TShiftState);
   private
     { Private declarations }
    vIconsIndex       : TIconsIndex;
    ShellProps        : TShellProps;
+   ActualDownloadFileName,
+   aDest,
    vLastFolder,
    vActiveFolder,
    vLastLocalFolder,
@@ -101,20 +114,20 @@ type
    vDirectory_Edit   : String;
    vDestCount        : Integer;
    Procedure  ChangeLocalDir;
-   Function   GetIcon      (FileName  : String) : FMX.Graphics.TBitmap;
-   Function   GetSize      (Bytes     : Int64): String;
-   Procedure  GoToDirectory(Directory : String);
+   Function   GetIcon               (FileName     : String) : FMX.Graphics.TBitmap;
+   Function   GetSize               (Bytes        : Int64)  : String;
+   Procedure  GoToDirectory         (Directory    : String);
    Procedure  LoadRemoteData;
-   Procedure  OnRemoteDblClick    (Sender    : TObject);
-   Procedure  OnLocalDblClick     (Sender    : TObject);
-   Procedure  EnterLocalDir(Dir : String);
+   Procedure  OnRemoteDblClick      (Sender       : TObject);
+   Procedure  OnLocalDblClick       (Sender       : TObject);
+   Procedure  EnterLocalDir         (Dir          : String);
   public
     { Public declarations }
-   Procedure CarregarListaPastas  (Directory : String);
-   Procedure CarregarListaArquivos(Directory : String);
-   Property  DestCount : Integer   Read vDestCount;
-   Property  Directory_Local : String Read vDirectory_Local;
-   Property  ActiveFolder : String Read vActiveFolder;
+   Procedure CarregarListaPastas    (Directory    : String);
+   Procedure CarregarListaArquivos  (Directory    : String);
+   Property  DestCount       : Integer Read vDestCount;
+   Property  Directory_Local : String  Read vDirectory_Local;
+   Property  ActiveFolder    : String  Read vActiveFolder;
   end;
 
 var
@@ -124,7 +137,7 @@ implementation
 
 {$R *.fmx}
 
-Uses uCtrl_Threads;
+Uses uAegysBase, uAegysDataTypes;
 
 Function TfFileTransfer.GetIcon(FileName: String): FMX.Graphics.TBitmap;
 Var
@@ -171,7 +184,7 @@ Begin
  Else                   Result := Format('%f TB', [Bytes / T]);
 End;
 
-procedure TfFileTransfer.cbLocalDriversChange(Sender: TObject);
+procedure TfFileTransfer.cbLocalDriversChange(Sender : TObject);
 begin
  If cbLocalDrivers.ItemIndex > -1 Then
   Begin
@@ -208,7 +221,7 @@ Begin
    SGRemote.Cells[2, SGRemote.RowCount - 1] := '';
    SGRemote.Cells[3, SGRemote.RowCount - 1] := '';
   End;
- For I := 0 To FoldersAndFiles.Count - 1 do
+ For I := 0 To FoldersAndFiles.Count - 1 Do
   Begin
    If (FoldersAndFiles.Strings[i] = '.') Or
       (FoldersAndFiles.Strings[i] = '')  Then
@@ -245,7 +258,7 @@ Var
 Begin
  FoldersAndFiles := TStringList.Create;
  FoldersAndFiles.Text := Directory;
- For I := 0 To FoldersAndFiles.Count - 1 do
+ For I := 0 To FoldersAndFiles.Count - 1  Do
   Begin
    If (FoldersAndFiles.Strings[i] = '.')  Or
       (FoldersAndFiles.Strings[i] = '..') Then
@@ -271,12 +284,12 @@ Begin
     Directory := Directory + '\';
    vDirectory_Edit := Directory;
    SGRemote.Enabled := False;
-   Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETFOLDERS|>' + vDirectory_Edit + '<|END_GETFOLDERS|>');
+   Conexao.SendMessage(aDest, '<|GETFOLDERS|>' + vDirectory_Edit + '<|END_GETFOLDERS|>', tctFileTransfer);
    Application.ProcessMessages;
   End;
 End;
 
-procedure TfFileTransfer.ceRemotePathChange(Sender: TObject);
+procedure TfFileTransfer.ceRemotePathChange(Sender : TObject);
 begin
  If ceRemotePath.ItemIndex > -1 Then
   Begin
@@ -314,28 +327,31 @@ Begin
   End;
 End;
 
-procedure TfFileTransfer.eLocalPathKeyUp(Sender: TObject; var Key: Word;
-  var KeyChar: Char; Shift: TShiftState);
-begin
+procedure TfFileTransfer.eLocalPathKeyUp(Sender       : TObject;
+                                         Var Key      : Word;
+                                         Var KeyChar  : Char;
+                                         Shift        : TShiftState);
+Begin
  If Key = vk_return Then
   sbLocalGo.OnClick(sbLocalGo);
-end;
+End;
 
-procedure TfFileTransfer.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TfFileTransfer.FormClose(Sender       : TObject;
+                                   Var Action   : TCloseAction);
 begin
  fFileTransfer := Nil;
  Release;
 end;
 
-Procedure TfFileTransfer.OnLocalDblClick(Sender: TObject);
+Procedure TfFileTransfer.OnLocalDblClick(Sender : TObject);
 Var
  vOldPath : String;
 Begin
  If SGLocal.Selected <> -1 Then
   Begin
-   vOldPath := SGLocal.Cells[1, SGLocal.Selected];
-   If (vOldPath <> '..')  And
-      (vOldPath <> '..\') Then
+   vOldPath   := SGLocal.Cells[1, SGLocal.Selected];
+   If (vOldPath <> '..')   And
+      (vOldPath <> '..\')  Then
     EnterLocalDir(vActiveLocalFolder + vOldPath)
    Else
     Begin
@@ -385,7 +401,7 @@ begin
   End;
 End;
 
-procedure TfFileTransfer.sbDownloadClick(Sender: TObject);
+procedure TfFileTransfer.sbDownloadClick(Sender : TObject);
 Var
  vFileName : String;
 Begin
@@ -394,12 +410,11 @@ Begin
    vFileName              := SGRemote.Cells[1, SGRemote.Selected];
    vDirectory_Local       := Trim(cbLocalDrivers.Items[cbLocalDrivers.ItemIndex]) + vActiveLocalFolder;
    ActualDownloadFileName := vDirectory_Local + vFileName;
-   Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|DOWNLOADFILE|>' +
-                                           vDirectory_Edit + vFileName + '<|END|>');
+   Conexao.SendMessage(aDest, '<|DOWNLOADFILE|>' + vDirectory_Edit + vFileName + '<|END|>', tctFileTransfer);
   End;
 End;
 
-procedure TfFileTransfer.sbLocalGoClick(Sender: TObject);
+procedure TfFileTransfer.sbLocalGoClick(Sender : TObject);
 begin
  If DirectoryExists(Trim(cbLocalDrivers.Items[cbLocalDrivers.ItemIndex]) + eLocalPath.Text) Then
   EnterLocalDir(eLocalPath.Text)
@@ -412,10 +427,11 @@ begin
   End;
 end;
 
-procedure TfFileTransfer.sbUploadClick(Sender: TObject);
+procedure TfFileTransfer.sbUploadClick(Sender : TObject);
 Var
- FileStream : TFileStream;
- FileName   : String;
+ FileStream  : TFileStream;
+ FileName    : String;
+ aFileStream : TAegysBytes;
 begin
  If (SGLocal.Selected > -1) Then
   Begin
@@ -425,10 +441,14 @@ begin
    FileStream := TFileStream.Create(FileName, fmOpenRead);
    FileName := ActualDownloadFileName;
    pgbUpload.Max := FileStream.Size;
-   Conexao.SocketArquivos.Socket.SendText('<|REDIRECT|><|DIRECTORYTOSAVE|>' + vDirectory_Edit + FileName +
-                                          '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>');
+   Conexao.SendMessage(aDest, '<|DIRECTORYTOSAVE|>' + vDirectory_Edit + FileName + '<|><|SIZE|>' + intToStr(FileStream.Size) + '<|END|>', tctFileTransfer);
    FileStream.Position := 0;
-   Conexao.SocketArquivos.Socket.SendStream(FileStream);
+   Try
+    FileStream.Read(aFileStream, FileStream.Size);
+    Conexao.SendBytes(aDest, aFileStream);
+   Finally
+    FreeAndNil(FileStream);
+   End;
   End;
 end;
 
@@ -467,7 +487,7 @@ begin
  ChangeLocalDir;
 End;
 
-procedure TfFileTransfer.FormCreate(Sender: TObject);
+procedure TfFileTransfer.FormCreate(Sender : TObject);
 begin
  vActiveFolder               := '';
  vIconsIndex                 := TIconsIndex.Create;
@@ -478,7 +498,7 @@ begin
  SGRemote.OnDblClick         := OnRemoteDblClick;
 end;
 
-procedure TfFileTransfer.FormShow(Sender: TObject);
+procedure TfFileTransfer.FormShow(Sender : TObject);
 Var
  I : Integer;
 Begin
@@ -488,9 +508,13 @@ Begin
  TActiveLoad.Enabled := True;
 end;
 
-procedure TfFileTransfer.SGLocalDrawColumnCell(Sender: TObject;
-  const Canvas: FMX.Graphics.TCanvas; const Column: TColumn; const Bounds: TRectF;
-  const Row: Integer; const Value: TValue; const State: TGridDrawStates);
+procedure TfFileTransfer.SGLocalDrawColumnCell(Sender       : TObject;
+                                               Const Canvas : FMX.Graphics.TCanvas;
+                                               Const Column : TColumn;
+                                               Const Bounds : TRectF;
+                                               Const Row    : Integer;
+                                               Const Value  : TValue;
+                                               Const State  : TGridDrawStates);
 Var
  vImage,
  sbitmap     : FMX.Graphics.TBitmap;
@@ -539,9 +563,13 @@ begin
   End;
 end;
 
-procedure TfFileTransfer.SGRemoteDrawColumnCell(Sender: TObject;
-  const Canvas: FMX.Graphics.TCanvas; const Column: TColumn; const Bounds: TRectF;
-  const Row: Integer; const Value: TValue; const State: TGridDrawStates);
+procedure TfFileTransfer.SGRemoteDrawColumnCell(Sender       : TObject;
+                                                Const Canvas : FMX.Graphics.TCanvas;
+                                                Const Column : TColumn;
+                                                Const Bounds : TRectF;
+                                                Const Row    : Integer;
+                                                Const Value  : TValue;
+                                                Const State  : TGridDrawStates);
 Var
  vImage,
  sbitmap     : FMX.Graphics.TBitmap;
@@ -583,7 +611,7 @@ begin
   End;
 end;
 
-procedure TfFileTransfer.TActiveLoadTimer(Sender: TObject);
+procedure TfFileTransfer.TActiveLoadTimer(Sender : TObject);
 begin
  TActiveLoad.Enabled := False;
  If cbLocalDrivers.Items.Count > 0 Then
@@ -592,11 +620,11 @@ begin
    cbLocalDrivers.OnChange(cbLocalDrivers);
   End;
  lNomeComputadorLocal.Text := ShellProps.LocalStation;
- Conexao.SocketPrincipal.Socket.SendText('<|REDIRECT|><|GETDRIVERS|><|END_GETDRIVERS|>');
+ Conexao.SendMessage(aDest, '<|GETDRIVERS|><|END_GETDRIVERS|>', tctFileTransfer);
  Application.ProcessMessages;
 end;
 
-procedure TfFileTransfer.tLoadActionTimer(Sender: TObject);
+procedure TfFileTransfer.tLoadActionTimer(Sender : TObject);
 begin
  tLoadAction.Enabled := False;
  ceRemotePath.OnChange(ceRemotePath);

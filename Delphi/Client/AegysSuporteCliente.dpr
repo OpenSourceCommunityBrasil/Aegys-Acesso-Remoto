@@ -13,16 +13,12 @@ uses
   uFormTelaRemota in 'View\uFormTelaRemota.pas' {FormTelaRemota},
   uFormChat in 'View\uFormChat.pas' {FormChat},
   uDM in 'Styles\uDM.pas' {DM: TDataModule},
-  uCtrl_Threads in 'Control\uCtrl_Threads.pas',
   uLibClass in 'Lib\uLibClass.pas',
   uSendKeyClass in 'Lib\uSendKeyClass.pas',
   StreamManager in 'Lib\StreamManager.pas',
   uFormSenha in 'View\uFormSenha.pas' {FormSenha},
-  uCtrl_Conexao in 'Control\uCtrl_Conexao.pas',
-  uHttpClass in 'Lib\uHttpClass.pas',
   Bcrypt in 'Lib\Bcrypt.pas',
   uFormConfig in 'View\uFormConfig.pas' {fConfig},
-  uFrameArquivo in 'View\Frame\uFrameArquivo.pas' {FrameArquivo: TFrame},
   uFrameMensagemChat in 'View\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
   uConstants in 'Lib\uConstants.pas',
   uFunctions in 'Lib\uFunctions.pas',
@@ -40,7 +36,15 @@ uses
   uSQLiteConfig in 'Lib\uSQLiteConfig.pas',
   uFilesFoldersOP in 'Lib\uFilesFoldersOP.pas',
   uFileTransfer in 'View\uFileTransfer.pas' {fFileTransfer},
-  uIconsAssoc in 'Lib\uIconsAssoc.pas';
+  uIconsAssoc in 'Lib\uIconsAssoc.pas',
+  uAegysBase in '..\..\Source\Base\uAegysBase.pas',
+  uAegysBufferPack in '..\..\Source\Base\uAegysBufferPack.pas',
+  uAegysConsts in '..\..\Source\Base\uAegysConsts.pas',
+  uAegysDataTypes in '..\..\Source\Base\uAegysDataTypes.pas',
+  uAegysThreads in '..\..\Source\Base\uAegysThreads.pas',
+  uAegysTools in '..\..\Source\Base\uAegysTools.pas',
+  uAegysClientMotor in 'Lib\uAegysClientMotor.pas',
+  uAegysZlib in '..\..\Source\Libs\uAegysZlib.pas';
 
 {$R *.res}
 
@@ -128,9 +132,6 @@ begin
   Application.Title := Locale.GetLocale(MAIN, 'Title');
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM, DM);
-  Application.CreateForm(TFormChat, FormChat);
-  Application.CreateForm(TFormTelaRemota, FormTelaRemota);
-  Application.CreateForm(TFormSenha, FormSenha);
   Application.Run;
 
   if Application.Terminated then

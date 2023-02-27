@@ -21,9 +21,10 @@ type
   IDThreadType = (ttPrincipal, ttAreaRemota, ttTeclado, ttArquivos);
 
 const
-  PORTA = 3898;
-  FOLGAPROCESSAMENTO = 2;
-  SERVIDOR = '';
+  PORTA              = 9092;
+  FOLGAPROCESSAMENTO = 1;
+  SERVIDOR           = '177.10.144.78'; //'177.10.144.78';//'192.168.15.200';
+  cMaxFramesBuffer   = 1;
   {
   !!!Deixe em branco para liberar a combobox na config!!!
   segue lista de servidores disponíveis:
@@ -37,7 +38,7 @@ const
 
   // Controle de Versão
   APPVERSION = '2.0.1';
-  APPBUILDV = '96';
+  APPBUILDV = '161';
 
   // frescuragem do app
   PRIMARY_COLOR = $FF0070BA;

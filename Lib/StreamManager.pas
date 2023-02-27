@@ -21,8 +21,8 @@ uses
   System.Classes,
   System.Types,
   FMX.Forms,
+  Vcl.Imaging.jpeg,
   FMX.Objects
-
   {$IF DEFINED (ANDROID) || (IOS)}
   ,FMX.Types
   ,FMX.Graphics
@@ -197,6 +197,7 @@ procedure GetScreenToMemoryStream(DrawCur            : Boolean;
 Const
  CAPTUREBLT = $40000000;
 Var
+  JPG : Vcl.Imaging.jpeg.TJPegImage;
   {$IF DEFINED (ANDROID) || (IOS)}
   Mybmp: FMX.Graphics.TBitmap;
   dc: Cardinal;
@@ -250,6 +251,22 @@ Var
      End;
     End;
   End;
+  Procedure BitmapToJpg(Bmp     : Vcl.Graphics.TBitmap;
+                        Var JPG : Vcl.Imaging.jpeg.TJPegImage;
+                        Quality : Integer = 60);
+  Begin
+   Try
+    JPG := TJPegImage.Create;
+    Try
+     JPG.CompressionQuality := Quality;
+     JPG.Compress;
+     JPG.Assign(BMP);
+    Finally
+    End;
+   Finally
+    FreeAndNil(BMP);
+   End;
+ End;
 Begin
   {$IF DEFINED (ANDROID) || (IOS)}
   Mybmp := FMX.Graphics.TBitmap.Create;
@@ -267,20 +284,10 @@ Begin
     DC:= GetDC(0);
     If (DC = 0) Then
      Exit;
-//    If (vMonitor = 0) Then
-//     Begin
-//      Mybmp.Width := Screen.DesktopWidth;
-//      Mybmp.Height := Screen.DesktopHeight;
-//      Left := Screen.DesktopLeft;
-//      Top := Screen.DesktopTop;
-//     End
-//    Else
-//     Begin
     Mybmp.Width := Screen.Monitors[vMonitor].Width;
     Mybmp.Height := Screen.Monitors[vMonitor].Height;
     Left := Screen.Monitors[vMonitor].Left;
     Top := Screen.Monitors[vMonitor].Top;
-//     End;
     DesktopCanvas := TCanvas.Create;
     Try
      DesktopCanvas.Handle := DC;
@@ -329,8 +336,9 @@ Begin
   End
   Else
   Mybmp.PixelFormat := PixelFormat;
-  Mybmp.SaveToStream(TargetMemoryStream);
-  Mybmp.Free;
+  BitmapToJpg(Mybmp, JPG);
+  JPG.SaveToStream(TargetMemoryStream);
+  JPG.Free;
 End;
 
 Function CompareStreamASM(Const s, d: Pointer; Var c: Pointer) : Integer; Assembler;
