@@ -12,7 +12,7 @@ uses
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Objects, FMX.StdCtrls,
   FMX.Bind.Grid, Data.Bind.Grid, System.ImageList, FMX.ImgList, FMX.Edit,
   FMX.ComboEdit, FMX.Layouts, uFilesFoldersOP, uIconsAssoc, FMX.MultiResBitmap
-  {$IFDEF WIN32},WinApi.Windows, FMX.Platform.Win{$ENDIF}, uFormConexao;
+  ,WinApi.Windows, FMX.Platform.Win, uFormConexao;
 
 Type
   TIconIndex = Packed Record

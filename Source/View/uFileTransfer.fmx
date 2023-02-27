@@ -400,6 +400,7 @@ object fFileTransfer: TfFileTransfer
       item
         MultiResBitmap.Height = 10
         MultiResBitmap.Width = 10
+        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 36.000000000000000000
@@ -987,6 +988,7 @@ object fFileTransfer: TfFileTransfer
         Name = 'folder'
       end
       item
+        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 8.000000000000000000
@@ -1056,6 +1058,7 @@ object fFileTransfer: TfFileTransfer
         Name = 'file'
       end
       item
+        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 16.000000000000000000
@@ -2020,6 +2023,7 @@ object fFileTransfer: TfFileTransfer
       item
         MultiResBitmap.Height = 10
         MultiResBitmap.Width = 10
+        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 80.000000000000000000
@@ -5333,6 +5337,7 @@ object fFileTransfer: TfFileTransfer
         Name = 'volumetric-disk-driver'
       end
       item
+        MultiResBitmap.LoadSize = 2
         MultiResBitmap = <
           item
             Scale = 2.000000000000000000
