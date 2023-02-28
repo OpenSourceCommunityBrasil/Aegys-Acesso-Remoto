@@ -83,6 +83,7 @@ type
     rDDMonitor         : TRectangle;
     LDDMonitor         : TLabel;
     lyCloseDropDown    : TLayout;
+    taction: TTimer;
     procedure PROC_ARQUIVOSExecute  (Sender      : TObject);
     procedure PROC_CHATExecute      (Sender      : TObject);
     procedure imgTelaRemotaMouseMove(Sender      : TObject;
@@ -119,6 +120,7 @@ type
     procedure lyCloseDropDownClick  (Sender      : TObject);
     procedure imgTelaRemotaMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
+    procedure tactionTimer(Sender: TObject);
   private
     procedure RetornaMargem;
     procedure SendSocketKeys        (AKeys       : String);
@@ -129,10 +131,12 @@ type
     procedure MonitorFrameClick     (Sender      : TObject);
     procedure ToggleDropDown        (forceClose  : Boolean = false);
   public
+   vInAction          : Boolean;
    vLastMon,
    vConnection,
    vActualIDConnected : String;
    aPackList          : TPackList;
+   vMouseMove         : TStringList;
    Procedure AddItems(MoniNum  : Integer);
    Property  ActualIDConnected : String Read vActualIDConnected Write vActualIDConnected;
    Property  ActualScreen      : String Read vLastMon           Write vLastMon;
@@ -211,6 +215,25 @@ Begin
   End;
  vsbPopupMonitor.EndUpdate;
 End;
+
+procedure TFormTelaRemota.tactionTimer(Sender: TObject);
+Var
+ sLineMouse : String;
+begin
+ vInAction       := True;
+ taction.Enabled := False;
+ Try
+  If vMouseMove.Count > 0 Then
+   Begin
+    sLineMouse := StringReplace(vMouseMove.Text, sLineBreak, '', [rfReplaceAll]) + sLineMouse;
+    vMouseMove.Clear;
+    SendSocketMouse(sLineMouse);
+   End;
+ Finally
+  taction.Enabled := vInAction;
+  vInAction       := False;
+ End;
+end;
 
 Procedure TFormTelaRemota.tCapturarComandosTimer(Sender: TObject);
 Var
@@ -503,11 +526,13 @@ End;
 Procedure TFormTelaRemota.FormClose  (Sender      : TObject;
                                       Var Action  : TCloseAction);
 Begin
- cShowForm := true;
+ taction.Enabled  := False;
+ cShowForm        := True;
  FormConexao.SetPeerDisconnected;
  FreeAndNil(aPackList);
  Locale.DisposeOf;
  FreeAndNil(aPackList);
+ FreeAndNil(vMouseMove);
  If Assigned(fFileTransfer) then
   FreeAndNil(fFileTransfer);
  If Assigned(FormChat) then
@@ -531,6 +556,9 @@ Begin
  FCollapsed                 := True;
  cShowForm                  := True;
  aPackList                  := TPackList.Create;
+ vMouseMove                 := TStringList.Create;
+ vInAction                  := False;
+ taction.Enabled            := Not vInAction;
  SetWindowLong(FmxHandleToHWND(Handle), GWL_EXSTYLE, WS_EX_APPWINDOW);
 End;
 
@@ -686,14 +714,25 @@ Procedure TFormTelaRemota.imgTelaRemotaMouseMove(Sender : TObject;
                                                  X, Y   : Single);
 Var
  iX, iY      : Integer;
+ sLineMouse,
  Sblockinput : String;
 Begin
  If Not Active Then
   Exit;
+ If vInAction  Then
+  Exit;
  iX          := Trunc(X * vResolucaoLargura) Div Trunc(imgTelaRemota.Width);
  iY          := Trunc(Y * vResolucaoAltura)  Div Trunc(imgTelaRemota.Height);
  Sblockinput := IfThen(vBlockInputs, cBlockInput, '');
- SendSocketMouse(cMousePos + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput);
+ If vMouseMove.Count <= 7 Then
+  vMouseMove.Add(cMousePos + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput)
+ Else
+  Begin
+   sLineMouse := cMousePos + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput;
+   sLineMouse := StringReplace(vMouseMove.Text, sLineBreak, '', [rfReplaceAll]) + sLineMouse;
+   vMouseMove.Clear;
+   SendSocketMouse(sLineMouse);
+  End;
 End;
 
 Procedure TFormTelaRemota.imgTelaRemotaMouseUp(Sender : TObject;

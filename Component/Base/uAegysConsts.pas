@@ -25,8 +25,8 @@ Const
  //Aegys Basics
  cAeBufferVersion      = 12;
  cDelayThread          = 2;
- cServiceTimeout       = 500;
- cLimitSource          = 1000;
+ cServiceTimeout       = 1000;
+ cLimitSource          = 500;
  //Messages
  cCaptureTitle         = 'Remote Access, Connection "%s",ID "%s"';
  cCantExecDisconnected = 'Can''''t Execute Action when Disconnected';

@@ -1050,6 +1050,7 @@ Begin
                                                                                                       vAegysSession.SessionList[I].vSessionID,
                                                                                                       vAegysSession.SessionList[I].SessionPWD]);
                                                vAegysSession.SendBytes(aPackClass.ToBytes);
+                                               Processmessages;
                                                vAegysSession.SessionList[I].SessionList.Delete(vAegysSession.Connection,
                                                                                                vAegysSession.vSessionID,
                                                                                                vAegysSession.SessionPWD);
@@ -1095,9 +1096,10 @@ Begin
                                                vYouSession.SendBytes(aPackClass.ToBytes);
                                               Finally
                                                aPackClass.Command  := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
-                                                                                                                    vAegysSession.SessionList[I].vSessionID,
-                                                                                                                    vAegysSession.SessionList[I].SessionPWD]);
+                                                                                                      vAegysSession.SessionList[I].vSessionID,
+                                                                                                      vAegysSession.SessionList[I].SessionPWD]);
                                                vAegysSession.SendBytes(aPackClass.ToBytes);
+                                               Processmessages;
                                                vYouSession.SessionList.Delete(vAegysSession.Connection,
                                                                               vAegysSession.vSessionID,
                                                                               vAegysSession.SessionPWD);
@@ -1261,6 +1263,8 @@ Begin
    AContext.Connection.IOHandler.CheckForDisconnect;
   If Assigned(aPackClass) Then
    FreeAndNil(aPackClass);
+  Processmessages;
+  Sleep(cDelayThread);
  Except
   On E : EIdSocketError Do Abort;
   On E : EIdReadTimeout Do ;
@@ -1269,16 +1273,11 @@ Begin
     If Assigned(aPackClass) Then
      FreeAndNil(aPackClass);
     aMessageError := E.Message;
-    Try
-     If Not AContext.Connection.IOHandler.Connected Then
-      Abort;
-    Except
+    AContext.Connection.IOHandler.CheckForDisconnect(False);
+    If Not AContext.Connection.IOHandler.Connected Then
      Abort;
-    End;
    End;
  End;
- Processmessages;
- Sleep(cDelayThread);
 End;
 
 Function TAegysService.GetSessionList: TSessionList;

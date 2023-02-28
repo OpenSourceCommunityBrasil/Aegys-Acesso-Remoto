@@ -227,7 +227,7 @@ Begin
    Blockinput(BInputsBlock);
   End;
  Position := Pos(cMousePos, aLine);
- If Position > 0 then
+ While Position > 0 Do
   Begin
    Delete(aLine, InitStrPos, Position + Length(cMousePos) -1);
    Position := Pos(cSeparatorTag, aLine);
@@ -237,7 +237,7 @@ Begin
    MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
    Delete(aLine, InitStrPos, Position + 2);
    MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
-   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) then
     Begin
      BlockInput(False);
@@ -247,6 +247,8 @@ Begin
     End
    Else
     SetCursorPos(MousePosX, MousePosY);
+   Processmessages;
+   Position := Pos(cMousePos, aLine);
   End;
  Position := Pos(cMouseClickLeftDown, aLine);
  If Position > 0 then
@@ -259,7 +261,7 @@ Begin
    MousePosX  := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
    Delete(aLine, 1, Position + 2);
    MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
-   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -285,7 +287,7 @@ Begin
    MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
    Delete(aLine, 1, Position + 2);
    MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
-   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) then
     Begin
      BlockInput(false);
@@ -311,7 +313,7 @@ Begin
    MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
    Delete(aLine, InitStrPos, Position + 2);
    MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
-   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -337,7 +339,7 @@ Begin
    MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
    Delete(aLine, InitStrPos, Position + 2);
    MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
-   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) then
     Begin
      BlockInput(false);
@@ -363,7 +365,7 @@ Begin
    MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
    Delete(aLine, InitStrPos, Position + 2);
    MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top + StrToInt(Copy(aLine, InitStrPos,  Pos(cEndTag, aLine) - 1));
-   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -389,7 +391,7 @@ Begin
    MousePosX := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Left + StrToInt(Copy(aLine, InitStrPos, Position - 1));
    Delete(aLine, InitStrPos, Position + 2);
    MousePosY := Vcl.Forms.Screen.Monitors[StrToInt(aTempID)].Top  + StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
-   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -409,7 +411,7 @@ Begin
   Begin
    Delete(aLine, InitStrPos, Position + Length(cWheelMouse) -1);
    aLine := Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1);
-   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag));
+   Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) Then
     Begin
      BlockInput(false);
@@ -990,7 +992,12 @@ Begin
   SetLength(aBytes, aScreenShot.Size);
   aScreenShot.Read(aBytes[0], Length(aBytes));
   aResolution := Format('%d&%d', [Screen.Height, Screen.Width]);
-  aPackList.Add(Conexao.Connection, '', tdmClientCommand, tdcAsync, tctScreenCapture, aBytes, Format('%s&%s&%s', [Conexao.Connection, Conexao.SessionID, aResolution]), True);
+  If Not Assigned(Conexao) Then
+   Exit;
+  If Assigned(aPackList)   Then
+   aPackList.Add(Conexao.Connection, '', tdmClientCommand, tdcAsync, tctScreenCapture, aBytes, Format('%s&%s&%s', [Conexao.Connection, Conexao.SessionID, aResolution]), True)
+  Else
+   Exit;
 //  Conexao.SendBytes(aBytes, True, aResolution);
  Finally
   FreeAndNil(aScreenShot);
