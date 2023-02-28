@@ -19,11 +19,13 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes,
-  System.Variants,
+  System.Variants, System.Actions,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, FMX.Objects,
-  FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uFunctions,
-  System.Actions, FMX.ActnList, MMSystem, uConstants;
+  FMX.Layouts, FMX.ListBox, FMX.ActnList,
+  Winapi.Messages, MMSystem,
+  uFormConexao, uFunctions,
+  uConstants, uLocale;
 
 type
   TFormChat = class(TForm)

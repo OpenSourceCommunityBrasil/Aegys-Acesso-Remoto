@@ -21,9 +21,6 @@ Unit uAegysConsts;
 
 Interface
 
-Uses
- SysUtils, Classes, Variants;
-
 Const
  //Aegys Basics
  cAeBufferVersion      = 12;

@@ -21,10 +21,11 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes,
-  System.Variants,
+  System.Variants, System.Actions,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Edit,
   FMX.Objects, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Ani, FMX.Layouts,
-  System.Actions, FMX.ActnList, uFunctions;
+  FMX.ActnList,
+  uLocale;
 
 type
   TFormSenha = class(TForm)
@@ -89,7 +90,7 @@ procedure TFormSenha.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if Canceled then
   begin
-    FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Cancelled'));
+    FormConexao.MudarStatusConexao(3, Locale.GetLocale(locMESSAGES, iMsgCanceled));
     FormConexao.btnConectar.Enabled := True;
   end;
 end;

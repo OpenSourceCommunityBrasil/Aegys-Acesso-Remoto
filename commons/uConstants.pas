@@ -49,15 +49,6 @@ const
   // vermelho = $FFFFD3D3;
   // menta = $FFC7FFDE;
 
-  // Locale consts
-  MAIN = 'SYSTEMINFO';
-  MSGS = 'MESSAGES';
-  FRMS = 'FORMS';
-  DLGS = 'DIALOGS';
-  CHAT = 'CHAT';
-  CBQUAL = 'CBQUALITY';
-  CBLANG = 'CBLANGUAGE';
-
   // Config consts
   RUN_ON_STARTUP = 'startup';
   FIXED_PASSWORD = 'password';

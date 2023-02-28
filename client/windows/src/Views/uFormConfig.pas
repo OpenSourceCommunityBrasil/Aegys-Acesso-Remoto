@@ -24,8 +24,10 @@ uses
   System.Classes, System.Actions, System.ImageList, System.JSON,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ListBox,
   FMX.Objects, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
-  FMX.Ani, FMX.ActnList, FMX.ImgList,
-  uFunctions, uConstants, uSQLiteConfig, uAegysBase, FMX.ComboEdit;
+  FMX.Ani, FMX.ActnList, FMX.ImgList, FMX.ComboEdit,
+  uAegysBase,
+  uFunctions,
+  uConstants, uSQLiteConfig, uLocale;
 
 type
   TCallBack = procedure of object;
@@ -198,17 +200,17 @@ end;
 
 procedure TfConfig.Translate;
 begin
-  Self.Caption := Locale.GetLocale(FRMS, 'ConfigTitle');
-  LLanguageSelector.Text := Locale.GetLocale(FRMS, 'ConfigLanguage');
-  LBackButton.Text := Locale.GetLocale(FRMS, 'ConfigBackButton');
-  LApplyButton.Text := Locale.GetLocale(FRMS, 'ConfigApplyButton');
-  LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'ConfigPassword');
-  password.TextPrompt := Locale.GetLocale(FRMS, 'ConfigPassword');
+  Self.Caption := Locale.GetLocale(locFORMS, iFrmConfigTitle);
+  LLanguageSelector.Text := Locale.GetLocale(locFORMS, iFrmConfigLanguage);
+  LBackButton.Text := Locale.GetLocale(locFORMS, iFrmConfigBackButton);
+  LApplyButton.Text := Locale.GetLocale(locFORMS, iFrmConfigApplyButton);
+  LlyPasswordCaption.Text := Locale.GetLocale(locFORMS, iFrmConfigPassword);
+  password.TextPrompt := Locale.GetLocale(locFORMS, iFrmConfigPassword);
   Locale.GetLocale(language, tcbLanguage);
-  LStartup.Text := Locale.GetLocale(FRMS, 'ConfigStartup');
-  LSystray.Text := Locale.GetLocale(FRMS, 'ConfigSystemTray');
-  LQuickSupport.Text := Locale.GetLocale(FRMS, 'ConfigQuickSupport');
-  LServer.Text := Locale.GetLocale(FRMS, 'ConfigServer');
+  LStartup.Text := Locale.GetLocale(locFORMS, iFrmConfigStartup);
+  LSystray.Text := Locale.GetLocale(locFORMS, iFrmConfigSystemTray);
+  LQuickSupport.Text := Locale.GetLocale(locFORMS, iFrmConfigQuickSupport);
+  LServer.Text := Locale.GetLocale(locFORMS, iFrmConfigServer);
 end;
 
 end.

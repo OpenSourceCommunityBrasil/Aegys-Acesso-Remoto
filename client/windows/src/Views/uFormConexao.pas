@@ -20,15 +20,25 @@ unit uFormConexao;
 interface
 
 uses
-  System.SysUtils, System.Types,       System.UITypes,            System.Classes,
-  System.Variants, System.Actions,     System.Win.ScktComp,       System.Messaging,
-  FMX.Types,       FMX.Controls,       Vcl.Forms,                 FMX.Dialogs,
-  FMX.Edit,        FMX.Objects,        FMX.Controls.Presentation, FMX.Layouts,
-  FMX.Ani,         FMX.TabControl,     FMX.ListBox, FMX.Menus,    FMX.StdCtrls,
-  uAegysBase,      uAegysDataTypes,    uFunctions, CCR.Clipboard, windows, shellapi,
-  Messages,        uSQLiteConfig,      uAegysConsts,              uAegysClientMotor,
-  FireDAC.UI.Intf, FireDAC.FMXUI.Wait, FireDAC.Stan.Intf,         FireDAC.Comp.UI,
-  FMX.Forms,       FMX.ActnList,       uAegysBufferPack,          FMX.Graphics;
+  System.SysUtils, System.Types, System.UITypes, System.Classes,
+  System.Variants, System.Actions, System.Win.ScktComp, System.Messaging,
+
+  windows, shellapi, Messages,
+
+  // ERRO
+  Vcl.Forms,
+  // ERRO
+
+  FMX.Types, FMX.Controls, FMX.Dialogs, FMX.Edit, FMX.Objects,
+  FMX.Controls.Presentation, FMX.Layouts, FMX.Ani, FMX.TabControl, FMX.ListBox,
+  FMX.Menus, FMX.StdCtrls, FMX.Forms, FMX.ActnList, FMX.Graphics,
+
+  uAegysBase, uAegysDataTypes, uAegysConsts, uAegysClientMotor, uAegysBufferPack,
+  uFunctions, CCR.Clipboard,
+
+  uSQLiteConfig, uLocale, FireDAC.UI.Intf, FireDAC.FMXUI.Wait, FireDAC.Stan.Intf,
+  FireDAC.Comp.UI
+  ;
 
 type
   TFormConexao = class(TForm)
@@ -136,7 +146,7 @@ type
     procedure OnBeginTransaction     (Connection        : String;
                                       Var ClientID,
                                       Alias             : String);
-    procedure OnÌncommingConnect     (Connection        : String;
+    procedure OnIncommingConnect     (Connection        : String;
                                       Var ClientID,
                                       ClientPassword,
                                       Alias             : String);
@@ -688,15 +698,15 @@ begin
     If not(LlyGuestIDCaption.Text = '   -   -   ') then
     begin
       if (LlyGuestIDCaption.Text = Conexao.SessionID) then
-        MessageBox(0, Locale.GetLocaleDlg(DLGS, 'ErrorSelfConnect'),
-          Locale.GetLocaleDlg(DLGS, 'RemoteSupport'),
+        MessageBox(0, Locale.GetLocaleDlg(locDIALOGS, 'ErrorSelfConnect'),
+          Locale.GetLocaleDlg(locDIALOGS, 'RemoteSupport'),
           MB_ICONASTERISK + MB_TOPMOST)
       else
       begin
         LbtnConectar.Enabled := False;
         Conexao.SendCommand(cFindID + EGuestID.Text);
         btnConectar.Enabled := False;
-        MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
+        MudarStatusConexao(1, Locale.GetLocale(locMESSAGES, 'SearchingID'));
       end;
     end;
   End;
@@ -714,15 +724,15 @@ end;
 
 procedure TFormConexao.Translate;
 begin
-  self.Caption := Locale.GetLocale(FRMS, 'MainTitle');
-  LSubTitle.Text := Locale.GetLocale(FRMS, 'MainSubTitle');
-  LVersion.Text := Format(Locale.GetLocale(MAIN, 'Version'),
+  self.Caption := Locale.GetLocale(locFORMS, 'MainTitle');
+  LSubTitle.Text := Locale.GetLocale(locFORMS, 'MainSubTitle');
+  LVersion.Text := Format(Locale.GetLocale(locSYSTEMINFO, 'Version'),
     [TRDLib.GetAppVersionStr]);
-  LlyMachineIDCaption.Text := Locale.GetLocale(FRMS, 'MainMachineID');
-  LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'MainPassword');
-  LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
-  LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
-  LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
+  LlyMachineIDCaption.Text := Locale.GetLocale(locFORMS, 'MainMachineID');
+  LlyPasswordCaption.Text := Locale.GetLocale(locFORMS, 'MainPassword');
+  LlyGuestIDCaption.Text := Locale.GetLocale(locFORMS, 'MainGuestID');
+  LlyResolutionCaption.Text := Locale.GetLocale(locFORMS, 'MainResolution');
+  LbtnConectar.Text := Locale.GetLocale(locFORMS, 'MainConnectButton');
   Locale.GetLocale(cbQuality, tcbQuality);
   SetSockets;
 
@@ -766,13 +776,13 @@ end;
 
 procedure TFormConexao.SetOffline;
 begin
-  LMachineID.Text      := Locale.GetLocale(MSGS, 'Offline');
+  LMachineID.Text      := Locale.GetLocale(locMESSAGES, 'Offline');
   LPassword.Text       := LMachineID.Text;
   btnConectar.Enabled  := False;
   LbtnConectar.Enabled := btnConectar.Enabled;
   tmrIntervalo.Enabled := False;
   tmrClipboard.Enabled := False;
-  MudarStatusConexao(1, 'Offline');
+  MudarStatusConexao(1, Locale.GetLocale(locMESSAGES, 'Offline'));
 end;
 
 
@@ -823,7 +833,7 @@ begin
   LbtnConectar.Enabled := btnConectar.Enabled;
   tmrIntervalo.Enabled := False;
   tmrClipboard.Enabled := False;
-  MudarStatusConexao(1, 'Peer Disconnected');
+  MudarStatusConexao(1, Locale.GetLocale(locMESSAGES, 'Peer Disconnected'));
 end;
 
 procedure TFormConexao.SetOnline;
@@ -832,7 +842,7 @@ begin
   LPassword.Text       := Conexao.SessionPWD;
   btnConectar.Enabled  := True;
   LbtnConectar.Enabled := btnConectar.Enabled;
-  MudarStatusConexao(3, 'Online');
+  MudarStatusConexao(3, Locale.GetLocale(locMESSAGES, 'Online'));
 end;
 
 Function SerialNumHardDisk(FDrive : String): String;
@@ -937,12 +947,12 @@ Begin
  ExecuteCommand(Command);
 End;
 
-Procedure TFormConexao.OnÌncommingConnect(Connection        : String;
+Procedure TFormConexao.OnIncommingConnect(Connection        : String;
                                           Var ClientID,
                                           ClientPassword,
                                           Alias             : String);
 Begin
- MudarStatusConexao(1, Format('ÌncommingConnect "%s"...', [Connection]));
+ MudarStatusConexao(1, Format('IncommingConnect "%s"...', [Connection]));
 End;
 
 Function TFormConexao.OnPulseData(aPack       : TAegysBytes;
@@ -1082,7 +1092,7 @@ Begin
   Conexao.OnServerLogin           := OnServerLogin;
   Conexao.OnBeginTransactionError := OnBeginTransactionError;
   Conexao.OnBeginTransaction      := OnBeginTransaction;
-  Conexao.OnÌncommingConnect      := OnÌncommingConnect;
+  Conexao.OnIncommingConnect      := OnIncommingConnect;
   Conexao.OnAccessGranted         := OnAccessGranted;
   Conexao.OnPeerConnected         := OnPeerConnected;
   Conexao.OnPeerDisconnected      := OnPeerDisconnected;

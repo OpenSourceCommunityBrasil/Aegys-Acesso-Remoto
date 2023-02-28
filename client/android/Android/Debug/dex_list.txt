@@ -1,7 +1,0 @@
-d:\ide\embarcadero\studio\22.0\lib\android\Debug\android-support-v4.dex.jar
-d:\ide\embarcadero\studio\22.0\lib\android\Debug\cloud-messaging.dex.jar
-d:\ide\embarcadero\studio\22.0\lib\android\Debug\fmx.dex.jar
-d:\ide\embarcadero\studio\22.0\lib\android\Debug\google-analytics-v2.dex.jar
-d:\ide\embarcadero\studio\22.0\lib\android\Debug\google-play-billing.dex.jar
-d:\ide\embarcadero\studio\22.0\lib\android\Debug\google-play-licensing.dex.jar
-d:\ide\embarcadero\studio\22.0\lib\android\Debug\google-play-services.dex.jar

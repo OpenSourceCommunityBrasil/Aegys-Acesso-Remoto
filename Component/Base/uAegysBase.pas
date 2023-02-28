@@ -273,7 +273,7 @@ Type
   {$ENDIF}
   aPackList                : TPackList;
   vProcessData             : TAegysThread;
-  vOnÌncommingConnect,
+  vOnIncommingConnect,
   vOnAccessGranted,
   vOnPeerConnected         : TAegysOnPeerConnected;
   vOnPeerKick,
@@ -386,7 +386,7 @@ Type
   Property    OnConnect                  : TAegysOnConnect               Read vOnConnect               Write vOnConnect;
   Property    OnDisconnect               : TAegysOnDisconnect            Read vOnDisconnect            Write vOnDisconnect;
   Property    OnPeerConnected            : TAegysOnPeerConnected         Read vOnPeerConnected         Write vOnPeerConnected;
-  Property    OnÌncommingConnect         : TAegysOnPeerConnected         Read vOnÌncommingConnect      Write vOnÌncommingConnect;
+  Property    OnIncommingConnect         : TAegysOnPeerConnected         Read vOnIncommingConnect      Write vOnIncommingConnect;
   Property    OnPeerDisconnected         : TAegysOnPeerDisconnected      Read vOnPeerDisconnected      Write vOnPeerDisconnected;
   Property    OnPeerKick                 : TAegysOnPeerDisconnected      Read vOnPeerKick              Write vOnPeerKick;
   Property    OnServerLogin              : TAegysOnServerLogin           Read vOnServerLogin           Write vOnServerLogin;
@@ -1855,8 +1855,8 @@ Begin
   ticIncommingConnect : Begin
                          ArrayOfPointer :=  [@vConnection, @vClientID, @vClientPassword, @vAlias];
                          ParseValues(Command, ArrayOfPointer);
-                         If Assigned(vOnÌncommingConnect) Then
-                          vOnÌncommingConnect (vConnection,  vClientID,  vClientPassword,  vAlias);
+                         If Assigned(vOnIncommingConnect) Then
+                          vOnIncommingConnect (vConnection,  vClientID,  vClientPassword,  vAlias);
                         End;
   ticIDExistsReqPass  : Begin
                          ArrayOfPointer :=  [@vConnection, @vClientID, @vAlias];

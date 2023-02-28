@@ -358,6 +358,7 @@
         <DCCReference Include="..\..\Component\Base\uAegysTools.pas"/>
         <DCCReference Include="..\..\Component\Base\uAegysClientMotor.pas"/>
         <DCCReference Include="..\..\Component\Utils\uAegysZlib.pas"/>
+        <DCCReference Include="..\..\commons\uLocale.pas"/>
         <RcItem Include="..\..\Assets\Resources\Locale\AR_SA.ini">
             <ContainerId>ResourceItem</ContainerId>
             <ResourceType>RCDATA</ResourceType>

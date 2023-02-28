@@ -6,7 +6,7 @@
         <MainSource>AegysServer.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
     </PropertyGroup>
@@ -142,6 +142,7 @@
         <DCCReference Include="..\..\Component\Utils\uAegysZlib.pas"/>
         <DCCReference Include="..\..\commons\uConstants.pas"/>
         <DCCReference Include="..\..\commons\uSQLiteConfig.pas"/>
+        <DCCReference Include="..\..\commons\uLocale.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -168,15 +169,15 @@
             </Delphi.Personality>
             <Deployment Version="4">
                 <DeployFile LocalName="Win32\Debug\AegysServer.exe" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="Win64\Debug\AegysServer.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win64">
+                <DeployFile LocalName="Win32\Release\AegysServer.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win32">
                         <RemoteName>AegysServer.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win64\Debug\AegysServer.rsm" Configuration="Debug" Class="DebugSymbols">
+                <DeployFile LocalName="Win64\Debug\AegysServer.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
-                        <RemoteName>AegysServer.rsm</RemoteName>
+                        <RemoteName>AegysServer.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

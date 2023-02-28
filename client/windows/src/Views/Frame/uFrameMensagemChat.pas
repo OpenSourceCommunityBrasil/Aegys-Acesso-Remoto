@@ -22,7 +22,8 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Controls.Presentation, FMX.Layouts, FMX.ListBox, uFunctions;
+  FMX.Controls.Presentation, FMX.Layouts, FMX.ListBox,
+  uFunctions, uConstants, uLocale;
 
 type
   TMensagemRec = record
@@ -50,8 +51,6 @@ type
   end;
 
 implementation
-uses
-  uConstants;
 
 {$R *.fmx}
 
@@ -74,12 +73,12 @@ procedure TFrameMensagemChat.SetMensagem(const Value: TMensagemRec);
 begin
   if Value.Atendente then
   begin
-    lblTitulo.Text := Locale.GetLocale(CHAT, 'They');
+    lblTitulo.Text := Locale.GetLocale(locCHAT, iChtThey);
     lblTitulo.TextSettings.FontColor := $FFED3237;
   end
   else
   begin
-    lblTitulo.Text := Locale.GetLocale(CHAT, 'You');
+    lblTitulo.Text := Locale.GetLocale(locCHAT, iChtYou);
     lblTitulo.TextSettings.FontColor := TAlphaColorRec.Teal;
   end;
   lblTexto.Text := Value.Texto;

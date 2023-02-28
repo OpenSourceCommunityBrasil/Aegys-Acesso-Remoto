@@ -11,7 +11,6 @@ uses
   Windows,
   classes,
   SysUtils,
-  // forms
   uDM in 'src\Views\uDM.pas' {DM: TDataModule},
   uFormConexao in 'src\Views\uFormConexao.pas' {FormConexao},
   uFormTelaRemota in 'src\Views\uFormTelaRemota.pas' {FormTelaRemota},
@@ -21,7 +20,6 @@ uses
   uFileTransfer in 'src\Views\uFileTransfer.pas' {fFileTransfer},
   uFrameMensagemChat in 'src\Views\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
   ufrMonitorItem in 'src\Views\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame},
-  // units
   uLibClass in 'src\Classes\uLibClass.pas',
   uSendKeyClass in 'src\Classes\uSendKeyClass.pas',
   StreamManager in 'src\Classes\StreamManager.pas',
@@ -29,10 +27,8 @@ uses
   uFunctions in 'src\Classes\uFunctions.pas',
   uFilesFoldersOP in 'src\Classes\uFilesFoldersOP.pas',
   uIconsAssoc in 'src\Classes\uIconsAssoc.pas',
-  // common units
   uConstants in '..\..\commons\uConstants.pas',
   uSQLiteConfig in '..\..\commons\uSQLiteConfig.pas',
-  // clipboard
   CCR.Clipboard.Apple.Helpers in 'src\Classes\ClipBoard\CCR.Clipboard.Apple.Helpers.pas',
   CCR.Clipboard.Apple in 'src\Classes\ClipBoard\CCR.Clipboard.Apple.pas',
   CCR.Clipboard.Consts in 'src\Classes\ClipBoard\CCR.Clipboard.Consts.pas',
@@ -43,7 +39,6 @@ uses
   CCR.Clipboard in 'src\Classes\ClipBoard\CCR.Clipboard.pas',
   CCR.Clipboard.VCL in 'src\Classes\ClipBoard\CCR.Clipboard.VCL.pas',
   CCR.Clipboard.Win in 'src\Classes\ClipBoard\CCR.Clipboard.Win.pas',
-  // basecomponent
   uAegysBase in '..\..\Component\Base\uAegysBase.pas',
   uAegysBufferPack in '..\..\Component\Base\uAegysBufferPack.pas',
   uAegysConsts in '..\..\Component\Base\uAegysConsts.pas',
@@ -51,7 +46,8 @@ uses
   uAegysThreads in '..\..\Component\Base\uAegysThreads.pas',
   uAegysTools in '..\..\Component\Base\uAegysTools.pas',
   uAegysClientMotor in '..\..\Component\Base\uAegysClientMotor.pas',
-  uAegysZlib in '..\..\Component\Utils\uAegysZlib.pas';
+  uAegysZlib in '..\..\Component\Utils\uAegysZlib.pas',
+  uLocale in '..\..\commons\uLocale.pas';
 
 {$R *.res}
 
@@ -143,12 +139,12 @@ begin
   end;
 {$ENDIF}
   ExtractCommonFiles;
-  Application.Title := Locale.GetLocale(MAIN, 'Title');
+  Application.Title := Locale.GetLocale(locSYSTEMINFO, iSysTitle);
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM, DM);
   Application.Run;
 
   if Application.Terminated then
-    Locale.DisposeOf;
+    Locale.Free;
 
 end.
