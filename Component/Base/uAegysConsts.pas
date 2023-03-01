@@ -29,8 +29,8 @@ Const
  cLimitSource          = 500;
  //Messages
  cCaptureTitle         = 'Remote Access, Connection "%s",ID "%s"';
- cCantExecDisconnected = 'Can''''t Execute Action when Disconnected';
- cCantJoinDisconnected = 'Can''''t join when Disconnected';
+ cCantExecDisconnected = 'Cannot Execute Action when Disconnected';
+ cCantJoinDisconnected = 'Cannot join when Disconnected';
  cInvalidBufferData    = 'Invalid Buffer Data...';
  cInvalidHeaderData    = 'Invalid Header Data...';
  cOutOfRange           = 'Element out of Range...';

@@ -34,7 +34,6 @@ const
   Svr: MMHospedagem '177.93.106.240';
   }
   INTERVALOCONEXAO = 60;
-  cTitle = 'Aegys Support Server';
   ARQUIVO_SITE = 'caminho do exe em um servidor https';
 
   // Controle de Versão

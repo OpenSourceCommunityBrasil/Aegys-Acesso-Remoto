@@ -158,6 +158,10 @@ type
                                       Var ClientID,
                                       ClientPassword,
                                       Alias             : String);
+    procedure OnPeerKick             (Connection        : String;
+                                      Var ClientID,
+                                      ClientPassword,
+                                      Alias             : String);
     procedure OnPeerDisconnected     (Connection        : String;
                                       Var ClientID,
                                       ClientPassword,
@@ -186,6 +190,7 @@ type
 var
   FormConexao        : TFormConexao;
   Conexao            : TAegysClient;
+  vDrawCursor,
   Bblockinput        : Boolean;
   vResolucaoLargura,
   vResolucaoAltura,
@@ -421,6 +426,22 @@ Begin
     End
    Else
     Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(aLine)), 0);
+  End;
+ Position := Pos(cShowMouse, aLine);
+ If Position > 0 then
+  Begin
+   Delete(aLine, InitStrPos, Position + Length(cShowMouse) -1);
+   If Pos(cEndTag, aLine) > 0 Then
+    Begin
+     aLine := Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1);
+     Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
+    End
+   Else
+    Begin
+     aLine := Copy(aLine, InitStrPos, Length(aLine));
+     Delete(aLine, InitStrPos, Length(aLine));
+    End;
+   vDrawCursor := aLine = 'true';
   End;
  Bblockinput := aLine.Contains(cBlockInput);
  If Bblockinput Then
@@ -695,9 +716,10 @@ end;
 
 procedure TFormConexao.actConnectExecute(Sender: TObject);
 begin
-  If LbtnConectar.Enabled Then
+ If LbtnConectar.Enabled Then
   Begin
-    If not(LlyGuestIDCaption.Text = '   -   -   ') then
+   vDrawCursor := False;
+   If not(LlyGuestIDCaption.Text = '   -   -   ') then
     begin
       if (LlyGuestIDCaption.Text = Conexao.SessionID) then
         MessageBox(0, Locale.GetLocaleDlg(locDIALOGS, 'ErrorSelfConnect'),
@@ -981,7 +1003,7 @@ Var
  Begin
   Result := TMemoryStream.Create;
   Try
-   GetScreenToMemoryStream(True, TMemoryStream(Result));
+   GetScreenToMemoryStream(vDrawCursor, TMemoryStream(Result));
   Finally
    Result.Position := 0;
   End;
@@ -1049,6 +1071,21 @@ Begin
  SetPeerDisconnected;
 End;
 
+Procedure TFormConexao.OnPeerKick(Connection      : String;
+                                  Var ClientID,
+                                  ClientPassword,
+                                  Alias           : String);
+Begin
+ If Assigned(FormTelaRemota) Then
+  FormTelaRemota.Close;
+ KillThreads;  //TODO XyberX, Pois isso daqui para a Captura geral...
+ btnConectar.Enabled  := True;
+ LbtnConectar.Enabled := btnConectar.Enabled;
+ tmrIntervalo.Enabled := False;
+ tmrClipboard.Enabled := False;
+ MudarStatusConexao(1, 'Peer Disconnected');
+End;
+
 Procedure TFormConexao.OnScreenCapture(Connection,
                                        ID,
                                        Command         : String;
@@ -1106,6 +1143,7 @@ Begin
   Conexao.OnScreenCapture         := OnScreenCapture;
   Conexao.OnKeyboardCapture       := OnKeyboardCapture;
   Conexao.OnMouseCapture          := OnMouseCapture;
+  Conexao.OnPeerKick              := OnPeerKick;
   Conexao.Host                    := Host;
   Conexao.Port                    := PORTA;
   Sleep(FOLGAPROCESSAMENTO);

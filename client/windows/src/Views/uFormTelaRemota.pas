@@ -230,7 +230,6 @@ begin
     SendSocketMouse(sLineMouse);
    End;
  Finally
-  taction.Enabled := vInAction;
   vInAction       := False;
  End;
 end;
@@ -558,7 +557,7 @@ Begin
  aPackList                  := TPackList.Create;
  vMouseMove                 := TStringList.Create;
  vInAction                  := False;
- taction.Enabled            := Not vInAction;
+ taction.Enabled            := vInAction;
  SetWindowLong(FmxHandleToHWND(Handle), GWL_EXSTYLE, WS_EX_APPWINDOW);
 End;
 
@@ -639,6 +638,10 @@ Procedure TFormTelaRemota.PROC_MOUSEExecute(Sender: TObject);
 Begin
  vMostrarMouse        := Not vMostrarMouse;
  sbMouse.StaysPressed := vMostrarMouse;
+ If vMostrarMouse Then
+  SendSocketMouse(cShowMouse + 'true')
+ Else
+  SendSocketMouse(cShowMouse + 'false')
 End;
 
 Procedure TFormTelaRemota.PROC_REDIMENSIONARExecute(Sender: TObject);
@@ -717,6 +720,7 @@ Var
  sLineMouse,
  Sblockinput : String;
 Begin
+ taction.Enabled := False;
  If Not Active Then
   Exit;
  If vInAction  Then
