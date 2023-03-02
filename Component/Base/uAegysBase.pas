@@ -24,9 +24,16 @@ Interface
 Uses
  //Delphi Basic Units
  SysUtils, Classes, Variants,
- {$IF Defined(HAS_FMX)}{$IF Not Defined(HAS_UTF8)}FMX.Forms{$IFEND}
- {$ELSE}Vcl.Forms{$ELSE}Forms{$IFEND}
- {$IFDEF MSWINDOWS}, Windows,{$ENDIF}
+ {$IFDEF MSWINDOWS}
+    Windows,
+ {$ENDIF}
+ {$IF DEFINED(HAS_FMX)}
+   {$IF NOT(DEFINED(ANDROID)) and NOT(DEFINED(IOS))}
+     FMX.Forms,
+   {$IFEND}
+ {$ELSE}
+     vcl.Forms,
+ {$IFEND}
  //Indy 10.6 Basic Units
  IdContext,         IdTCPConnection,  IdTCPClient,     IdComponent,     IdBaseComponent,
  IdCustomTCPServer, IdTCPServer,      IdStack,         IdExceptionCore, IdGlobal,
@@ -847,7 +854,7 @@ Begin
        Begin
         Try
          Processmessages;
-         AContext.Connection.IOHandler.CheckForDataOnSource(cLimitSource);
+         AContext.Connection.IOHandler.CheckForDataOnSource;//(cLimitSource);
          bPackSize := AContext.Connection.IOHandler.InputBuffer.Size;
         Except
          Break;//bPackSize := 0
@@ -1277,8 +1284,9 @@ End;
 Procedure ProcessMessages;
 Begin
  {$IFNDEF FPC}
-  {$IF Defined(HAS_FMX)}{$IF Not Defined(HAS_UTF8)}FMX.Forms.TApplication.ProcessMessages;{$IFEND}
-  {$ELSE}Application.Processmessages;{$IFEND}
+   {$IF NOT(DEFINED(ANDROID)) and NOT(DEFINED(IOS))}
+     Application.ProcessMessages;
+   {$IFEND}
  {$ELSE}
   Application.Processmessages;
  {$ENDIF}

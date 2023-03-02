@@ -1013,7 +1013,8 @@ Begin
   aScreenShot             := aCapture;
   SetLength(aBytes, aScreenShot.Size);
   aScreenShot.Read(aBytes[0], Length(aBytes));
-  aResolution := Format('%d&%d', [Screen.Height, Screen.Width]);
+//  aResolution := Format('%d&%d', [Screen.Height, Screen.Width]);
+  aResolution := Format('%s&%s', [FloatToStr(Screen.Height), FloatToStr(Screen.Width)]);
   If Not Assigned(Conexao) Then
    Exit;
   If Assigned(aPackList)   Then
@@ -1125,29 +1126,32 @@ Var
 Begin
  CFG := TSQLiteConfig.Create;
  Try
-  If SERVIDOR <> '' Then
-   host := SERVIDOR
-  Else
-   host := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
   Conexao.Disconnect;
-  Conexao.OnBeforeConnect         := OnBeforeConnect;
-  Conexao.OnConnect               := OnConnect;
-  Conexao.OnDisconnect            := OnDisconnect;
-  Conexao.OnServerLogin           := OnServerLogin;
-  Conexao.OnBeginTransactionError := OnBeginTransactionError;
-  Conexao.OnBeginTransaction      := OnBeginTransaction;
-  Conexao.OnIncommingConnect      := OnIncommingConnect;
-  Conexao.OnAccessGranted         := OnAccessGranted;
-  Conexao.OnPeerConnected         := OnPeerConnected;
-  Conexao.OnPeerDisconnected      := OnPeerDisconnected;
-  Conexao.OnScreenCapture         := OnScreenCapture;
-  Conexao.OnKeyboardCapture       := OnKeyboardCapture;
-  Conexao.OnMouseCapture          := OnMouseCapture;
-  Conexao.OnPeerKick              := OnPeerKick;
-  Conexao.Host                    := Host;
-  Conexao.Port                    := PORTA;
-  Sleep(FOLGAPROCESSAMENTO);
-  Conexao.Connect;
+  If SERVIDOR <> '' Then
+    host := SERVIDOR
+  Else
+    host := CFG.getValue(SERVER);
+  if host <> '' then
+  begin
+    Conexao.OnBeforeConnect         := OnBeforeConnect;
+    Conexao.OnConnect               := OnConnect;
+    Conexao.OnDisconnect            := OnDisconnect;
+    Conexao.OnServerLogin           := OnServerLogin;
+    Conexao.OnBeginTransactionError := OnBeginTransactionError;
+    Conexao.OnBeginTransaction      := OnBeginTransaction;
+    Conexao.OnIncommingConnect      := OnIncommingConnect;
+    Conexao.OnAccessGranted         := OnAccessGranted;
+    Conexao.OnPeerConnected         := OnPeerConnected;
+    Conexao.OnPeerDisconnected      := OnPeerDisconnected;
+    Conexao.OnScreenCapture         := OnScreenCapture;
+    Conexao.OnKeyboardCapture       := OnKeyboardCapture;
+    Conexao.OnMouseCapture          := OnMouseCapture;
+    Conexao.OnPeerKick              := OnPeerKick;
+    Conexao.Host                    := Host;
+    Conexao.Port                    := PORTA;
+    Sleep(FOLGAPROCESSAMENTO);
+    Conexao.Connect;
+  end;
  Finally
   CFG.DisposeOf;
  End;

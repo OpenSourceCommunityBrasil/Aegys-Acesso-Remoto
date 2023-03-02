@@ -17,7 +17,7 @@ uses
   FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
   FireDAC.DApt.Intf,  FireDAC.Comp.DataSet, FireDAC.Comp.Client,
   // aegys
-  uAegysBase, uConstants
+  uAegysBase, uConstants, uLocale
 
   ;
 
@@ -203,6 +203,8 @@ Begin
 End;
 
 Procedure TfServer.Connect;
+var
+  Locale : TLocale;
 Begin
  vAegysService.ServicePort := PORTA;
  Try
@@ -210,10 +212,13 @@ Begin
  Except
 
  End;
+ Locale := TLocale.Create;
  If vAegysService.Active Then
-  Caption := cTitle + Format(' Port:%d - Server Online, Version: %s', [PORTA, APPVERSION])
+  Caption := Locale.GetLocale(locSYSTEMINFO, iSysTitle) +
+  Format(' Port:%d - Server Online, Version: %s', [PORTA, APPVERSION])
  Else
-  Caption := cTitle + Format(' Port:%d - Server Offline, Version: %s', [PORTA, APPVERSION]);
+  Caption := Locale.GetLocale(locSYSTEMINFO, iSysTitle) +
+  Format(' Port:%d - Server Offline, Version: %s', [PORTA, APPVERSION]);
 End;
 
 procedure TfServer.FormCreate(Sender: TObject);

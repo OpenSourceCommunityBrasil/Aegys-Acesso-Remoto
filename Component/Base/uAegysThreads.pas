@@ -23,17 +23,16 @@ Interface
 
 Uses
  SysUtils, Classes, Variants,
-  {$IFNDEF FPC}
-   {$IF Defined(HAS_FMX)}
-   FMX.Forms
-   {$ELSE}
-    {$IF CompilerVersion > 27}
-     Vcl.Forms
-    {$ELSE}Forms{$IFEND}
+ {$IFDEF MSWINDOWS}
+    Windows,
+ {$ENDIF}
+ {$IF DEFINED(HAS_FMX)}
+   {$IF NOT(DEFINED(ANDROID)) and NOT(DEFINED(IOS))}
+     FMX.Forms,
    {$IFEND}
  {$ELSE}
-  Forms
- {$ENDIF},
+     vcl.Forms,
+ {$IFEND}
  uAegysBufferPack, uAegysConsts,
  uAegysDataTypes;
 
@@ -91,8 +90,9 @@ Uses uAegysBase, uAegysTools;
 Procedure TAegysThread.ProcessMessages;
 Begin
  {$IFNDEF FPC}
-  {$IF Defined(HAS_FMX)}{$IF Not Defined(HAS_UTF8)}FMX.Forms.TApplication.ProcessMessages;{$IFEND}
-  {$ELSE}Application.Processmessages;{$IFEND}
+   {$IF NOT(DEFINED(ANDROID)) and NOT(DEFINED(IOS))}
+     Application.ProcessMessages;
+   {$IFEND}
  {$ELSE}
   Application.Processmessages;
  {$ENDIF}
