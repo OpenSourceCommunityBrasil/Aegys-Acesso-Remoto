@@ -16,71 +16,75 @@ uses
 
 Const
   // ini sections
-  locSYSTEMINFO = 'SYSTEMINFO';
-  locMESSAGES = 'MESSAGES';
-  locFORMS = 'FORMS';
-  locDIALOGS = 'DIALOGS';
-  locCHAT = 'CHAT';
-  locCBQUALITY = 'CBQUALITY';
-  locCBLANGUAGE = 'CBLANGUAGE';
+  lsSYSTEMINFO = 'SYSTEMINFO';
+  lsMESSAGES = 'MESSAGES';
+  lsFORMS = 'FORMS';
+  lsDIALOGS = 'DIALOGS';
+  lsCHAT = 'CHAT';
+  lsCBQUALITY = 'CBQUALITY';
+  lsCBLANGUAGE = 'CBLANGUAGE';
 
   // ini message keys
-  iMsgAwaitingAuth = 'AwaitingAuth';
-  iMsgBusyGuest = 'BusyGuest';
-  iMsgCanceled = 'Canceled';
-  iMsgConnected = 'Connected';
-  iMsgConnecting = 'Connecting';
-  iMsgConnectionError = 'ConnectionError';
-  iMsgDisconnected = 'Disconnected';
-  iMsgDownloadSuccess = 'DownloadSuccess';
-  iMsgGranted = 'Granted';
-  iMsgIDNoExist = 'IDNoExist';
-  iMsgLostConnection = 'LostConnection';
-  iMsgRemoteConnected = 'RemoteConnected';
-  iMsgSearchingID = 'SearchingID';
-  iMsgSendSuccess = 'SendSuccess';
-  iMsgServerError = 'ServerError';
-  iMsgWrongPassword = 'WrongPassword';
+  lvMsgAwaitingAuth = 'AwaitingAuth';
+  lvMsgBusyGuest = 'BusyGuest';
+  lvMsgCanceled = 'Canceled';
+  lvMsgConnected = 'Connected';
+  lvMsgConnecting = 'Connecting';
+  lvMsgConnectionError = 'ConnectionError';
+  lvMsgDisconnected = 'Disconnected';
+  lvMsgDownloadSuccess = 'DownloadSuccess';
+  lvMsgGranted = 'Granted';
+  lvMsgIDNoExist = 'IDNoExist';
+  lvMsgIncomming = 'Incomming';
+  lvMsgLostConnection = 'LostConnection';
+  lvMsgOffline = 'Offline';
+  lvMsgOnline = 'Online';
+  lvMsgPeerDisconnected = 'PeerDisconnected';
+  lvMsgRemoteConnected = 'RemoteConnected';
+  lvMsgSearchingID = 'SearchingID';
+  lvMsgSendSuccess = 'SendSuccess';
+  lvMsgServerError = 'ServerError';
+  lvMsgWrongPassword = 'WrongPassword';
   // ini form keys
-  iFrmConfigApplyButton = 'ConfigApplyButton';
-  iFrmConfigBackButton = 'ConfigBackButton';
-  iFrmConfigLanguage = 'ConfigLanguage';
-  iFrmConfigPassword = 'ConfigPassword';
-  iFrmConfigQuickSupport = 'ConfigQuickSupport';
-  iFrmConfigServer = 'ConfigServer';
-  iFrmConfigStartup = 'ConfigStartup';
-  iFrmConfigSystemTray = 'ConfigSystemTray';
-  iFrmConfigTitle = 'ConfigTitle';
-  iFrmFileDownloadButton = 'FileDownloadButton';
-  iFrmFileDownloadProgress = 'FileDownloadProgress';
-  iFrmFileFolder = 'FileFolder';
-  iFrmFileSubTitle = 'FileSubTitle';
-  iFrmFileTitle = 'FileTitle';
-  iFrmFileUploadButton = 'FileUploadButton';
-  iFrmFileUploadProgress = 'FileUploadProgress';
-  iFrmMainConnectButton = 'MainConnectButton';
-  iFrmMainGuestID = 'MainGuestID';
-  iFrmMainMachineID = 'MainMachineID';
-  iFrmMainPassword = 'MainPassword';
-  iFrmMainResolution = 'MainResolution';
-  iFrmMainSubTitle = 'MainSubTitle';
-  iFrmMainTitle = 'MainTitle';
-  iFrmRemoteBlock = 'RemoteBlock';
-  iFrmRemoteChat = 'RemoteChat';
-  iFrmRemoteFile = 'RemoteFile';
-  iFrmRemoteMouse = 'RemoteMouse';
-  iFrmRemoteRelease = 'RemoteRelease';
-  iFrmRemoteTitle = 'RemoteTitle';
+  lvFrmConfigApplyButton = 'ConfigApplyButton';
+  lvFrmConfigBackButton = 'ConfigBackButton';
+  lvFrmConfigLanguage = 'ConfigLanguage';
+  lvFrmConfigPassword = 'ConfigPassword';
+  lvFrmConfigQuickSupport = 'ConfigQuickSupport';
+  lvFrmConfigServer = 'ConfigServer';
+  lvFrmConfigStartup = 'ConfigStartup';
+  lvFrmConfigSystemTray = 'ConfigSystemTray';
+  lvFrmConfigTitle = 'ConfigTitle';
+  lvFrmFileDownloadButton = 'FileDownloadButton';
+  lvFrmFileDownloadProgress = 'FileDownloadProgress';
+  lvFrmFileFolder = 'FileFolder';
+  lvFrmFileSubTitle = 'FileSubTitle';
+  lvFrmFileTitle = 'FileTitle';
+  lvFrmFileUploadButton = 'FileUploadButton';
+  lvFrmFileUploadProgress = 'FileUploadProgress';
+  lvFrmMainConnectButton = 'MainConnectButton';
+  lvFrmMainGuestID = 'MainGuestID';
+  lvFrmMainMachineID = 'MainMachineID';
+  lvFrmMainPassword = 'MainPassword';
+  lvFrmMainResolution = 'MainResolution';
+  lvFrmMainSubTitle = 'MainSubTitle';
+  lvFrmMainTitle = 'MainTitle';
+  lvFrmRemoteBlock = 'RemoteBlock';
+  lvFrmRemoteChat = 'RemoteChat';
+  lvFrmRemoteFile = 'RemoteFile';
+  lvFrmRemoteMouse = 'RemoteMouse';
+  lvFrmRemoteRelease = 'RemoteRelease';
+  lvFrmRemoteTitle = 'RemoteTitle';
   // ini dialog keys
-  iDlgErrorSelfConnect = 'ErrorSelfConnect';
-  iDlgRemoteSupport = 'RemoteSupport';
+  lvDlgErrorSelfConnect = 'ErrorSelfConnect';
+  lvDlgRemoteSupport = 'RemoteSupport';
   // ini system keys
-  iSysSize = 'Size';
-  iSysTitle = 'Title';
-  iSysVersion = 'Version';
+  lvSysSize = 'Size';
+  lvSysTitle = 'Title';
+  lvSysVersion = 'Version';
   // ini chat keys
-  iChtThey = 'They';
-  iChtYou = 'You';
+  lvChtThey = 'They';
+  lvChtYou = 'You';
 
   QualityValues: array of string = ['Grey Scale', 'Low', 'High', 'Real Time'];
 
@@ -96,6 +100,7 @@ type
     procedure SetLocaleFileName(const Value: string);
   public
     constructor Create;
+    destructor Destroy; override;
     function GetLocale(section, variable: string): string; overload;
     {$IFDEF HAS_FMX}
     procedure GetLocale(aCombo: TComboBox; comboType: TComboTypes); overload;
@@ -119,36 +124,36 @@ begin
   {$ELSE}
   SetLocaleFileName(ExtractFilePath(ParamStr(0)) + 'locale.dat');
   {$IFEND}
+  Locale := TIniFile.Create(FLocaleFileName);
   Initialize;
 end;
 
 Function TLocale.GetLocale(section, variable: string): string;
 Begin
-  Locale := TIniFile.Create(FLocaleFileName);
-  Try
-    Result := UTF8Decode(Locale.ReadString(section, variable, ''));
-    Result := StringReplace(Result, '|n', sLineBreak, [rfReplaceAll]);
-  Finally
-    Locale.Free;
-  End;
+  Result := UTF8Decode(Locale.ReadString(section, variable, ''));
+  Result := StringReplace(Result, '|n', sLineBreak, [rfReplaceAll]);
 End;
 
-{$IFDEF HAS_FMX}
+destructor TLocale.Destroy;
+begin
+  Locale.Free;
+  inherited;
+end;
 
+{$IFDEF HAS_FMX}
 procedure TLocale.GetLocale(aCombo: TComboBox; comboType: TComboTypes);
 var
   Items: TStringList;
   currIndex, i, j: integer;
 begin
   Items := TStringList.Create;
-  Locale := TIniFile.Create(FLocaleFileName);
   currIndex := aCombo.ItemIndex;
   try
     aCombo.Items.Clear;
     case comboType of
       tcbQuality:
         begin
-          Locale.ReadSectionValues(locCBQUALITY, Items);
+          Locale.ReadSectionValues(lsCBQUALITY, Items);
           for i := 0 to pred(Items.count) do
           begin
             aCombo.ListBox.Items.Add('');
@@ -159,7 +164,7 @@ begin
         end;
       tcbLanguage:
         begin
-          Locale.ReadSectionValues(locCBLANGUAGE, Items);
+          Locale.ReadSectionValues(lsCBLANGUAGE, Items);
           j := 0;
           for i := 0 to pred(Items.count) do
             if GetEnumValue(TypeInfo(TLanguageImage), Items.KeyNames[i]) > -1
@@ -177,8 +182,7 @@ begin
     end;
     aCombo.ItemIndex := currIndex;
   finally
-    Items.DisposeOf;
-    Locale.DisposeOf;
+    Items.Free;
   end;
 end;
 {$ENDIF}
@@ -191,8 +195,6 @@ end;
 procedure TLocale.Initialize;
 var
   Res: TResourceStream;
-  teste: integer;
-  test: string;
 begin
   if not FileExists(FLocaleFileName) then
   begin
@@ -208,7 +210,7 @@ begin
     try
       Res.SaveToFile(FLocaleFileName);
     finally
-      Res.DisposeOf;
+      Res.Free;
     end;
   end;
 end;

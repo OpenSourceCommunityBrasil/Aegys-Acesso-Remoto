@@ -139,7 +139,7 @@ begin
   end;
 {$ENDIF}
   ExtractCommonFiles;
-  Application.Title := Locale.GetLocale(locSYSTEMINFO, iSysTitle);
+  Application.Title := Locale.GetLocale(lsSYSTEMINFO, lvSysTitle);
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM, DM);
   Application.Run;

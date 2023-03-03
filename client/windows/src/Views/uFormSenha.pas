@@ -90,7 +90,7 @@ procedure TFormSenha.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if Canceled then
   begin
-    FormConexao.MudarStatusConexao(3, Locale.GetLocale(locMESSAGES, iMsgCanceled));
+    FormConexao.MudarStatusConexao(3, Locale.GetLocale(lsMESSAGES, lvMsgCanceled));
     FormConexao.btnConectar.Enabled := True;
   end;
 end;

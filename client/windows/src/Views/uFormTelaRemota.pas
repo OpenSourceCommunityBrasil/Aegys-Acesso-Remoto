@@ -517,9 +517,9 @@ End;
 
 Procedure TFormTelaRemota.Translate;
 Begin
- LMouse.Text := Locale.GetLocale(locFORMS, 'RemoteMouse');
- LFiles.Text := Locale.GetLocale(locFORMS, 'RemoteFile');
- LChat.Text  := Locale.GetLocale(locFORMS, 'RemoteChat');
+ LMouse.Text := Locale.GetLocale(lsFORMS, lvFrmRemoteMouse);
+ LFiles.Text := Locale.GetLocale(lsFORMS, lvFrmRemoteFile);
+ LChat.Text  := Locale.GetLocale(lsFORMS, lvFrmRemoteChat);
 End;
 
 Procedure TFormTelaRemota.FormClose  (Sender      : TObject;
@@ -595,7 +595,7 @@ Begin
  sbMouse.StaysPressed      := vMostrarMouse;
  Path4.Fill.Color          := StringToAlphaColor('#FFFF1E1E');
  vBlockInputs              := False;
- lblockinput.Text          := Locale.GetLocale(locFORMS, 'RemoteBlock');
+ lblockinput.Text          := Locale.GetLocale(lsFORMS, lvFrmRemoteBlock);
  If cShowForm Then
   Begin
    FCollapsed := true;
@@ -617,13 +617,13 @@ Begin
   Begin
    Path4.Fill.Color := StringToAlphaColor('#FF166600');
    vBlockInputs     := True;
-   lblockinput.Text := Locale.GetLocale(locFORMS, 'RemoteRelease');
+   lblockinput.Text := Locale.GetLocale(lsFORMS, lvFrmRemoteRelease);
   End
  Else
   Begin
    Path4.Fill.Color := StringToAlphaColor('#FFFF1E1E');
    vBlockInputs     := False;
-   lblockinput.Text := Locale.GetLocale(locFORMS, 'RemoteBlock');
+   lblockinput.Text := Locale.GetLocale(lsFORMS, lvFrmRemoteBlock);
   End;
 End;
 

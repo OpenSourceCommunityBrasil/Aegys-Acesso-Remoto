@@ -73,12 +73,12 @@ procedure TFrameMensagemChat.SetMensagem(const Value: TMensagemRec);
 begin
   if Value.Atendente then
   begin
-    lblTitulo.Text := Locale.GetLocale(locCHAT, iChtThey);
+    lblTitulo.Text := Locale.GetLocale(lsCHAT, lvChtThey);
     lblTitulo.TextSettings.FontColor := $FFED3237;
   end
   else
   begin
-    lblTitulo.Text := Locale.GetLocale(locCHAT, iChtYou);
+    lblTitulo.Text := Locale.GetLocale(lsCHAT, lvChtYou);
     lblTitulo.TextSettings.FontColor := TAlphaColorRec.Teal;
   end;
   lblTexto.Text := Value.Texto;

@@ -200,17 +200,17 @@ end;
 
 procedure TfConfig.Translate;
 begin
-  Self.Caption := Locale.GetLocale(locFORMS, iFrmConfigTitle);
-  LLanguageSelector.Text := Locale.GetLocale(locFORMS, iFrmConfigLanguage);
-  LBackButton.Text := Locale.GetLocale(locFORMS, iFrmConfigBackButton);
-  LApplyButton.Text := Locale.GetLocale(locFORMS, iFrmConfigApplyButton);
-  LlyPasswordCaption.Text := Locale.GetLocale(locFORMS, iFrmConfigPassword);
-  password.TextPrompt := Locale.GetLocale(locFORMS, iFrmConfigPassword);
+  Self.Caption := Locale.GetLocale(lsFORMS, lvFrmConfigTitle);
+  LLanguageSelector.Text := Locale.GetLocale(lsFORMS, lvFrmConfigLanguage);
+  LBackButton.Text := Locale.GetLocale(lsFORMS, lvFrmConfigBackButton);
+  LApplyButton.Text := Locale.GetLocale(lsFORMS, lvFrmConfigApplyButton);
+  LlyPasswordCaption.Text := Locale.GetLocale(lsFORMS, lvFrmConfigPassword);
+  password.TextPrompt := Locale.GetLocale(lsFORMS, lvFrmConfigPassword);
   Locale.GetLocale(language, tcbLanguage);
-  LStartup.Text := Locale.GetLocale(locFORMS, iFrmConfigStartup);
-  LSystray.Text := Locale.GetLocale(locFORMS, iFrmConfigSystemTray);
-  LQuickSupport.Text := Locale.GetLocale(locFORMS, iFrmConfigQuickSupport);
-  LServer.Text := Locale.GetLocale(locFORMS, iFrmConfigServer);
+  LStartup.Text := Locale.GetLocale(lsFORMS, lvFrmConfigStartup);
+  LSystray.Text := Locale.GetLocale(lsFORMS, lvFrmConfigSystemTray);
+  LQuickSupport.Text := Locale.GetLocale(lsFORMS, lvFrmConfigQuickSupport);
+  LServer.Text := Locale.GetLocale(lsFORMS, lvFrmConfigServer);
 end;
 
 end.

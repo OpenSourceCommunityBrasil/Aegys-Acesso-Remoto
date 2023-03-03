@@ -14,7 +14,6 @@ object FormConexao: TFormConexao
   FormFactor.Height = 0
   FormFactor.Orientations = []
   FormFactor.Devices = []
-  OnActivate = FormActivate
   OnCreate = FormCreate
   OnClose = FormClose
   OnDestroy = FormDestroy
@@ -619,15 +618,7 @@ object FormConexao: TFormConexao
       end
     end
   end
-  object Pm_systemtray: TPopupMenu
-    Left = 260
-    Top = 333
-    object MenuItem1: TMenuItem
-      Text = 'Abrir'
-    end
-  end
   object TmrSystemTray: TTimer
-    OnTimer = TmrSystemTrayTimer
     Left = 116
     Top = 172
   end
