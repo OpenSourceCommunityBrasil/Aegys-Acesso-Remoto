@@ -1030,15 +1030,19 @@ Begin
                                                                                                       vAegysSession.SessionPWD]);
                                                vAegysSession.SessionList[I].SendBytes(aPackClass.ToBytes);
                                               Finally
-                                               aPackClass.Command  := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
-                                                                                                      vAegysSession.SessionList[I].vSessionID,
-                                                                                                      vAegysSession.SessionList[I].SessionPWD]);
+                                               If Assigned(vAegysSession.SessionList) Then
+                                                aPackClass.Command  := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
+                                                                                                       vAegysSession.SessionList[I].vSessionID,
+                                                                                                       vAegysSession.SessionList[I].SessionPWD]);
                                                vAegysSession.SendBytes(aPackClass.ToBytes);
                                                Processmessages;
-                                               vAegysSession.SessionList[I].SessionList.Delete(vAegysSession.Connection,
-                                                                                               vAegysSession.vSessionID,
-                                                                                               vAegysSession.SessionPWD);
-                                               vAegysSession.SessionList.Delete(I);
+                                               If Assigned(vAegysSession.SessionList) Then
+                                                Begin
+                                                 vAegysSession.SessionList[I].SessionList.Delete(vAegysSession.Connection,
+                                                                                                 vAegysSession.vSessionID,
+                                                                                                 vAegysSession.SessionPWD);
+                                                 vAegysSession.SessionList.Delete(I);
+                                                End;
                                               End;
                                              End;
                                            Finally
@@ -1048,7 +1052,8 @@ Begin
                   ticDisconnectPeer     : Begin
                                            ArrayOfPointer := [@vYouID, @vYouPass, @vSockCommand];
                                            ParseValues(vCommand, ArrayOfPointer);
-                                           vYouSession := vAegysSession.SessionList.GetConnection(vSockCommand, vYouID, vYouPass);
+                                           If Assigned(vAegysSession.SessionList) Then
+                                            vYouSession := vAegysSession.SessionList.GetConnection(vSockCommand, vYouID, vYouPass);
                                            If Assigned(aPackClass) Then
                                             FreeAndNil(aPackClass);
                                            If (vYouSession = Nil) Then //Error defined, no have connection
@@ -1080,15 +1085,18 @@ Begin
                                                vYouSession.SendBytes(aPackClass.ToBytes);
                                                Processmessages;
                                               Finally
-                                               aPackClass.Command    := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
-                                                                                                        vAegysSession.SessionList[I].vSessionID,
-                                                                                                        vAegysSession.SessionList[I].SessionPWD]);
+                                               If Assigned(vAegysSession.SessionList) Then
+                                                aPackClass.Command    := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
+                                                                                                         vAegysSession.SessionList[I].vSessionID,
+                                                                                                         vAegysSession.SessionList[I].SessionPWD]);
                                                vAegysSession.SendBytes         (aPackClass.ToBytes);
                                                Processmessages;
-                                               vYouSession.SessionList.Delete  (vAegysSession.Connection,
-                                                                                vAegysSession.vSessionID,
-                                                                                vAegysSession.SessionPWD);
-                                               vAegysSession.SessionList.Delete(vSockCommand, vYouID, vYouPass);
+                                               If Assigned(vYouSession.SessionList) Then
+                                                vYouSession.SessionList.Delete  (vAegysSession.Connection,
+                                                                                 vAegysSession.vSessionID,
+                                                                                 vAegysSession.SessionPWD);
+                                               If Assigned(vAegysSession.SessionList) Then
+                                                vAegysSession.SessionList.Delete(vSockCommand, vYouID, vYouPass);
                                                Processmessages;
                                               End;
                                              Finally
@@ -1126,29 +1134,32 @@ Begin
                                           vYouSession.SessionList.Add(vMySession);
                                           aPackClass := TPackClass.Create;
                                           Try
-                                           aPackClass.DataMode  := tdmServerCommand;
-                                           aPackClass.DataCheck := tdcAsync;
-                                           If vInternalCommand = ticCheckPass Then
+                                           aPackClass.DataMode   := tdmServerCommand;
+                                           aPackClass.DataCheck  := tdcAsync;
+                                           If vInternalCommand    = ticCheckPass Then
                                             Begin
-                                             aPackClass.Command := cAccessGranted + Format('%s&%s&%s', [vYouSession.Connection,
-                                                                                                        vYouSession.vSessionID,
-                                                                                                        vYouSession.SessionPWD]);
-                                             aBuf               := aPackClass.ToBytes;
-                                             vMySession.SendBytes(aBuf);
+                                             If Assigned(vYouSession) Then
+                                              aPackClass.Command := cAccessGranted;
                                             End
                                            Else
                                             Begin
-                                             aPackClass.Command := cConnectedPeer + Format('%s&%s&%s', [vYouSession.Connection,
-                                                                                                        vYouSession.vSessionID,
-                                                                                                        vYouSession.SessionPWD]);
-                                             aBuf               := aPackClass.ToBytes;
-                                             vMySession.SendBytes(aBuf);
+                                             If Assigned(vYouSession) Then
+                                              aPackClass.Command := cConnectedPeer;
                                             End;
-                                           aPackClass.Command   := cConnectedPeer + Format('%s&%s&%s', [vMySession.Connection,
-                                                                                                        vMySession.vSessionID,
-                                                                                                        vMySession.SessionPWD]);
-                                           aBuf                 := aPackClass.ToBytes;
-                                           vYouSession.SendBytes(aBuf);
+                                           aPackClass.Command    := aPackClass.Command + Format('%s&%s&%s', [vYouSession.Connection,
+                                                                                                             vYouSession.vSessionID,
+                                                                                                             vYouSession.SessionPWD]);
+                                           aBuf                  := aPackClass.ToBytes;
+                                           If Assigned(vMySession)    Then
+                                            Begin
+                                             vMySession.SendBytes(aBuf);
+                                             aPackClass.Command  := cConnectedPeer + Format('%s&%s&%s', [vMySession.Connection,
+                                                                                                         vMySession.vSessionID,
+                                                                                                         vMySession.SessionPWD]);
+                                             aBuf                := aPackClass.ToBytes;
+                                             If Assigned(vYouSession) Then
+                                              vYouSession.SendBytes(aBuf);
+                                            End;
                                           Finally
                                            FreeAndNil(aPackClass);
                                           End;
@@ -1416,11 +1427,13 @@ Begin
 End;
 
 Function TAegysSessionList.GetConnection(aConnStr   : String;
-                                         Id, PWD        : String)  : TAegysSession;
+                                         Id, PWD    : String)  : TAegysSession;
 Var
  I : Integer;
 Begin
  Result := Nil;
+ If Not Assigned(Self) Then
+  Exit;
  For I := Count -1 DownTo 0 Do
   Begin
    If (Items[I].Connection = aConnStr) Or
@@ -1572,7 +1585,8 @@ Begin
       FreeAndNil(aPackClass);
      End;
      If Assigned(vBContext.Connection) Then
-      vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
+      If Assigned(vBContext.Connection.IOHandler) Then
+       vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
     End;
    ProcessMessages;
   End;
@@ -1587,7 +1601,8 @@ Begin
      Begin
       vBContext.Connection.CheckForGracefulDisconnect(True);
       If vBContext.Connection.Connected Then
-       vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBuf));
+       If Assigned(vBContext.Connection.IOHandler) Then
+        vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBuf));
      End;
    Except
 

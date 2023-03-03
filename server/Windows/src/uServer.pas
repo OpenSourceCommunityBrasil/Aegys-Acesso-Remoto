@@ -203,8 +203,6 @@ Begin
 End;
 
 Procedure TfServer.Connect;
-var
-  Locale : TLocale;
 Begin
  vAegysService.ServicePort := PORTA;
  Try
@@ -212,12 +210,11 @@ Begin
  Except
 
  End;
- Locale := TLocale.Create;
  If vAegysService.Active Then
-  Caption := Locale.GetLocale(locSYSTEMINFO, iSysTitle) +
+  Caption := 'AegysServer' +
   Format(' Port:%d - Server Online, Version: %s', [PORTA, APPVERSION])
  Else
-  Caption := Locale.GetLocale(locSYSTEMINFO, iSysTitle) +
+  Caption := 'AegysServer' +
   Format(' Port:%d - Server Offline, Version: %s', [PORTA, APPVERSION]);
 End;
 
