@@ -9,9 +9,6 @@
         <Projects Include="Server\Windows\AegysServer.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Client\Android\PAegysAndroidAPP.dproj">
-            <Dependencies/>
-        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -38,23 +35,14 @@
     <Target Name="AegysServer:Make">
         <MSBuild Projects="Server\Windows\AegysServer.dproj" Targets="Make"/>
     </Target>
-    <Target Name="PAegysAndroidAPP">
-        <MSBuild Projects="Client\Android\PAegysAndroidAPP.dproj"/>
-    </Target>
-    <Target Name="PAegysAndroidAPP:Clean">
-        <MSBuild Projects="Client\Android\PAegysAndroidAPP.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="PAegysAndroidAPP:Make">
-        <MSBuild Projects="Client\Android\PAegysAndroidAPP.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Build">
-        <CallTarget Targets="AegysSuporteCliente;AegysServer;PAegysAndroidAPP"/>
+        <CallTarget Targets="AegysSuporteCliente;AegysServer"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AegysSuporteCliente:Clean;AegysServer:Clean;PAegysAndroidAPP:Clean"/>
+        <CallTarget Targets="AegysSuporteCliente:Clean;AegysServer:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AegysSuporteCliente:Make;AegysServer:Make;PAegysAndroidAPP:Make"/>
+        <CallTarget Targets="AegysSuporteCliente:Make;AegysServer:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
