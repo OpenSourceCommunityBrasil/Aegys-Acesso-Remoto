@@ -236,10 +236,10 @@ Begin
    If Trim(aTempID) = '' Then
     aTempID := '0';
    MousePosX := Trunc(Screen.Displays[StrToInt(aTempID)].WorkArea.Left) +
-    StrToInt(Copy(aLine, InitStrPos, Position - 1));
+      StrToInt(Copy(aLine, InitStrPos, Position - 1));
    Delete(aLine, InitStrPos, Position + 2);
    MousePosY := Trunc(Screen.Displays[StrToInt(aTempID)].WorkArea.Top) +
-    StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
+      StrToInt(Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1));
    Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
    If aLine.Contains(cBlockInput) then
     Begin
