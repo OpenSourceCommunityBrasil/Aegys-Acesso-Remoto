@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{EFD4CF05-95E2-459A-8CDD-FC2E08425C47}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="demo\DataTransfer\BufferTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="demo\ChatTest\Client\ClientChat.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="server\Windows\AegysServer.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="BufferTest">
+        <MSBuild Projects="demo\DataTransfer\BufferTest.dproj"/>
+    </Target>
+    <Target Name="BufferTest:Clean">
+        <MSBuild Projects="demo\DataTransfer\BufferTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BufferTest:Make">
+        <MSBuild Projects="demo\DataTransfer\BufferTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ClientChat">
+        <MSBuild Projects="demo\ChatTest\Client\ClientChat.dproj"/>
+    </Target>
+    <Target Name="ClientChat:Clean">
+        <MSBuild Projects="demo\ChatTest\Client\ClientChat.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ClientChat:Make">
+        <MSBuild Projects="demo\ChatTest\Client\ClientChat.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AegysServer">
+        <MSBuild Projects="server\Windows\AegysServer.dproj"/>
+    </Target>
+    <Target Name="AegysServer:Clean">
+        <MSBuild Projects="server\Windows\AegysServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysServer:Make">
+        <MSBuild Projects="server\Windows\AegysServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="BufferTest;ClientChat;AegysServer"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="BufferTest:Clean;ClientChat:Clean;AegysServer:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="BufferTest:Make;ClientChat:Make;AegysServer:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

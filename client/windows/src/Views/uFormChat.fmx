@@ -1,0 +1,151 @@
+object FormChat: TFormChat
+  Left = 0
+  Top = 0
+  BorderStyle = Single
+  Caption = 'Mensagens'
+  ClientHeight = 414
+  ClientWidth = 291
+  Fill.Color = claWhitesmoke
+  Fill.Kind = Solid
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Layout1: TLayout
+    Align = Client
+    Margins.Left = 5.000000000000000000
+    Margins.Top = 5.000000000000000000
+    Margins.Right = 5.000000000000000000
+    Margins.Bottom = 5.000000000000000000
+    Size.Width = 281.000000000000000000
+    Size.Height = 404.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object Rectangle1: TRectangle
+      Align = Client
+      Fill.Kind = None
+      Size.Width = 281.000000000000000000
+      Size.Height = 334.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = claLightgray
+      XRadius = 12.000000000000000000
+      YRadius = 12.000000000000000000
+      object lstMensagens: TListBox
+        Align = Client
+        Size.Width = 281.000000000000000000
+        Size.Height = 334.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'transparentlistboxstyle'
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        Viewport.Width = 281.000000000000000000
+        Viewport.Height = 334.000000000000000000
+      end
+    end
+    object Rectangle8: TRectangle
+      Align = Bottom
+      Fill.Color = claWhite
+      Margins.Top = 2.000000000000000000
+      Position.Y = 346.000000000000000000
+      Size.Width = 281.000000000000000000
+      Size.Height = 58.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = claDarkgray
+      XRadius = 5.000000000000000000
+      YRadius = 5.000000000000000000
+      object mmMessage: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        DataDetectorTypes = []
+        MaxLength = 200
+        ShowScrollBars = False
+        StyledSettings = [Style]
+        TextSettings.Font.Family = 'Quicksand'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF424242
+        TextSettings.WordWrap = True
+        Align = Client
+        Margins.Left = 5.000000000000000000
+        Margins.Top = 2.000000000000000000
+        Margins.Bottom = 2.000000000000000000
+        Size.Width = 226.000000000000000000
+        Size.Height = 54.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'mmTransparent'
+        TabOrder = 0
+        OnKeyDown = mmMessageKeyDown
+        Viewport.Width = 222.000000000000000000
+        Viewport.Height = 50.000000000000000000
+      end
+      object Layout2: TLayout
+        Align = Right
+        Position.X = 231.000000000000000000
+        Size.Width = 50.000000000000000000
+        Size.Height = 58.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object sbSendMessage: TSpeedButton
+          Align = Center
+          Size.Width = 40.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          OnClick = sbSendMessageClick
+          object phSendMessage: TPath
+            Align = Client
+            Data.Path = {
+              2F00000000000000AAF1B23F27D1D7430100000092EDB7410651AB4302000000
+              986ED0416801A543020000009418094216899F4302000000152E36421A4F9C43
+              01000000A03A0143FB59844302000000B7F307434F6D8243020000008EF70743
+              2F287B4302000000A03A0143CB4C774301000000102D36428E62474302000000
+              8F17094296EE4043020000008F6CD04134FE35430200000088EBB741F85E2943
+              01000000AAF1B23F6ABCA04202000000560EFDC04A0C28420200000021B0F741
+              643B1B41020000001BEF854208ACCE4101000000A8F6F143FCA9544302000000
+              735802442D7265430200000060550244DB498D4302000000C9F6F14364AB9543
+              010000001BEF85428115F34302000000C976F741F027FB4302000000448BFCC0
+              E3F5EA4302000000AAF1B23F27D1D74303000000AAF1B23F27D1D74300000000
+              3BFF3A4348E1A4430200000018C43643F628A04302000000B2FD3A43569E9A43
+              02000000566E4443068198430100000087E698434100804301000000566E4443
+              F9FE4E4302000000B2FD3A4359C44A430200000019C436431AAF3F4302000000
+              3BFF3A43763E364302000000DB393F43D2CD2C4302000000564E4A43F7932843
+              02000000BEBF53435BCF2C43010000004EA2B343F4E86E43020000005CFFBA43
+              0B82754302000000E600BB431A3F8543020000004EA2B343498C884301000000
+              BFBF53431699A943020000009E4F4A4325B6AB4302000000A03A3F433D9AA943
+              020000003BFF3A4348E1A443030000003BFF3A4348E1A443}
+            Fill.Color = xFF0070BA
+            HitTest = False
+            Margins.Left = 10.000000000000000000
+            Margins.Top = 10.000000000000000000
+            Margins.Right = 10.000000000000000000
+            Margins.Bottom = 10.000000000000000000
+            Size.Width = 20.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Thickness = 0.000000000000000000
+          end
+        end
+      end
+    end
+    object Splitter1: TSplitter
+      Align = Bottom
+      Cursor = crVSplit
+      MinSize = 20.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Position.Y = 336.000000000000000000
+      Size.Width = 281.000000000000000000
+      Size.Height = 8.000000000000000000
+      Size.PlatformDefault = False
+    end
+  end
+  object ActionList1: TActionList
+    Left = 128
+    Top = 192
+    object actSendText: TAction
+      Text = 'actSendText'
+      ShortCut = 13
+      OnExecute = actSendTextExecute
+    end
+  end
+end
