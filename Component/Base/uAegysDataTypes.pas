@@ -55,7 +55,7 @@ Type
   AEInteger        = Longint;
   AEInt16          = Integer;
   AEInt64          = Int64;
-  AEInt32          = Int32;
+  AEInt32          = Longint;
   AEFloat          = Real;
   AEBufferSize     = Longint;
   AEUInt16         = Word;
@@ -70,6 +70,7 @@ Type
   AEUInt16         = Word;
   AEUInt32         = LongWord;
  {$ENDIF}
+ AeDataTypeSize    = ShortInt;
  PAEInt32          = ^AEInt32;
  PAEInt64          = ^AEInt64;
  PAEUInt32         = ^AEInt32;
