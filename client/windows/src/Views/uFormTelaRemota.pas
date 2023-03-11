@@ -118,8 +118,6 @@ type
     procedure rrToolBarToggleClick  (Sender      : TObject);
     procedure SetColors;
     procedure lyCloseDropDownClick  (Sender      : TObject);
-    procedure imgTelaRemotaMouseWheel(Sender: TObject; Shift: TShiftState;
-      WheelDelta: Integer; var Handled: Boolean);
     procedure tactionTimer(Sender: TObject);
   private
     procedure RetornaMargem;
@@ -130,6 +128,9 @@ type
     Procedure Wait(Value: Integer);
     procedure MonitorFrameClick     (Sender      : TObject);
     procedure ToggleDropDown        (forceClose  : Boolean = false);
+    function TestResolution(X, Y,
+                            aValue,
+                            bValue : Integer): Boolean;
   public
    vInAction          : Boolean;
    vLastMon,
@@ -702,14 +703,32 @@ Begin
  If Not Active Then
   Exit;
  Sblockinput := IfThen(vBlockInputs, cBlockInput, '');
- iX          := Trunc(X * vResolucaoLargura) Div Trunc(imgTelaRemota.Width);
- iY          := Trunc(Y * vResolucaoAltura)  Div Trunc(imgTelaRemota.Height);
+ If TestResolution(4, 3, vResolucaoLargura, vResolucaoAltura) Then
+  Begin
+   iX          := Trunc(X * vResolucaoLargura) Div Trunc(imgTelaRemota.Width);
+   iY          := Trunc(Y * vResolucaoAltura)  Div Trunc(imgTelaRemota.Height);
+  End
+ Else
+  Begin
+   iX          := Round((X * 100) / Round(imgTelaRemota.Width));
+   iY          := Round((Y * 100) / Round(imgTelaRemota.Height));
+   iX          := ((Round(vResolucaoLargura) * iX) Div 100);
+   iY          := ((Round(vResolucaoAltura)  * iY) Div 100);
+  End;
  If (Button = TMouseButton.mbLeft)       Then
   SendSocketMouse(cMouseClickLeftDown   + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput)
  Else If (Button = TMouseButton.mbRight) Then
   SendSocketMouse(cMouseClickRightDown  + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput)
  Else
   SendSocketMouse(cMouseClickMiddleDown + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput);
+End;
+
+Function TFormTelaRemota.TestResolution(X, Y,
+                                        aValue,
+                                        bValue  : Integer) : Boolean;
+Begin
+ Result := (((aValue div Y) * X) = bValue) or
+           (((bValue div Y) * X) = aValue);
 End;
 
 Procedure TFormTelaRemota.imgTelaRemotaMouseMove(Sender : TObject;
@@ -725,8 +744,18 @@ Begin
   Exit;
  If vInAction  Then
   Exit;
- iX          := Trunc(X * vResolucaoLargura) Div Trunc(imgTelaRemota.Width);
- iY          := Trunc(Y * vResolucaoAltura)  Div Trunc(imgTelaRemota.Height);
+ If TestResolution(4, 3, vResolucaoLargura, vResolucaoAltura) Then
+  Begin
+   iX          := Trunc(X * vResolucaoLargura) Div Trunc(imgTelaRemota.Width);
+   iY          := Trunc(Y * vResolucaoAltura)  Div Trunc(imgTelaRemota.Height);
+  End
+ Else
+  Begin
+   iX          := Round((X * 100) / Round(imgTelaRemota.Width));
+   iY          := Round((Y * 100) / Round(imgTelaRemota.Height));
+   iX          := ((Round(vResolucaoLargura) * iX) Div 100);
+   iY          := ((Round(vResolucaoAltura)  * iY) Div 100);
+  End;
  Sblockinput := IfThen(vBlockInputs, cBlockInput, '');
  If vMouseMove.Count <= 7 Then
   vMouseMove.Add(cMousePos + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput)
@@ -751,8 +780,18 @@ Begin
  If Not Active Then
   Exit;
  Sblockinput := IfThen(vBlockInputs, cBlockInput, '');
- iX := Trunc(X * vResolucaoLargura)      Div Trunc(imgTelaRemota.Width);
- iY := Trunc(Y * vResolucaoAltura)       Div Trunc(imgTelaRemota.Height);
+ If TestResolution(4, 3, vResolucaoLargura, vResolucaoAltura) Then
+  Begin
+   iX          := Trunc(X * vResolucaoLargura) Div Trunc(imgTelaRemota.Width);
+   iY          := Trunc(Y * vResolucaoAltura)  Div Trunc(imgTelaRemota.Height);
+  End
+ Else
+  Begin
+   iX          := Round((X * 100) / Round(imgTelaRemota.Width));
+   iY          := Round((Y * 100) / Round(imgTelaRemota.Height));
+   iX          := ((Round(vResolucaoLargura) * iX) Div 100);
+   iY          := ((Round(vResolucaoAltura)  * iY) Div 100);
+  End;
  If (Button = TMouseButton.mbLeft)       Then
   SendSocketMouse(cMouseClickLeftUp   + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput)
  Else If (Button = TMouseButton.mbRight) Then
@@ -760,12 +799,6 @@ Begin
  Else
   SendSocketMouse(cMouseClickMiddleUp + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput);
 End;
-
-procedure TFormTelaRemota.imgTelaRemotaMouseWheel(Sender: TObject;
-  Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
-begin
- //
-end;
 
 Procedure TFormTelaRemota.lyCloseDropDownClick(Sender : TObject);
 Begin
