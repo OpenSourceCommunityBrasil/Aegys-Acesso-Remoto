@@ -295,10 +295,8 @@ object fConfig: TfConfig
             TabOrder = 4
             ItemHeight = 19.000000000000000000
             Items.Strings = (
-              'aegys.ddns.net'
-              '201.73.143.69'
-              '177.10.144.78'
-              '177.93.106.240')
+              '177.93.106.240'
+              '177.10.144.78')
             ItemIndex = -1
             Position.X = 57.000000000000000000
             Position.Y = 28.000000000000000000

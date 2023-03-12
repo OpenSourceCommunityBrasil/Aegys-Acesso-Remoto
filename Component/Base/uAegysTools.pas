@@ -372,7 +372,7 @@ Begin
  If AStr <> '' Then
   Begin
    {$IFDEF FPC}
-    Result := TRESTDWBytes(TEncoding.ANSI.GetBytes(Astr));
+    Result := TAegysBytes(TEncoding.ANSI.GetBytes(Astr));
    {$ELSE}
     {$IF CompilerVersion < 23}
      SetLength(Result, Length(AStr));
@@ -404,10 +404,10 @@ Begin
    Else
     LBytes := Copy(AValue, AStartIndex, LLength);
   {$IFDEF FPC}
-   SetString(Result, PAnsiChar(LBytes), restdwLength(LBytes));
+   SetString(Result, PAnsiChar(LBytes), Length(LBytes));
   {$ELSE}
    {$IF CompilerVersion < 23}
-    SetString(Result, PAnsiChar(LBytes), restdwLength(LBytes));
+    SetString(Result, PAnsiChar(LBytes), Length(LBytes));
    {$ELSE}
     {$IFDEF MSWINDOWS}
      Result := TEncoding.ANSI.GetString(TBytes(LBytes));

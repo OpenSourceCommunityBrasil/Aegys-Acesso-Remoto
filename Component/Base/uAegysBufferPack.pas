@@ -145,9 +145,9 @@ Uses uAegysTools;
 
 Function SizeOfHeader : AEInteger;
 Begin
- Result := (SizeOf(Boolean)   * 2) +  SizeOf(AEInteger)    +
-            SizeOf(TDataMode)      +  SizeOf(TDataType)    +
-            SizeOf(TDataCheck)     +  SizeOf(TCommandType) +
+ Result := (SizeOf(Boolean)   * 2) +  SizeOf(AEInteger)      +
+            SizeOf(AeDataTypeSize) +  SizeOf(AeDataTypeSize) +
+            SizeOf(AeDataTypeSize) +  SizeOf(AeDataTypeSize) +
            (SizeOf(AEInteger) * 2) + (SizeOf(AEInt64) * 4);
 End;
 
@@ -209,7 +209,7 @@ Var
  vFileStream : TFileStream;
  vStream     : TStream;
 Begin
- vFileStream := TFileStream.Create(Filename, fmCreate or fmExclusive);
+ vFileStream := TFileStream.Create(Filename, fmCreate{$IFNDEF FPC} or fmExclusive{$ENDIF});
  Try
   vStream    := TMemoryStream.Create;
   SaveToStream(vStream);
@@ -304,6 +304,7 @@ Var
  aOwnerBytes,
  aBytesOption,
  aDestBytes       : TAegysBytes;
+ aSizeOf,
  aDestSize,
  aOwnerSize,
  aPosition        : AeInteger;
@@ -312,6 +313,14 @@ Var
  aDataSize,
  aBytesOptionSize : AEInt64;
 Begin
+ aPackSize        := 0;
+ aCommandSize     := 0;
+ aDataSize        := 0;
+ aBytesOptionSize := 0;
+ aSizeOf          := 0;
+ aDestSize        := 0;
+ aOwnerSize       := 0;
+ aPosition        := 0;
  If Length(Value) > 0 Then
   Begin
    Move(Value[0], aPackSize, SizeOf(aPackSize));                      //PackSize
@@ -327,14 +336,14 @@ Begin
     Begin
      Try
       //LoadHeader
-      Move(Value[aPosition],  vDataMode,     SizeOf(vDataMode));      //DataMode
-      aPosition            := aPosition +    SizeOf(vDataMode);
-      Move(Value[aPosition],  vDataType,     SizeOf(vDataType));      //DataType
-      aPosition            := aPosition +    SizeOf(vDataType);
-      Move(Value[aPosition],  vDataCheck,    SizeOf(vDataCheck));     //DataCheck
-      aPosition            := aPosition +    SizeOf(vDataCheck);
-      Move(Value[aPosition],  vCommandType,  SizeOf(vCommandType));   //CommandType
-      aPosition            := aPosition +    SizeOf(vCommandType);
+      Move(Value[aPosition],  vDataMode,     SizeOf(AeDataTypeSize));      //DataMode
+      aPosition            := aPosition +    SizeOf(AeDataTypeSize);
+      Move(Value[aPosition],  vDataType,     SizeOf(AeDataTypeSize));      //DataType
+      aPosition            := aPosition +    SizeOf(AeDataTypeSize);
+      Move(Value[aPosition],  vDataCheck,    SizeOf(AeDataTypeSize));     //DataCheck
+      aPosition            := aPosition +    SizeOf(AeDataTypeSize);
+      Move(Value[aPosition],  vCommandType,  SizeOf(AeDataTypeSize));   //CommandType
+      aPosition            := aPosition +    SizeOf(AeDataTypeSize);
       Move(Value[aPosition],  vDelay,        SizeOf(vDelay));         //Delay
       aPosition            := aPosition +    SizeOf(vDelay);
       Move(Value[aPosition],  vRetryes,      SizeOf(vRetryes));       //Retryes
@@ -447,6 +456,13 @@ Var
  aBytesOptionSize : AEInt64;
  aResult          : TAegysBytes;
 Begin
+ aPackSize        := 0;
+ aDataSize        := 0;
+ aBytesOptionSize := 0;
+ aHeaderSize      := 0;
+ aDestSize        := 0;
+ aOwnerSize       := 0;
+ aPosition        := 0;
  If vDataType = tdtString Then
   Begin
    If Length(vCommand) = 0 Then
@@ -467,14 +483,14 @@ Begin
   aPosition            := aPosition + SizeOf(vProxyMyList);
   Move(vHeaderVersion,    Pointer(@aHeader[aPosition])^, SizeOf(vHeaderVersion)); //DataMode
   aPosition            := aPosition +         SizeOf(vHeaderVersion);
-  Move(vDataMode,         Pointer(@aHeader[aPosition])^, SizeOf(vDataMode));      //DataMode
-  aPosition            := aPosition +         SizeOf(vDataMode);
-  Move(vDataType,         Pointer(@aHeader[aPosition])^, SizeOf(vDataType));      //DataType
-  aPosition            := aPosition +         SizeOf(vDataType);
-  Move(vDataCheck,        Pointer(@aHeader[aPosition])^, SizeOf(vDataCheck));     //DataCheck
-  aPosition            := aPosition +         SizeOf(vDataCheck);
-  Move(vCommandType,      Pointer(@aHeader[aPosition])^, SizeOf(vCommandType));   //CommandType
-  aPosition            := aPosition +         SizeOf(vCommandType);
+  Move(vDataMode,         Pointer(@aHeader[aPosition])^, SizeOf(AeDataTypeSize));      //DataMode
+  aPosition            := aPosition +         SizeOf(AeDataTypeSize);
+  Move(vDataType,         Pointer(@aHeader[aPosition])^, SizeOf(AeDataTypeSize));      //DataType
+  aPosition            := aPosition +         SizeOf(AeDataTypeSize);
+  Move(vDataCheck,        Pointer(@aHeader[aPosition])^, SizeOf(AeDataTypeSize));     //DataCheck
+  aPosition            := aPosition +         SizeOf(AeDataTypeSize);
+  Move(vCommandType,      Pointer(@aHeader[aPosition])^, SizeOf(AeDataTypeSize));   //CommandType
+  aPosition            := aPosition +         SizeOf(AeDataTypeSize);
   Move(vDelay,            Pointer(@aHeader[aPosition])^, SizeOf(vDelay));         //Delay
   aPosition            := aPosition +         SizeOf(vDelay);
   Move(vRetryes,          Pointer(@aHeader[aPosition])^, SizeOf(vRetryes));       //Retryes
@@ -495,6 +511,7 @@ Begin
    Begin
     If vDataType = tdtString Then
      Begin
+      aPosition          := 0;
       aCommand           := VarToBytes(vCommand,  varString);
       aDataSize          := Length(aCommand);
       aPackSize          := SizeOf(aPackSize)  + aHeaderSize +
@@ -502,16 +519,30 @@ Begin
                             SizeOf(aDestSize)  + aDestSize  +
                             SizeOf(aDataSize)  + aDataSize;
       SetLength(Result, aPackSize);
-      Move(aPackSize,     Pointer(@Result[0])^, SizeOf(aPackSize));
-      Move(aHeader   [0], Pointer(@Result[SizeOf(aPackSize)])^, aHeaderSize);
-      Move(aOwnerSize,    Pointer(@Result[SizeOf(aPackSize) + aHeaderSize])^, SizeOf(aOwnerSize));
+      Move(aPackSize,     Pointer(@Result[aPosition])^, SizeOf(aPackSize));
+      aPosition          := aPosition + SizeOf(aPackSize);
+      Move(aHeader   [0], Pointer(@Result[aPosition])^, aHeaderSize);
+      aPosition          := aPosition + aHeaderSize;
+      Move(aOwnerSize,    Pointer(@Result[aPosition])^, SizeOf(aOwnerSize));
       If aOwnerSize > 0 Then
-       Move(aOwner   [0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize)])^, aOwnerSize);
-      Move(aDestSize,     Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize])^, SizeOf(aDestSize));
+       Begin
+        aPosition        := aPosition + SizeOf(aOwnerSize);
+        Move(aOwner   [0], Pointer(@Result[aPosition])^, aOwnerSize);
+       End;
+      aPosition          := aPosition + aOwnerSize;
+      Move(aDestSize,     Pointer(@Result[aPosition])^, SizeOf(aDestSize));
       If aDestSize > 0 Then
-       Move(aDest    [0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize)])^, aDestSize);
-      Move(aDataSize,     Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize])^, SizeOf(aDataSize));
-      Move(aCommand  [0], Pointer(@Result[SizeOf(aPackSize) + aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize) + aDestSize + SizeOf(aDataSize)])^, aDataSize);
+       Begin
+        aPosition        := aPosition + SizeOf(aDestSize);
+        Move(aDest    [0], Pointer(@Result[aPosition])^, aDestSize);
+       End;
+      aPosition          := aPosition + aDestSize;
+      Move(aDataSize,     Pointer(@Result[aPosition])^, SizeOf(aDataSize));
+      If aDataSize > 0 Then
+       Begin
+        aPosition        := aPosition + SizeOf(aDataSize);
+        Move(aCommand  [0], Pointer(@Result[aPosition])^, aDataSize);
+       End;
      End
     Else
      Begin
