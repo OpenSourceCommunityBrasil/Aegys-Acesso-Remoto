@@ -166,6 +166,11 @@ End;
 
 Procedure TAegysThread.ClientCommands;
 Begin
+ {$IFDEF FPC}
+  Synchronize(@Processmessages);
+ {$ELSE}
+  Synchronize(Processmessages);
+ {$ENDIF}
  If Assigned(vOnClientCommands) Then
   vOnClientCommands(abCommandType, abOwner, abID, abCommand, abBuf)
  Else If Assigned(vOnDataReceive) Then
@@ -232,21 +237,11 @@ Begin
      If Not DirectThreadAction[Integer(ttdReceive)] Then
       Begin
        DirectThreadAction[Integer(ttdReceive)] := True;
-       {$IFDEF FPC}
-        Synchronize(@Processmessages);
-       {$ELSE}
-        Synchronize(Processmessages);
-       {$ENDIF}
        //Process Before Execute one Pack
        If Assigned(vOnBeforeExecuteData) Then
         vOnBeforeExecuteData(aPackList);
        If aPackList.Count > 0 Then
         Begin
-         {$IFDEF FPC}
-          Synchronize(@Processmessages);
-         {$ELSE}
-          Synchronize(Processmessages);
-         {$ENDIF}
          vInternalC := False;
          aPackClass := aPackList.Items[0];
          If aPackClass.DataType = tdtString Then
@@ -262,11 +257,7 @@ Begin
               ParseLogin(vCommand);
              abInternalCommand := vInternalCommand;
              abCommand         := vCommand;
-             {$IFDEF FPC}
-              Synchronize(@ServiceCommands);
-             {$ELSE}
-              Synchronize(ServiceCommands);
-             {$ENDIF}
+             ServiceCommands;
             End
            Else
             Begin
@@ -282,11 +273,7 @@ Begin
                abID              := vID;
                abBuf             := bBuf;
                Try
-                {$IFDEF FPC}
-                 Synchronize(@ClientCommands);
-                {$ELSE}
-                 Synchronize(ClientCommands);
-                {$ENDIF}
+                ClientCommands;
                Finally
                 SetLength(abBuf, 0);
                End;
@@ -331,11 +318,6 @@ Begin
      If Not DirectThreadAction[Integer(ttdSend)] Then
       Begin
        DirectThreadAction[Integer(ttdSend)] := True;
-       {$IFDEF FPC}
-        Synchronize(@Processmessages);
-       {$ELSE}
-        Synchronize(Processmessages);
-       {$ENDIF}
        //Try Process one Pack
        vPackno := 0;
        If (pPackList^.Count > 0)         And
@@ -348,16 +330,7 @@ Begin
             Break;
            vPackno  := A - I;
            abPackno := vPackno;
-           {$IFDEF FPC}
-            Synchronize(@ExecuteData);
-           {$ELSE}
-            Synchronize(ExecuteData);
-           {$ENDIF}
-           {$IFDEF FPC}
-            Synchronize(@Processmessages);
-           {$ELSE}
-            Synchronize(Processmessages);
-           {$ENDIF}
+           ExecuteData;
           End;
         End;
        DirectThreadAction[Integer(ttdSend)] := False;
@@ -376,11 +349,7 @@ Begin
    //Delay Processor
    If vDelayThread > 0 Then
     Sleep(vDelayThread);
-   {$IFDEF FPC}
-    Synchronize(@Processmessages);
-   {$ELSE}
-    Synchronize(Processmessages);
-   {$ENDIF}
+   Processmessages;
   End;
  FreeAndNil(aPackList);
 End;
@@ -388,25 +357,10 @@ End;
 Procedure TAegysThread.Kill;
 Begin
  Terminate;
- {$IFDEF FPC}
-  Synchronize(@Processmessages);
- {$ELSE}
-  Synchronize(Processmessages);
- {$ENDIF}
  If Assigned(vAbortData) Then
   vAbortData;
- {$IFDEF FPC}
-  Synchronize(@Processmessages);
- {$ELSE}
-  Synchronize(Processmessages);
- {$ENDIF}
  If Assigned(vOnThreadRequestError) Then
   vOnThreadRequestError(499, cThreadCancel);
- {$IFDEF FPC}
-  Synchronize(@Processmessages);
- {$ELSE}
-  Synchronize(Processmessages);
- {$ENDIF}
 End;
 
 End.
