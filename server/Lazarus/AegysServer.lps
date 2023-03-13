@@ -3,13 +3,13 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Debug"/>
+    <BuildModes Active="Windows x64"/>
     <Units>
       <Unit>
         <Filename Value="AegysServer.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <CursorPos X="56" Y="10"/>
+        <CursorPos X="54" Y="13"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
