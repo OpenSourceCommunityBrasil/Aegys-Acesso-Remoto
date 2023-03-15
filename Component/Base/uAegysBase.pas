@@ -335,6 +335,7 @@ Type
                              ID,
                              PWD         : String);
   Procedure   NewID         (aValue      : String);
+  Function    GetPacketLength: Integer;
   Procedure   Connect;
   Procedure   Disconnect;
   Procedure   GetConnectedList;
@@ -415,7 +416,7 @@ Type
   Property    OnAccessGranted            : TAegysOnPeerConnected         Read vOnAccessGranted         Write vOnAccessGranted;
 End;
 
-  Procedure   ProcessMessages;
+Procedure ProcessMessages;
 
 Implementation
 
@@ -526,9 +527,7 @@ Procedure TAegysService.Disconnect(AContext : TIdContext);
      Begin
       Try
        AegysSession.SessionList[I].SendBytes(aBuf);
-       {$IFNDEF FPC}
-        Processmessages;
-       {$ENDIF}
+       Processmessages;
       Except
       End;
      End;
@@ -619,13 +618,8 @@ Begin
       End;
     {$ENDIF}
    End;
-  {$IFNDEF FPC}
-   Processmessages;
-  {$ENDIF}
+  Processmessages;
  Except
- {$IFNDEF FPC}
-//  Processmessages;
- {$ENDIF}
  End;
 End;
 
@@ -762,6 +756,7 @@ Var
  aBuf             : TAegysBytes;
  aPackClass       : TPackClass;
  aStream          : TStream;
+ aOldTimeOut,
  aFirstBufSize    : AEInteger;
  aBuffSize,
  bPackSize,
@@ -847,13 +842,12 @@ Begin
  {$ENDIF}
  vAction        := Assigned(vAegysSession);
  Try
-  AContext.Connection.IOHandler.CheckForDisconnect;
+//  AContext.Connection.IOHandler.CheckForDisconnect;
   vAccept := True;
   If Not AContext.Connection.IOHandler.InputBufferIsEmpty Then
    Begin
-    {$IFNDEF FPC}
-     Processmessages;
-    {$ENDIF}
+    aOldTimeOut := AContext.Connection.IOHandler.ReadTimeout;
+    AContext.Connection.IOHandler.ReadTimeout := cServiceTimeout div 2;
     aBuffSize     := AContext.Connection.IOHandler.InputBuffer.Size;
     AContext.Connection.IOHandler.ReadBytes(TIdBytes(aBuf), SizeOf(aPackSize));
     Move(aBuf[0], aPackSize, SizeOf(aPackSize));
@@ -866,10 +860,8 @@ Begin
       Else
        Begin
         Try
-         {$IFNDEF FPC}
-          Processmessages;
-         {$ENDIF}
-         AContext.Connection.IOHandler.CheckForDataOnSource;//(cLimitSource);
+         Processmessages;
+         AContext.Connection.IOHandler.CheckForDataOnSource(cLimitSource);
          bPackSize := AContext.Connection.IOHandler.InputBuffer.Size;
         Except
          Break;//bPackSize := 0
@@ -879,17 +871,15 @@ Begin
        bPackSize := aPackSize - Length(aBuf);
       If bPackSize > 0 Then
        AContext.Connection.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize);
-      {$IFNDEF FPC}
-       Processmessages;
-      {$ENDIF}
      End;
+    AContext.Connection.IOHandler.ReadTimeout := aOldTimeOut;
    End;
   If (aPackSize > 0)             And
      (aPackSize <> Length(aBuf)) Then
-   Raise Exception.Create(cInvalidBufferData);
-  {$IFNDEF FPC}
-   Processmessages;
-  {$ENDIF}
+   Begin
+    SetLength(aBuf, 0);
+    Exit;// Raise Exception.Create(cInvalidBufferData);
+   End;
   vDataCommand := False;
   If (aPackSize = Length(aBuf)) And
      (aPackSize > 0)            Then
@@ -900,6 +890,7 @@ Begin
      vCommand := aPackClass.Command;
      If vCommand <> '' Then
       ParseCommand(vCommand, vInternalCommand);
+     Processmessages;
      If vInternalCommand <> ticNone Then
       Begin
        Case vInternalCommand Of
@@ -1054,9 +1045,7 @@ Begin
                                                                                                        vAegysSession.SessionList[I].vSessionID,
                                                                                                        vAegysSession.SessionList[I].SessionPWD]);
                                                vAegysSession.SendBytes(aPackClass.ToBytes);
-                                               {$IFNDEF FPC}
-                                                Processmessages;
-                                               {$ENDIF}
+                                               Processmessages;
                                                If Assigned(vAegysSession.SessionList) Then
                                                 Begin
                                                  vAegysSession.SessionList[I].SessionList.Delete(vAegysSession.Connection,
@@ -1104,27 +1093,20 @@ Begin
                                                                                                         vAegysSession.vSessionID,
                                                                                                         vAegysSession.SessionPWD]);
                                                vYouSession.SendBytes(aPackClass.ToBytes);
-                                               {$IFNDEF FPC}
-                                                Processmessages;
-                                               {$ENDIF}
+                                               Processmessages;
                                               Finally
                                                If Assigned(vAegysSession.SessionList) Then
                                                 aPackClass.Command    := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
                                                                                                          vAegysSession.SessionList[I].vSessionID,
                                                                                                          vAegysSession.SessionList[I].SessionPWD]);
                                                vAegysSession.SendBytes         (aPackClass.ToBytes);
-                                               {$IFNDEF FPC}
-                                                Processmessages;
-                                               {$ENDIF}
                                                If Assigned(vYouSession.SessionList) Then
                                                 vYouSession.SessionList.Delete  (vAegysSession.Connection,
                                                                                  vAegysSession.vSessionID,
                                                                                  vAegysSession.SessionPWD);
                                                If Assigned(vAegysSession.SessionList) Then
                                                 vAegysSession.SessionList.Delete(vSockCommand, vYouID, vYouPass);
-                                               {$IFNDEF FPC}
-                                                Processmessages;
-                                               {$ENDIF}
+                                               Processmessages;
                                               End;
                                              Finally
                                               FreeAndNil(aPackClass);
@@ -1277,20 +1259,11 @@ Begin
   If Assigned(vAegysSession) Then
    Begin
     If vAegysSession.vAegysClientStage = csRejected Then
-     AContext.Connection.Disconnect
-    Else
-     AContext.Connection.IOHandler.CheckForDisconnect;
-    If Length(aBuf) = 0 Then
-     TestPing(vAegysSession);
-   End
-  Else
-   AContext.Connection.IOHandler.CheckForDisconnect;
+     AContext.Connection.Disconnect;
+   End;
   If Assigned(aPackClass) Then
    FreeAndNil(aPackClass);
-  {$IFNDEF FPC}
-   Processmessages;
-  {$ENDIF}
-  Sleep(cDelayThread);
+  Sleep(cDelayThread div 2);
  Except
   On E : EIdSocketError Do Abort;
   On E : EIdReadTimeout Do ;
@@ -1324,11 +1297,9 @@ End;
 Procedure ProcessMessages;
 Begin
  {$IFNDEF FPC}
-   {$IF NOT(DEFINED(ANDROID)) and NOT(DEFINED(IOS))}
-     Application.ProcessMessages;
-   {$IFEND}
- {$ELSE}
-  Application.Processmessages;
+  {$IF NOT(DEFINED(ANDROID)) and NOT(DEFINED(IOS))}
+   Application.ProcessMessages;
+  {$IFEND}
  {$ENDIF}
 End;
 
@@ -1345,9 +1316,7 @@ Begin
      vIdTCPServer.Bindings.Clear;
      vIdTCPServer.Contexts.Clear;
     Finally
-     {$IFNDEF FPC}
-      Processmessages;
-     {$ENDIF}
+     Processmessages;
     End;
    End
   Else
@@ -1418,6 +1387,7 @@ begin
        End;
      End;
    End;
+  Processmessages;
  Except
   On e : Exception Do
    Begin
@@ -1563,9 +1533,7 @@ Begin
          vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
        End;
      End;
-     {$IFNDEF FPC}
-      Processmessages;
-     {$ENDIF}
+     Processmessages;
     End;
   End
  Else
@@ -1589,9 +1557,7 @@ Begin
        If Assigned(vBContext.Connection) Then
         vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
       End;
-     {$IFNDEF FPC}
-      Processmessages;
-     {$ENDIF}
+     Processmessages;
     End;
   End;
 End;
@@ -1623,9 +1589,7 @@ Begin
       If Assigned(vBContext.Connection.IOHandler) Then
        vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
     End;
-   {$IFNDEF FPC}
-    Processmessages;
-   {$ENDIF}
+   Processmessages;
   End;
 End;
 
@@ -1637,16 +1601,15 @@ Begin
     If Assigned(vBContext.Connection) Then
      Begin
       vBContext.Connection.CheckForGracefulDisconnect(True);
+      Processmessages;
       If vBContext.Connection.Connected Then
        If Assigned(vBContext.Connection.IOHandler) Then
         vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBuf));
      End;
+    Processmessages;
    Except
 
    End;
-   {$IFNDEF FPC}
-    Processmessages;
-   {$ENDIF}
   End;
 End;
 
@@ -1674,9 +1637,7 @@ Begin
    Finally
     SetLength(aBuf, 0);
     FreeAndNil(bStream);
-    {$IFNDEF FPC}
-     Processmessages;
-    {$ENDIF}
+    Processmessages;
    End;
   End;
 End;
@@ -1771,6 +1732,11 @@ Procedure TAegysClient.GetConnectedList;
 Begin
 
 End;
+
+function TAegysClient.GetPacketLength: Integer;
+begin
+  Result := aPackList.Count;
+end;
 
 Procedure TAegysClient.Join(aID, aPass, aVideoQ : String);
 Begin

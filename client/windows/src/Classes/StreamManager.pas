@@ -22,6 +22,7 @@ uses
   System.Types,
   FMX.Forms,
   Vcl.Imaging.jpeg,
+  Execute.DesktopDuplicationAPI,
   FMX.Objects
   {$IF DEFINED (ANDROID) || (IOS)}
   ,FMX.Types
@@ -75,7 +76,7 @@ Var
 implementation
 
 uses
-  System.SysUtils;
+  System.SysUtils, uFormConexao;
 
 procedure ResizeBmp(AImage: TImage; AStream: TMemoryStream; AWidth, AHeight: Single);
 var
@@ -184,9 +185,6 @@ procedure GetScreenToMemoryStream(DrawCur            : Boolean;
                                   PixelFormat        : TPixelFormat = pfDevice;
                                   Monitor            : String       = '0');
 {$ENDIF}
-
-Const
- CAPTUREBLT = $40000000;
 Var
   JPG : Vcl.Imaging.jpeg.TJPegImage;
   {$IF DEFINED (ANDROID) || (IOS)}
@@ -199,49 +197,6 @@ Var
   vMonitor,
   Left, Top: Integer;
   {$ENDIF}
-  DesktopCanvas: TCanvas;
-  {$IF DEFINED (ANDROID) || (IOS)}
-  Procedure MakeGrey(Bitmap: FMX.Graphics.TBitmap);
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
-  Procedure MakeGrey(Bitmap: Vcl.Graphics.TBitmap);
-  {$ENDIF}
-
-  Var
-   w, h, y, x: Integer;
-   sl: PRGBTripleArray;
-   grey: Byte;
-  Begin
-    {$IF DEFINED (ANDROID) || (IOS)}
-    Bitmap.PixelFormat := TPixelFormat.RGBA32F;
-    {$ENDIF}
-    {$IF DEFINED (MSWINDOWS)}
-    Bitmap.PixelFormat := pf32bit;
-    {$ENDIF}
-
-    w := Bitmap.Width;
-    h := Bitmap.Height;
-    For y := 0 To h - 1 Do
-    Begin
-      {$IF DEFINED (ANDROID) || (IOS)}
-//       sl := Bitmap.ScanLine[y];
-      {$ENDIF}
-      {$IF DEFINED (MSWINDOWS)}
-      sl := Bitmap.ScanLine[y];
-      {$ENDIF}
-
-     For x := 0 To w - 1 Do
-     Begin
-       With sl[x] Do
-       Begin
-         grey := (B + G + R) div 3;
-         B := grey;
-         G := grey;
-         R := grey;
-       End;
-     End;
-    End;
-  End;
   Procedure BitmapToJpg(Bmp     : Vcl.Graphics.TBitmap;
                         Var JPG : Vcl.Imaging.jpeg.TJPegImage;
                         Quality : Integer = 60);
@@ -249,9 +204,9 @@ Var
    Try
     JPG := TJPegImage.Create;
     Try
-     JPG.CompressionQuality := Quality;
-     JPG.Compress;
      JPG.Assign(BMP);
+     JPG.CompressionQuality := Quality;
+//     JPG.Compress;
     Finally
     End;
    Finally
@@ -272,40 +227,40 @@ Begin
    Exit;
   vMonitor := vMonitor -1;
   Try
-    DC:= GetDC(0);
-    If (DC = 0) Then
-     Exit;
-    Mybmp.Width := Screen.Monitors[vMonitor].Width;
-    Mybmp.Height := Screen.Monitors[vMonitor].Height;
-    Left := Screen.Monitors[vMonitor].Left;
-    Top := Screen.Monitors[vMonitor].Top;
-    DesktopCanvas := TCanvas.Create;
-    Try
-     DesktopCanvas.Handle := DC;
-     {$IF DEFINED (ANDROID) || (IOS)}
- //    R := FMX.Forms.Screen.DesktopRect;
-     {$ENDIF}
-     {$IF DEFINED (MSWINDOWS)}
- //    R := Rect(0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
-     {$ENDIF}
- //    Mybmp.Width := R.Right;
- //    Mybmp.Height := R.Bottom;
-     {$IF DEFINED (ANDROID) || (IOS)}
- //    BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, dc, 0, 0, SRCCOPY or CAPTUREBLT);
-     {$ENDIF}
-     {$IF DEFINED (MSWINDOWS)}
-      BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, DesktopCanvas.Handle, Left, Top, SRCCOPY or CAPTUREBLT);
-     {$ENDIF}
-    Finally
-     FreeAndNil(DesktopCanvas);
-    End;
+   If FDuplication.GetFrame Then
+    FDuplication.DrawFrame(Mybmp);
+//
+//    Mybmp.Width := Screen.Monitors[vMonitor].Width;
+//    Mybmp.Height := Screen.Monitors[vMonitor].Height;
+//    Left := Screen.Monitors[vMonitor].Left;
+//    Top := Screen.Monitors[vMonitor].Top;
+//    DesktopCanvas := TCanvas.Create;
+//    Try
+//     DesktopCanvas.Handle := DC;
+//     {$IF DEFINED (ANDROID) || (IOS)}
+// //    R := FMX.Forms.Screen.DesktopRect;
+//     {$ENDIF}
+//     {$IF DEFINED (MSWINDOWS)}
+// //    R := Rect(0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+//     {$ENDIF}
+// //    Mybmp.Width := R.Right;
+// //    Mybmp.Height := R.Bottom;
+//     {$IF DEFINED (ANDROID) || (IOS)}
+// //    BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, dc, 0, 0, SRCCOPY or CAPTUREBLT);
+//     {$ENDIF}
+//     {$IF DEFINED (MSWINDOWS)}
+//      BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, DesktopCanvas.Handle, Left, Top, SRCCOPY or CAPTUREBLT);
+//     {$ENDIF}
+//    Finally
+//     FreeAndNil(DesktopCanvas);
+//    End;
   Finally
-    {$IF DEFINED (ANDROID) || (IOS)}
-    FMX.Forms.Screen.Forms[0].ReleaseCapture;
-    {$ENDIF}
-    {$IF DEFINED (MSWINDOWS)}
-    ReleaseDC(0, dc);
-    {$ENDIF}
+//    {$IF DEFINED (ANDROID) || (IOS)}
+//    FMX.Forms.Screen.Forms[0].ReleaseCapture;
+//    {$ENDIF}
+//    {$IF DEFINED (MSWINDOWS)}
+//    ReleaseDC(0, dc);
+//    {$ENDIF}
   End;
   If DrawCur Then
    DrawScreenCursor(Mybmp, StrToInt(Monitor));
@@ -313,19 +268,19 @@ Begin
   {$IF DEFINED (ANDROID) || (IOS)}
   If PixelFormat = TPixelFormat.RGB Then
   {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
-  If PixelFormat = pf4bit Then
-  {$ENDIF}
-  Begin
-    {$IF DEFINED (ANDROID) || (IOS)}
-    Mybmp.PixelFormat := TPixelFormat.RGBA16;
-    {$ENDIF}
-    {$IF DEFINED (MSWINDOWS)}
-    Mybmp.PixelFormat := pf16bit;
-    {$ENDIF}
-    MakeGrey(Mybmp);
-  End
-  Else
+//  {$IF DEFINED (MSWINDOWS)}
+//  If PixelFormat = pf4bit Then
+//  {$ENDIF}
+//  Begin
+//    {$IF DEFINED (ANDROID) || (IOS)}
+//    Mybmp.PixelFormat := TPixelFormat.RGBA16;
+//    {$ENDIF}
+//    {$IF DEFINED (MSWINDOWS)}
+//    Mybmp.PixelFormat := pf16bit;
+//    {$ENDIF}
+//    MakeGrey(Mybmp);
+//  End
+//  Else
   Mybmp.PixelFormat := PixelFormat;
   BitmapToJpg(Mybmp, JPG);
   JPG.SaveToStream(TargetMemoryStream);

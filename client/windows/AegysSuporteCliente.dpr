@@ -28,7 +28,6 @@ uses
   uFilesFoldersOP in 'src\Classes\uFilesFoldersOP.pas',
   uIconsAssoc in 'src\Classes\uIconsAssoc.pas',
   uConstants in '..\..\commons\uConstants.pas',
-  uSQLiteConfig in '..\..\commons\uSQLiteConfig.pas',
   CCR.Clipboard.Apple.Helpers in 'src\Classes\ClipBoard\CCR.Clipboard.Apple.Helpers.pas',
   CCR.Clipboard.Apple in 'src\Classes\ClipBoard\CCR.Clipboard.Apple.pas',
   CCR.Clipboard.Consts in 'src\Classes\ClipBoard\CCR.Clipboard.Consts.pas',
@@ -47,7 +46,13 @@ uses
   uAegysTools in '..\..\Component\Base\uAegysTools.pas',
   uAegysClientMotor in '..\..\Component\Base\uAegysClientMotor.pas',
   uAegysZlib in '..\..\Component\Utils\uAegysZlib.pas',
-  uLocale in '..\..\commons\uLocale.pas';
+  uLocale in '..\..\commons\uLocale.pas',
+  DX12.D3D11 in 'src\Classes\DXHeaders\DX12.D3D11.pas',
+  DX12.D3DCommon in 'src\Classes\DXHeaders\DX12.D3DCommon.pas',
+  DX12.DXGI in 'src\Classes\DXHeaders\DX12.DXGI.pas',
+  DX12.DXGI1_2 in 'src\Classes\DXHeaders\DX12.DXGI1_2.pas',
+  Execute.DesktopDuplicationAPI in 'src\Classes\Execute.DesktopDuplicationAPI.pas',
+  Config.SQLite.FireDAC in '..\..\commons\Config.SQLite.FireDAC.pas';
 
 {$R *.res}
 

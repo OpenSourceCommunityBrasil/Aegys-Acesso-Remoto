@@ -36,8 +36,7 @@ uses
   uAegysBase, uAegysDataTypes, uAegysConsts, uAegysClientMotor, uAegysBufferPack,
   uFunctions, CCR.Clipboard,
 
-  uSQLiteConfig, uLocale, FireDAC.UI.Intf, FireDAC.FMXUI.Wait, FireDAC.Stan.Intf,
-  FireDAC.Comp.UI
+  Config.SQLite.FireDAC, uLocale, Execute.DesktopDuplicationAPI
   ;
 
 type
@@ -92,7 +91,6 @@ type
     sbPasswordCopy: TSpeedButton;
     PhPasswordCopy: TPath;
     TmrSystemTray: TTimer;
-    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure actPasteIDExecute(Sender: TObject);
@@ -194,6 +192,7 @@ var
   vResolucaoAltura,
   CF_FILE            : Integer;
   mx, my             : Single;
+  FDuplication       : TDesktopDuplicationWrapper;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -593,6 +592,7 @@ procedure TFormConexao.FormCreate(Sender: TObject);
 var
   CFG: TSQLiteConfig;
 begin
+  FDuplication := Nil;
   CF_FILE := RegisterClipboardFormat('FileName');
   // inicializando os objetos
   Locale := TLocale.Create;
@@ -624,6 +624,8 @@ end;
 
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
+ If Assigned(FDuplication) Then
+  FreeAndNil(FDuplication);
  FreeAndNil(aPackList);
  Locale.DisposeOf;
 end;
@@ -728,6 +730,8 @@ end;
 
 procedure TFormConexao.actConnectExecute(Sender: TObject);
 begin
+ If Assigned(FormTelaRemota) Then
+  FreeAndNil(FormTelaRemota);
  If LbtnConectar.Enabled Then
   Begin
    vDrawCursor := False;
@@ -870,6 +874,7 @@ begin
   tmrIntervalo.Enabled := False;
   tmrClipboard.Enabled := False;
   MudarStatusConexao(1, Locale.GetLocale(lsMESSAGES, lvMsgPeerDisconnected));
+  Windows.ShowWindow(FormToHWND(Application.MainForm), SW_RESTORE);
 end;
 
 procedure TFormConexao.SetOnline;
@@ -1002,7 +1007,7 @@ Begin
    Else
     Conexao.SendCommand(aConnection, aPack);
   End;
- Processmessages;
+ //Processmessages;
 End;
 
 Procedure TFormConexao.OnProcessData(aPackList : TPackList);
@@ -1015,6 +1020,8 @@ Var
  Begin
   Result := TMemoryStream.Create;
   Try
+   If Not Assigned(FDuplication) Then
+    FDuplication := TDesktopDuplicationWrapper.Create;
    GetScreenToMemoryStream(vDrawCursor, TMemoryStream(Result));
   Finally
    Result.Position := 0;
@@ -1023,15 +1030,20 @@ Var
 Begin
  Try
   aScreenShot             := aCapture;
-  SetLength(aBytes, aScreenShot.Size);
-  aScreenShot.Read(aBytes[0], Length(aBytes));
-  aResolution := Format('%s&%s&%s', [FloatToStr(Screen.Height), FloatToStr(Screen.Width), aMonitor]);
-  If Not Assigned(Conexao) Then
-   Exit;
-  If Assigned(aPackList)   Then
-   aPackList.Add(Conexao.Connection, '', tdmClientCommand, tdcAsync, tctScreenCapture, aBytes, Format('%s&%s&%s', [Conexao.Connection, Conexao.SessionID, aResolution]), True)
-  Else
-   Exit;
+  If aScreenShot.Size > 0 Then
+   Begin
+    SetLength(aBytes, aScreenShot.Size);
+    aScreenShot.Read(aBytes[0], Length(aBytes));
+  //  aResolution := Format('%d&%d', [Screen.Height, Screen.Width]);
+    aResolution := Format('%s&%s&%s', [FloatToStr(Screen.Height), FloatToStr(Screen.Width), aMonitor]);
+    If Not Assigned(Conexao) Then
+     Exit;
+    If Assigned(aPackList)   Then
+     aPackList.Add(Conexao.Connection, '', tdmClientCommand, tdcAsync, tctScreenCapture, aBytes, Format('%s&%s&%s', [Conexao.Connection, Conexao.SessionID, aResolution]), True)
+    Else
+     Exit;
+   End;
+  Processmessages;
 //  Conexao.SendBytes(aBytes, True, aResolution);
  Finally
   FreeAndNil(aScreenShot);
@@ -1067,6 +1079,7 @@ Begin
  SendDataThread                := TAegysMotorThread.Create;
  aConnection                   := Connection;
  Try
+  Windows.ShowWindow(FormToHWND(Self), SW_Minimize);
   SendDataThread.OnProcessData := OnProcessData;
   SendDataThread.OnPulseData   := OnPulseData;
   SendDataThread.Resume;
@@ -1080,6 +1093,7 @@ Procedure TFormConexao.OnPeerDisconnected(Connection        : String;
                                           ClientPassword,
                                           Alias             : String); //Captura de tela
 Begin
+ Windows.ShowWindow(FormToHWND(Self), SW_RESTORE);
  SetPeerDisconnected;
 End;
 
@@ -1096,6 +1110,7 @@ Begin
  tmrIntervalo.Enabled := False;
  tmrClipboard.Enabled := False;
  MudarStatusConexao(1, 'Peer Disconnected');
+ Windows.ShowWindow(FormToHWND(Self), SW_RESTORE);
 End;
 
 Procedure TFormConexao.OnScreenCapture(Connection,

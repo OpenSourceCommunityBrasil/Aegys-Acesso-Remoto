@@ -108,8 +108,6 @@ Begin
    {$IF NOT(DEFINED(ANDROID)) and NOT(DEFINED(IOS))}
      Application.ProcessMessages;
    {$IFEND}
- {$ELSE}
-  Application.Processmessages;
  {$ENDIF}
 End;
 
@@ -160,17 +158,14 @@ End;
 
 Procedure TAegysThread.ServiceCommands;
 Begin
+ Processmessages;
  If Assigned(vOnServiceCommands) Then
   vOnServiceCommands(abInternalCommand, abCommand);
 End;
 
 Procedure TAegysThread.ClientCommands;
 Begin
- {$IFDEF FPC}
-  Synchronize(@Processmessages);
- {$ELSE}
-  Synchronize(Processmessages);
- {$ENDIF}
+ Processmessages;
  If Assigned(vOnClientCommands) Then
   vOnClientCommands(abCommandType, abOwner, abID, abCommand, abBuf)
  Else If Assigned(vOnDataReceive) Then
@@ -179,6 +174,7 @@ End;
 
 Procedure TAegysThread.ExecuteData;
 Begin
+ Processmessages;
  If Assigned(vOnExecuteData)     Then
   vOnExecuteData(pPackList^, abPackno);
 End;
@@ -237,6 +233,7 @@ Begin
      If Not DirectThreadAction[Integer(ttdReceive)] Then
       Begin
        DirectThreadAction[Integer(ttdReceive)] := True;
+       Processmessages;
        //Process Before Execute one Pack
        If Assigned(vOnBeforeExecuteData) Then
         vOnBeforeExecuteData(aPackList);
@@ -298,11 +295,7 @@ Begin
               abID              := vID;
               abBuf             := aBuf;
               Try
-               {$IFDEF FPC}
-                Synchronize(@ClientCommands);
-               {$ELSE}
-                Synchronize(ClientCommands);
-               {$ENDIF}
+               ClientCommands;
               Finally
                SetLength(abBuf, 0);
               End;
@@ -357,6 +350,7 @@ End;
 Procedure TAegysThread.Kill;
 Begin
  Terminate;
+ Processmessages;
  If Assigned(vAbortData) Then
   vAbortData;
  If Assigned(vOnThreadRequestError) Then
