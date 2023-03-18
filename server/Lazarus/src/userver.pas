@@ -157,7 +157,7 @@ begin
  vAegysService.OnGetClientDetails := GetNewID;
  {$ENDIF}
  Connect;
- tReload.Enabled                  := True;
+ //tReload.Enabled                  := True;
 end;
 
 procedure TfServer.FormDestroy(Sender: TObject);
