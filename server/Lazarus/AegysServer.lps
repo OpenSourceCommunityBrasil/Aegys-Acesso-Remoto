@@ -3,12 +3,11 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Windows x64"/>
+    <BuildModes Active="Linux x64"/>
     <Units>
       <Unit>
         <Filename Value="AegysServer.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <CursorPos X="54" Y="13"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -20,8 +19,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uServer"/>
-        <EditorIndex Value="-1"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="141"/>
+        <CursorPos X="55" Y="148"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
@@ -130,7 +134,36 @@
         <UsageCount Value="20"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="-1"/>
+    <JumpHistory HistoryIndex="6">
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="98" Column="17" TopLine="82"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="171" Column="32" TopLine="163"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="22" Column="27" TopLine="10"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="171" Column="32" TopLine="151"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="22" Column="27" TopLine="10"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="171" Column="32" TopLine="163"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="22" Column="22" TopLine="79"/>
+      </Position>
+    </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes ActiveMode=""/>

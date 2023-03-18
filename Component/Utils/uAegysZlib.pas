@@ -15,6 +15,11 @@ Const
 Procedure ZCompressStream    (inStream,
                               outStream        : TStream;
                               CompressionLevel : TCompressionLevel = clDefault);
+Procedure ZCompressBytes     (Var inBytes,
+                              outBytes         : TAegysBytes;
+                              CompressionLevel : TCompressionLevel = clFastest);
+Procedure ZDecompressBytes   (Var inBytes,
+                              outBytes         : TAegysBytes);
 Procedure ZDecompressStream  (inStream,
                               outStream        : TStream);
 Function ZDecompressStreamNew(Const S          : TStream)       : TStream;
@@ -30,6 +35,99 @@ Function ZCompressStreamD    (S                : TStream;
                               Var Value        : TStream)       : Boolean;
 
 implementation
+
+
+Procedure ZDecompressBytes(Var inBytes,
+                           outBytes         : TAegysBytes);
+Var
+ D : TDecompressionstream;
+ B : Array [1 .. CompressBuffer] of Byte;
+ R : Integer;
+ Size : AEInt64;
+ inStream,
+ outStream : TStream;
+Begin
+ inStream  := TStringStream.Create('');
+ outStream := TMemoryStream.Create;
+ Try
+  inStream.Write(inBytes[0], Length(inBytes));
+  inStream.Position := 0;
+  D := TDecompressionstream.Create(inStream);
+  D.Read(Size, SizeOf(AEInt64));
+  inStream.Position := SizeOf(Size);
+ {$IFDEF FPC}
+  While True Do
+   Begin
+    R := D.Read(B, SizeOf(B));
+    If R <> 0 Then
+      outStream.WriteBuffer(B, R)
+    Else
+      Break;
+   End;
+  outStream.Position := 0;
+  FreeAndNil(D);
+ {$ELSE}
+//  inStream.Position := 0;//SizeOf(Size);
+  Try
+    Repeat
+      If ((Size - outStream.Size) > CompressBuffer) Then
+        R := D.Read(B, SizeOf(B))
+      Else
+        R := D.Read(B, (Size - outStream.Size));
+      If R > 0 then
+        outStream.Write(B, R);
+    Until R < SizeOf(B);
+  Finally
+    outStream.Position := 0;
+    D.Free;
+  End;
+ {$ENDIF}
+ Finally
+  outStream.Position := 0;
+  SetLength(outBytes, outStream.Size);
+  outStream.Read(outBytes[0], outStream.Size);
+  FreeAndNil(inStream);
+  FreeAndNil(outStream);
+ End;
+End;
+
+Procedure ZCompressBytes     (Var inBytes,
+                              outBytes         : TAegysBytes;
+                              CompressionLevel : TCompressionLevel = clFastest);
+Var
+ DS        : TCompressionStream;
+ Size      : AeInt64;
+ inStream,
+ outStream : TStream;
+ bBytes    : TAegysBytes;
+Begin
+ inStream  := TStringStream.Create('');
+ outStream := TStringStream.Create('');
+ Try
+  inStream.Write(inBytes[0], Length(inBytes));
+  inStream.Position := 0; // Goto Start of input stream
+  DS := TCompressionStream.Create(CompressionLevel, outStream);
+  Try
+   Size := inStream.Size;
+   inStream.Position := 0;
+   DS.Write(Size, SizeOf(AEInt64));
+   DS.CopyFrom(inStream, inStream.Size);
+  Finally
+   DS.Free;
+   Size := outStream.Size;
+   SetLength(outBytes, Size);
+   outStream.Position := 0;
+   outStream.Read(outBytes[0], Size);
+//   SetLength(outBytes,   Size);
+//   Move(Pointer(@Size)^, outBytes[0], SizeOf(AeInt64));
+//   Move(bBytes[0],       outBytes[SizeOf(AeInt64)], Length(bBytes));
+  End;
+ Finally
+  SetLength(bBytes, 0);
+  FreeAndNil(inStream);
+  FreeAndNil(outStream);
+ End;
+End;
 
 Procedure ZCompressStream(inStream, outStream: TStream;
   CompressionLevel: TCompressionLevel = clDefault);

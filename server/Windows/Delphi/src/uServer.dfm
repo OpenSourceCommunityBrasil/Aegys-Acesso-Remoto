@@ -68,7 +68,7 @@ object fServer: TfServer
   object DataSource1: TDataSource
     DataSet = QryConexoes
     Left = 64
-    Top = 160
+    Top = 144
   end
   object QryConexoes: TFDMemTable
     FieldDefs = <>
@@ -103,6 +103,7 @@ object fServer: TfServer
     end
   end
   object tReload: TTimer
+    Enabled = False
     Interval = 5000
     OnTimer = tReloadTimer
     Left = 320

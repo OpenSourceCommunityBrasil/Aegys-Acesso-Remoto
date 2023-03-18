@@ -32,6 +32,7 @@ Uses
   Private
    vHeaderVersion : AeInteger;
    vPackError     : TPackError;
+   vCompression,
    vChecked,
    vProxyMyList   : Boolean;
    vDataMode      : TDataMode;
@@ -66,6 +67,7 @@ Uses
    Property    BufferVersion               : AeInteger    Read vHeaderVersion;
    Property    ProxyToMyConnectionList     : Boolean      Read vProxyMyList    Write vProxyMyList;
    Property    Checked                     : Boolean      Read vChecked        Write vChecked;
+   Property    Compression                 : Boolean      Read vCompression    Write vCompression;
    Property    DataBytes                   : TAegysBytes  Read GetDataBytes    Write SetDataBytes;
    Property    BytesOptions                : AeString     Read vBytesOptions   Write vBytesOptions;
    Property    DataMode                    : TDataMode    Read vDataMode       Write vDataMode;
@@ -134,6 +136,16 @@ Uses
                              aDestMylist   : Boolean   = False;
                              aBufferSize   : AEInt64   = 0;
                              aDelay        : AEInteger = 0) : Integer;Overload;
+   Function   Add           (PackOwner,
+                             PackDest      : AeString;
+                             aDataMode     : TDataMode;
+                             aDataCheck    : TDataCheck;
+                             aCommandType  : TCommandType;
+                             aDataBytes    : TAegysBytes;
+                             aBytesOptions : AeString;
+                             aDestMylist,
+                             aFullPack     : Boolean;
+                             aPacks        : AEInt64   = 0) : Integer;Overload;
    Function   ReadPack      (Index         : Integer)  : TAegysBytes;
    Function   ReadBufferPack(PackNo        : Integer)  : TAegysBytes;
    Property   Items         [Index         : Integer]  : TPackClass Read GetRec Write PutRec; Default;
@@ -160,6 +172,7 @@ Constructor TPackClass.Create;
 Begin
  vChecked       := False;
  vProxyMyList   := False;
+ vCompression   := False;
  vOwner         := '';
  vDest          := '';
  vBytesOptions  := '';
@@ -303,6 +316,7 @@ Var
  aCommand,
  aOwnerBytes,
  aBytesOption,
+ aResult,
  aDestBytes       : TAegysBytes;
  aSizeOf,
  aDestSize,
@@ -313,6 +327,18 @@ Var
  aDataSize,
  aBytesOptionSize : AEInt64;
 Begin
+ If vCompression Then
+  Begin
+   Move(Value[0],     aDataSize,      SizeOf(aDataSize));
+   SetLength(aResult, aDataSize - SizeOf(aDataSize));
+   Move(Value[SizeOf(aDataSize)], aResult[0], aDataSize - SizeOf(aDataSize));
+   Try
+    SetLength(Value, 0);
+    ZDecompressBytes(aResult, Value);
+   Finally
+    SetLength(aResult, 0);
+   End;
+  End;
  aPackSize        := 0;
  aCommandSize     := 0;
  aDataSize        := 0;
@@ -323,10 +349,15 @@ Begin
  aPosition        := 0;
  If Length(Value) > 0 Then
   Begin
-   Move(Value[0], aPackSize, SizeOf(aPackSize));                      //PackSize
-   aPosition            :=  SizeOf(aPackSize);
-   Move(Value[SizeOf(aPackSize)], vChecked, SizeOf(vChecked));        //Checked
-   aPosition            :=  aPosition +     SizeOf(vChecked);
+//   If Not vCompression Then
+//    Begin
+   Move(Value[0], aPackSize, SizeOf(aPackSize));                    //PackSize
+   aPosition             :=  SizeOf(aPackSize);
+//    End
+//   Else
+//    aPackSize := Length(Value);
+   Move(Value[aPosition], vChecked,         SizeOf(vChecked));        //Checked
+   aPosition            := aPosition +      SizeOf(vChecked);
    Move(Value[aPosition], vProxyMyList,     SizeOf(vProxyMyList));    //ProxyMyList
    aPosition            := aPosition +      SizeOf(vProxyMyList);
    Move(Value[aPosition], vHeaderVersion,   SizeOf(vHeaderVersion));  //Header Version
@@ -594,6 +625,18 @@ Begin
     Move(aDestSize,     Pointer(@Result[SizeOf(aPackSize) +   aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize])^, SizeOf(aDestSize));
     Move(aDest     [0], Pointer(@Result[SizeOf(aPackSize) +   aHeaderSize + SizeOf(aOwnerSize) + aOwnerSize + SizeOf(aDestSize)])^, aDestSize);
    End;
+  If vCompression Then
+   Begin
+    SetLength(aResult, Length(Result));
+    Move(Result[0], aResult[0], Length(Result));
+//    aResult := Result;
+    Try
+     SetLength(Result, 0);
+     ZCompressBytes(aResult, Result);
+    Finally
+     SetLength(aResult, 0);
+    End;
+   End;
  Except
   Raise Exception.Create('Error Message');
  End;
@@ -813,6 +856,76 @@ Function TPackList.Add    (PackOwner,
                            aCommandType   : TCommandType;
                            aDataBytes     : TAegysBytes;
                            aBytesOptions  : AeString;
+                           aDestMylist,
+                           aFullPack      : Boolean;
+                           aPacks         : AEInt64   = 0) : Integer;
+Var
+ aItem            : TPackClass;
+ aInitPosition,
+ bBufferSize,
+ aPacksGeralB     : AEInt64;
+Begin
+ Result           := -1;
+ aPacksGeralB     := Length(aDataBytes);
+ Try
+  If aPacksGeralB > 0 Then
+   Begin
+    If aFullPack Then
+     Begin
+      aItem              := TPackClass.Create;
+      aItem.DataCheck    := aDataCheck;
+      aItem.DataSize     := aPacksGeralB;
+      aItem.vProxyMyList := aDestMylist;
+      aItem.BufferSize   := aItem.DataSize;
+      aItem.PacksGeral   := 1;
+      aItem.PackNo       := 1;
+      aItem.DataMode     := aDataMode;
+      aItem.DataType     := tdtDataBytes;
+      aItem.CommandType  := aCommandType;
+      aItem.DataBytes    := aDataBytes;
+      aItem.BytesOptions := aBytesOptions;
+      aItem.Owner        := PackOwner;
+      aItem.Dest         := PackDest;
+      Result             := Add(aItem);
+      aItem.Delay        := 0;
+     End
+    Else //Build MultiPack
+     Begin
+      bBufferSize       := Length(aDataBytes) - SizeOfHeader - Length(PackOwner) - Length(PackDest) - Length(aBytesOptions);
+      If bBufferSize > 0 Then
+       Begin
+        aItem              := TPackClass.Create;
+        aItem.DataCheck    := aDataCheck;
+        aItem.DataSize     := aPacksGeralB;
+        aItem.vProxyMyList := aDestMylist;
+        aItem.PacksGeral   := aPacks;
+        aItem.PackNo       := 1;
+        aItem.DataMode     := aDataMode;
+        aItem.DataType     := tdtDataBytes;
+        aItem.CommandType  := aCommandType;
+        aItem.Owner        := PackOwner;
+        aItem.Dest         := PackDest;
+        aItem.BytesOptions := aBytesOptions;
+        aItem.DataBytes    := aDataBytes;
+        aItem.BufferSize   := bBufferSize;
+        Result             := Add(aItem);
+        aItem.Delay        := 0;
+       End
+      Else
+       Raise Exception.Create(cPackInvalidSize + ' Buffer is ' + IntToStr(bBufferSize));
+     End;
+   End;
+ Finally
+ End;
+End;
+
+Function TPackList.Add    (PackOwner,
+                           PackDest       : AeString;
+                           aDataMode      : TDataMode;
+                           aDataCheck     : TDataCheck;
+                           aCommandType   : TCommandType;
+                           aDataBytes     : TAegysBytes;
+                           aBytesOptions  : AeString;
                            aDestMylist    : Boolean   = False;
                            aBufferSize    : AEInt64   = 0;
                            aDelay         : AEInteger = 0) : Integer;
@@ -1003,34 +1116,36 @@ Procedure TPackList.Delete       (Index  : Integer);
 Begin
 // Try
 //  vCriticalSection.Acquire;
-  If (Index > -1)        And
-     (Index <= Count -1) Then
-   Begin
-    Try
-     If Assigned(TList(Self).Items[Index]) Then
-      Begin
-       If Assigned(TPackClass(TList(Self).Items[Index]^)) Then
-        Begin
-        {$IFDEF FPC}
-         FreeAndNil(TList(Self).Items[Index]^);
+ If Not Assigned(Self) Then
+  Exit;
+ If (Index > -1)        And
+    (Index <= Count -1) Then
+  Begin
+   Try
+    If Assigned(TList(Self).Items[Index]) Then
+     Begin
+      If Assigned(TPackClass(TList(Self).Items[Index]^)) Then
+       Begin
+       {$IFDEF FPC}
+        FreeAndNil(TList(Self).Items[Index]^);
+       {$ELSE}
+        {$IF CompilerVersion > 33}
+         FreeAndNil(TPackClass(TList(Self).Items[Index]^));
         {$ELSE}
-         {$IF CompilerVersion > 33}
-          FreeAndNil(TPackClass(TList(Self).Items[Index]^));
-         {$ELSE}
-          FreeAndNil(TList(Self).Items[Index]^);
-         {$IFEND}
-        {$ENDIF}
-        End;
-      End;
-     {$IFDEF FPC}
-      Dispose(PPackClass(TList(Self).Items[Index]));
-     {$ELSE}
-      Dispose(TList(Self).Items[Index]);
-     {$ENDIF}
-    Except
-    End;
-    TList(Self).Delete(Index);
+         FreeAndNil(TList(Self).Items[Index]^);
+        {$IFEND}
+       {$ENDIF}
+       End;
+     End;
+    {$IFDEF FPC}
+     Dispose(PPackClass(TList(Self).Items[Index]));
+    {$ELSE}
+     Dispose(TList(Self).Items[Index]);
+    {$ENDIF}
+   Except
    End;
+   TList(Self).Delete(Index);
+  End;
 // Finally
 //  vCriticalSection.Release;
 // End;

@@ -1,19 +1,18 @@
-unit uSQLiteConfig;
+unit Config.SQLite.FireDAC;
 
 interface
 
 uses
-  FireDAC.Comp.Client,
-{$IF CompilerVersion > 30.0}
-  FireDAC.phys.SQLite,
-{$ENDIF}
-{$IF CompilerVersion > 30.0}
-  FireDAC.Stan.Def, FireDAC.DApt, FireDAC.FMXUI.Wait, FireDAC.Stan.Async,
-  FireDAC.Stan.StorageJSON, FireDAC.Stan.StorageBin,FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef,
-  FireDAC.Stan.Intf, FireDAC.Phys,
-{$ENDIF}
-  System.JSON, System.SysUtils,
-  uConstants;
+  {$IF CompilerVersion > 33.0}
+  FireDAC.Phys.SQLiteWrapper.Stat, FireDAC.Stan.ExprFuncs,
+  FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf, FireDAC.Phys, FireDAC.Phys.SQLite,
+  {$IFEND}
+  {$IFDEF Android}
+  System.IOUtils,
+  {$ENDIF}
+  FireDAC.Comp.Client, System.JSON, System.SysUtils
+
+    ;
 
 type
   TSQLiteConfig = class
@@ -25,7 +24,8 @@ type
     constructor Create;
     destructor Destroy; override;
     function getValue(pKey: string): string;
-    procedure UpdateConfig(aJSON: TJSONObject);
+    procedure UpdateConfig(aJSON: TJSONObject); overload;
+    procedure UpdateConfig(aKey, aValue: string); overload;
     function LoadConfig: TJSONObject;
   end;
 
@@ -34,26 +34,33 @@ var
 
 implementation
 
-{ TCfg }
+{ TSQLiteConfig }
 
 constructor TSQLiteConfig.Create;
 begin
   FConn := TFDConnection.Create(nil);
   FConn.Params.Clear;
   FConn.DriverName := 'SQLite';
+  {$IFDEF Android}
+  FConn.Params.Add('Database=' + TPath.Combine(TPath.GetDocumentsPath,
+    'config.db'));
+  {$ENDIF}
+  {$IFDEF MSWINDOWS}
   FConn.Params.Add('Database=' + ExtractFilePath(ParamStr(0)) + 'config.db');
+  {$ENDIF}
   FConn.Params.Add('LockingMode=normal');
 
   FDataSet := TFDQuery.Create(nil);
   FDataSet.Connection := FConn;
+  FDataSet.ResourceOptions.SilentMode := true;
 
   Validate;
 end;
 
 destructor TSQLiteConfig.Destroy;
 begin
-  FDataSet.DisposeOf;
-  FConn.DisposeOf;
+  FDataSet.Free;
+  FConn.Free;
   inherited;
 end;
 
@@ -125,29 +132,41 @@ begin
     end;
 end;
 
+procedure TSQLiteConfig.UpdateConfig(aKey, aValue: string);
+begin
+  with FDataSet do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT CFG_Key, CFG_Value');
+    SQL.Add('  FROM Config');
+    SQL.Add(' WHERE CFG_Key = :CFG_Key');
+    ParamByName('CFG_Key').Value := aKey;
+    Open;
+    Edit;
+    Fields.Fields[0].Value := aKey;
+    Fields.Fields[1].Value := aValue;
+    Post;
+    if FDataSet.CachedUpdates then
+      ApplyUpdates;
+    Close;
+  end;
+end;
+
 procedure TSQLiteConfig.Validate;
 begin
   with FDataSet do
   begin
     Close;
-{$IF CompilerVersion > 34.0}
-    try
-      Open('PRAGMA table_info("Config")');
-    except
-      ExecSQL('PRAGMA table_info("Config")');
-    end;
-{$ELSE}
-    SQL.Text := 'PRAGMA table_info("Config")';
-    OpenOrExecute;
-{$ENDIF}
-    if IsEmpty then
+    Open('PRAGMA table_info("Config")');
+    if isEmpty then
     begin
       Close;
       SQL.Clear;
-      SQL.Add('CREATE TABLE "Config"(');
-      SQL.Add('  "CFG_ID" integer primary key');
-      SQL.Add(', "CFG_Key" varchar');
-      SQL.Add(', "CFG_Value" varchar');
+      SQL.Add('CREATE TABLE Config(');
+      SQL.Add('  CFG_ID integer primary key');
+      SQL.Add(', CFG_Key varchar');
+      SQL.Add(', CFG_Value varchar');
       SQL.Add(');');
       ExecSQL;
     end;

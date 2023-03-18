@@ -62,7 +62,6 @@ Begin
  vInExec := False;
  While (Not(Terminated)) Do
   Begin
-   ProcessMessages;
    If Assigned(aPackList) Then
     Begin
      If Not vInExec Then
@@ -71,28 +70,27 @@ Begin
        If aPackList.Count <= cDelayThread Then
         Begin
          If Assigned(vOnProcessData) Then
-          Begin
-           Try
-            ProcessMessages;
-            vOnProcessData(aPackList);
-           Except
-           End;
-          End;
+          vOnProcessData(aPackList);
         End;
        Try
-        If aPackList.Count = cDelayThread Then
+        If Not Assigned(aPackList) Then
+         Break;
+        If (aPackList.Count <= cDelayThread) And
+           (aPackList.Count > 0) Then
          Begin
           Try
            //Process Before Execute one Pack
            If Assigned(vOnPulseData) Then
             Begin
-             vOnPulseData(aPackList[0].ToBytes,
-                          aPackList[0].CommandType);
-             aPackList.Delete(0);
-             ProcessMessages;
+             Try
+              vOnPulseData(aPackList[0].ToBytes,
+                           aPackList[0].CommandType);
+              aPackList.Delete(0);
+             Finally
+             End;
             End;
           Except
-         //  Break;
+           Break;
           End;
          End;
        Finally
@@ -105,7 +103,7 @@ Begin
     Break;
    //Delay Processor
    If vDelayThread > 0 Then
-    Sleep(vDelayThread);
+    Sleep(vDelayThread div 2);
   End;
 End;
 

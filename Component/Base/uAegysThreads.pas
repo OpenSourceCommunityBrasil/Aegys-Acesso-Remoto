@@ -54,6 +54,8 @@ Type
                                     Connection,
                                     ID,
                                     Command         : String;
+                                    MultiPack       : Boolean;
+                                    PackCount       : AeInteger;
                                     aBuf            : TAegysBytes) Of Object;
 
 Type
@@ -74,7 +76,9 @@ Type
   vOnClientCommands                       : TOnClientCommands;
   abInternalCommand                       : TInternalCommand;
   abCommandType                           : TCommandType;
+  abPackCount,
   abPackNo                                : Integer;
+  abMultiPack                             : Boolean;
   abConnection,
   abOwner,
   abID,
@@ -108,8 +112,6 @@ Begin
    {$IF NOT(DEFINED(ANDROID)) and NOT(DEFINED(IOS))}
      Application.ProcessMessages;
    {$IFEND}
- {$ELSE}
-  Application.Processmessages;
  {$ENDIF}
 End;
 
@@ -160,25 +162,23 @@ End;
 
 Procedure TAegysThread.ServiceCommands;
 Begin
+// Processmessages;
  If Assigned(vOnServiceCommands) Then
   vOnServiceCommands(abInternalCommand, abCommand);
 End;
 
 Procedure TAegysThread.ClientCommands;
 Begin
- {$IFDEF FPC}
-  Synchronize(@Processmessages);
- {$ELSE}
-  Synchronize(Processmessages);
- {$ENDIF}
+// Processmessages;
  If Assigned(vOnClientCommands) Then
-  vOnClientCommands(abCommandType, abOwner, abID, abCommand, abBuf)
+  vOnClientCommands(abCommandType, abOwner, abID, abCommand, abMultiPack, abPackCount, abBuf)
  Else If Assigned(vOnDataReceive) Then
   vOnDataReceive(abBuf);
 End;
 
 Procedure TAegysThread.ExecuteData;
 Begin
+// Processmessages;
  If Assigned(vOnExecuteData)     Then
   vOnExecuteData(pPackList^, abPackno);
 End;
@@ -237,6 +237,7 @@ Begin
      If Not DirectThreadAction[Integer(ttdReceive)] Then
       Begin
        DirectThreadAction[Integer(ttdReceive)] := True;
+//       Processmessages;
        //Process Before Execute one Pack
        If Assigned(vOnBeforeExecuteData) Then
         vOnBeforeExecuteData(aPackList);
@@ -272,6 +273,8 @@ Begin
                abOwner           := vOwner;
                abID              := vID;
                abBuf             := bBuf;
+               abMultiPack       := aPackClass.PacksGeral > 0;
+               abPackCount       := aPackClass.PacksGeral;
                Try
                 ClientCommands;
                Finally
@@ -281,14 +284,25 @@ Begin
             End;
            If vInternalC Then
             aPackList.Delete(0);
+           Processmessages;
           End;
          If Not vInternalC Then
           Begin
            aBuf := aPackClass.DataBytes;
            Try
-            ArrayOfPointer := [@vOwner, @vID];
             vBytesOptions  := aPackClass.BytesOptions;
-            ParseValues(vBytesOptions, ArrayOfPointer);
+            If (aPackClass.CommandType in [tctScreenCapture,  tctMonitor,
+                                           tctAudio,          tctVideo]) Then
+             Begin
+              vOwner := aPackClass.Owner;
+              vId    := aPackClass.Dest;
+             End
+            Else
+             Begin
+              ArrayOfPointer := [@vOwner, @vID];
+              ParseValues(vBytesOptions, ArrayOfPointer);
+             End;
+//            ParseValues(vBytesOptions, ArrayOfPointer);
             If (aPackClass.CommandType <> tctNone) Then
              Begin
               abInternalCommand := vInternalCommand;
@@ -297,12 +311,10 @@ Begin
               abOwner           := vOwner;
               abID              := vID;
               abBuf             := aBuf;
+              abMultiPack       := aPackClass.PacksGeral > 0;
+              abPackCount       := aPackClass.PacksGeral;
               Try
-               {$IFDEF FPC}
-                Synchronize(@ClientCommands);
-               {$ELSE}
-                Synchronize(ClientCommands);
-               {$ENDIF}
+               ClientCommands;
               Finally
                SetLength(abBuf, 0);
               End;
@@ -311,6 +323,7 @@ Begin
             aPackList.Delete(0);
             SetLength(aBuf, 0);
            End;
+//           Processmessages;
           End;
         End;
        DirectThreadAction[Integer(ttdReceive)] := False;
@@ -334,6 +347,7 @@ Begin
           End;
         End;
        DirectThreadAction[Integer(ttdSend)] := False;
+//       Processmessages;
       End;
     Finally
     End;
@@ -342,14 +356,14 @@ Begin
      Begin
       If Assigned(vOnThreadRequestError) Then
        vOnThreadRequestError(500, E.Message);
-      TAegysClient(pAegysClient).ThreadDisconnect;
-      Break;
+//      TAegysClient(pAegysClient).ThreadDisconnect;
+//      Break;
      End;
    End;
    //Delay Processor
    If vDelayThread > 0 Then
     Sleep(vDelayThread);
-   Processmessages;
+//   Processmessages;
   End;
  FreeAndNil(aPackList);
 End;
@@ -357,6 +371,7 @@ End;
 Procedure TAegysThread.Kill;
 Begin
  Terminate;
+ Processmessages;
  If Assigned(vAbortData) Then
   vAbortData;
  If Assigned(vOnThreadRequestError) Then

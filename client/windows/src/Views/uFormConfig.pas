@@ -27,7 +27,7 @@ uses
   FMX.Ani, FMX.ActnList, FMX.ImgList, FMX.ComboEdit,
   uAegysBase,
   uFunctions,
-  uConstants, uSQLiteConfig, uLocale;
+  uConstants, Config.SQLite.FireDAC, uLocale;
 
 type
   TCallBack = procedure of object;

@@ -22,21 +22,16 @@ uses
   System.Types,
   FMX.Forms,
   Vcl.Imaging.jpeg,
+  Execute.DesktopDuplicationAPI,
   FMX.Objects
-  {$IF DEFINED (ANDROID) || (IOS)}
-  ,FMX.Types
-  ,FMX.Graphics
-  ,FMX.Platform
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
   ,Vcl.Graphics
   ,Winapi.Windows
   ,Vcl.Forms
-  {$ENDIF}
-  ;
+  , uAegysBufferPack;
 
 Const
   TNeutroColor = 255;
+  cCaptureJPG  = False;
 
 Type
   TRGBTriple = Packed Record
@@ -49,18 +44,11 @@ Type
   PRGBTripleArray = ^TRGBTripleArray;
   TRGBTripleArray = Array [0 .. 4095] of TRGBTriple;
 
-{$IF DEFINED (ANDROID) || (IOS)}
-procedure GetScreenToMemoryStream(DrawCur            : Boolean;
-                                  TargetMemoryStream : TMemoryStream;
-                                  PixelFormat        : TPixelFormat = TPixelFormat.None;
-                                  Monitor            : String       = '0');
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
-procedure GetScreenToMemoryStream(DrawCur            : Boolean;
-                                  TargetMemoryStream : TMemoryStream;
-                                  PixelFormat        : TPixelFormat = pfDevice;
-                                  Monitor            : String       = '0');
-{$ENDIF}
+procedure GetScreenToMemoryStream(Var aPackClass     : TPackClass;
+                                  DrawCur            : Boolean;
+                                  PixelFormat        : TPixelFormat = pf15bit;
+                                  Monitor            : String       = '0';
+                                  FullFrame          : Boolean      = False);
 
 procedure ResizeBmp(AImage: TImage; AStream: TMemoryStream; AWidth, AHeight: Single);
 
@@ -75,41 +63,22 @@ Var
 implementation
 
 uses
-  System.SysUtils;
+  System.SysUtils, uFormConexao, uAegysZlib, uAegysDataTypes;
 
 procedure ResizeBmp(AImage: TImage; AStream: TMemoryStream; AWidth, AHeight: Single);
 var
-  {$IF DEFINED (ANDROID) || (IOS)}
-  bmpSrc, bmpDest: FMX.Graphics.TBitmap;
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
   bmpSrc, bmpDest: Vcl.Graphics.TBitmap;
-  {$ENDIF}
-
   msImage: TMemoryStream;
 begin
   try
     msImage := TMemoryStream.Create;
     msImage.Clear;
-    {$IF DEFINED (ANDROID) || (IOS)}
-    bmpSrc := FMX.Graphics.TBitmap.Create;
-    bmpDest := FMX.Graphics.TBitmap.Create;
-    {$ENDIF}
-    {$IF DEFINED (MSWINDOWS)}
     bmpSrc := Vcl.Graphics.TBitmap.Create;
     bmpDest := Vcl.Graphics.TBitmap.Create;
-    {$ENDIF}
-
     AStream.Position := 0;
     bmpSrc.LoadFromStream(AStream);
     bmpDest.Width := Trunc(AWidth);
     bmpDest.Height := Trunc(AHeight);
-
-    {$IF DEFINED (ANDROID) || (IOS)}
-     bmpDest  :=  bmpSrc;
-     bmpDest.Resize(AWidth, AHeight);
-    {$ENDIF}
-    {$IF DEFINED (MSWINDOWS)}
     SetStretchBltMode(bmpDest.Canvas.Handle, HALFTONE);
     StretchBlt(
       bmpDest.Canvas.Handle,
@@ -123,8 +92,6 @@ begin
       bmpSrc.Width,
       bmpSrc.Height,
       SRCCOPY);
-    {$ENDIF}
-
     bmpDest.SaveToStream(msImage);
     msImage.Position := 0;
     AImage.Bitmap.LoadFromStream(msImage);
@@ -172,164 +139,206 @@ Begin
  End;
 End;
 
-{$IF DEFINED (ANDROID) || (IOS)}
-procedure GetScreenToMemoryStream(DrawCur            : Boolean;
-                                  TargetMemoryStream : TMemoryStream;
-                                  PixelFormat        : TPixelFormat = TPixelFormat.None;
-                                  Monitor            : String       = '0');
-{$ENDIF}
-{$IF DEFINED (MSWINDOWS)}
-procedure GetScreenToMemoryStream(DrawCur            : Boolean;
-                                  TargetMemoryStream : TMemoryStream;
-                                  PixelFormat        : TPixelFormat = pfDevice;
-                                  Monitor            : String       = '0');
-{$ENDIF}
-
-Const
- CAPTUREBLT = $40000000;
+procedure GetScreenToMemoryStream(Var aPackClass     : TPackClass;
+                                  DrawCur            : Boolean;
+                                  PixelFormat        : TPixelFormat = pf15bit;
+                                  Monitor            : String       = '0';
+                                  FullFrame          : Boolean      = False);
 Var
-  JPG : Vcl.Imaging.jpeg.TJPegImage;
-  {$IF DEFINED (ANDROID) || (IOS)}
-  Mybmp: FMX.Graphics.TBitmap;
-  dc: Cardinal;
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
-  Mybmp: Vcl.Graphics.TBitmap;
-  dc: hdc;
-  vMonitor,
-  Left, Top: Integer;
-  {$ENDIF}
-  DesktopCanvas: TCanvas;
-  {$IF DEFINED (ANDROID) || (IOS)}
-  Procedure MakeGrey(Bitmap: FMX.Graphics.TBitmap);
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
-  Procedure MakeGrey(Bitmap: Vcl.Graphics.TBitmap);
-  {$ENDIF}
-
-  Var
-   w, h, y, x: Integer;
-   sl: PRGBTripleArray;
-   grey: Byte;
-  Begin
-    {$IF DEFINED (ANDROID) || (IOS)}
-    Bitmap.PixelFormat := TPixelFormat.RGBA32F;
-    {$ENDIF}
-    {$IF DEFINED (MSWINDOWS)}
-    Bitmap.PixelFormat := pf32bit;
-    {$ENDIF}
-
-    w := Bitmap.Width;
-    h := Bitmap.Height;
-    For y := 0 To h - 1 Do
-    Begin
-      {$IF DEFINED (ANDROID) || (IOS)}
-//       sl := Bitmap.ScanLine[y];
-      {$ENDIF}
-      {$IF DEFINED (MSWINDOWS)}
-      sl := Bitmap.ScanLine[y];
-      {$ENDIF}
-
-     For x := 0 To w - 1 Do
-     Begin
-       With sl[x] Do
-       Begin
-         grey := (B + G + R) div 3;
-         B := grey;
-         G := grey;
-         R := grey;
-       End;
-     End;
-    End;
-  End;
-  Procedure BitmapToJpg(Bmp     : Vcl.Graphics.TBitmap;
+  JPG            : Vcl.Imaging.jpeg.TJPegImage;
+  Mybmp,
+  MybmpPart      : Vcl.Graphics.TBitmap;
+  aPackCountData : AeInteger;
+  I,
+  pRectTop,
+  pRectLeft,
+  pRectBottom,
+  pRectRight,
+  vMonitor    : Integer;
+  aSizeData   : AeInt64;
+  vNewFrame,
+  vMultiPoint : Boolean;
+  aFinalBytes,
+  aBytes,
+  aPackBytes    : TAegysBytes;
+  aMonitor,
+  aResolution   : String;
+  TargetMemoryStream,
+  aMemoryStream : TMemoryStream;
+  Procedure BitmapToJpg(Var Bmp : Vcl.Graphics.TBitmap;
                         Var JPG : Vcl.Imaging.jpeg.TJPegImage;
-                        Quality : Integer = 60);
+                        Quality : Integer = 15);
   Begin
    Try
     JPG := TJPegImage.Create;
     Try
-     JPG.CompressionQuality := Quality;
-     JPG.Compress;
+//     JPG.CompressionQuality := Quality;
      JPG.Assign(BMP);
+//     JPG.Compress;
     Finally
     End;
    Finally
     FreeAndNil(BMP);
    End;
- End;
-Begin
-  {$IF DEFINED (ANDROID) || (IOS)}
-  Mybmp := FMX.Graphics.TBitmap.Create;
-  dc := FMX.Forms.Screen.Forms[0].Handle;
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
-  Mybmp := Vcl.Graphics.TBitmap.Create;
-//  dc := GetWindowDC(0);
-  {$ENDIF}
-  vMonitor := StrToInt(Monitor) +1;
-  If (vMonitor > FMX.Forms.Screen.DisplayCount) then
-   Exit;
-  vMonitor := vMonitor -1;
-  Try
-    DC:= GetDC(0);
-    If (DC = 0) Then
-     Exit;
-    Mybmp.Width := Screen.Monitors[vMonitor].Width;
-    Mybmp.Height := Screen.Monitors[vMonitor].Height;
-    Left := Screen.Monitors[vMonitor].Left;
-    Top := Screen.Monitors[vMonitor].Top;
-    DesktopCanvas := TCanvas.Create;
-    Try
-     DesktopCanvas.Handle := DC;
-     {$IF DEFINED (ANDROID) || (IOS)}
- //    R := FMX.Forms.Screen.DesktopRect;
-     {$ENDIF}
-     {$IF DEFINED (MSWINDOWS)}
- //    R := Rect(0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
-     {$ENDIF}
- //    Mybmp.Width := R.Right;
- //    Mybmp.Height := R.Bottom;
-     {$IF DEFINED (ANDROID) || (IOS)}
- //    BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, dc, 0, 0, SRCCOPY or CAPTUREBLT);
-     {$ENDIF}
-     {$IF DEFINED (MSWINDOWS)}
-      BitBlt(Mybmp.Canvas.Handle, 0, 0, Mybmp.Width, Mybmp.Height, DesktopCanvas.Handle, Left, Top, SRCCOPY or CAPTUREBLT);
-     {$ENDIF}
-    Finally
-     FreeAndNil(DesktopCanvas);
-    End;
-  Finally
-    {$IF DEFINED (ANDROID) || (IOS)}
-    FMX.Forms.Screen.Forms[0].ReleaseCapture;
-    {$ENDIF}
-    {$IF DEFINED (MSWINDOWS)}
-    ReleaseDC(0, dc);
-    {$ENDIF}
   End;
-  If DrawCur Then
-   DrawScreenCursor(Mybmp, StrToInt(Monitor));
-  TargetMemoryStream.Clear;
-  {$IF DEFINED (ANDROID) || (IOS)}
-  If PixelFormat = TPixelFormat.RGB Then
-  {$ENDIF}
-  {$IF DEFINED (MSWINDOWS)}
-  If PixelFormat = pf4bit Then
-  {$ENDIF}
+Begin
+ aPackClass := Nil;
+ JPG        := Nil;
+ Mybmp := Vcl.Graphics.TBitmap.Create;
+ vMonitor := StrToInt(Monitor) +1;
+ aMonitor := IntToStr(FMX.Forms.Screen.DisplayCount);
+ If (vMonitor > FMX.Forms.Screen.DisplayCount) then
+  Exit;
+ vMonitor := vMonitor -1;
+ aResolution := Format('%s&%s&%s', [FloatToStr(Screen.Monitors[vMonitor].Height), FloatToStr(Screen.Monitors[vMonitor].Width), aMonitor]);
+ Try
+  vMultiPoint := False;
+  vNewFrame   := FDuplication.GetFrame;
+  If vNewFrame Then
+   Begin
+    FDuplication.DrawFrame(Mybmp, PixelFormat);
+    If Not FullFrame Then
+     Begin
+      vMultiPoint := FDuplication.DirtyCount >= 1;
+      If vMultiPoint Then
+       Begin
+        If FDuplication.DirtyCount = 1 Then
+         Begin
+         {$POINTERMATH ON}
+          pRectTop    := FDuplication.DirtyRects[0].Top;
+          pRectLeft   := FDuplication.DirtyRects[0].Left;
+          pRectBottom := FDuplication.DirtyRects[0].Bottom;
+          pRectRight  := FDuplication.DirtyRects[0].Right;
+          vMultiPoint := Not((pRectTop   = 0) And
+                             (pRectLeft  = 0) And
+                             (pRectRight  = Screen.Monitors[vMonitor].Width) And
+                             (pRectBottom = Screen.Monitors[vMonitor].Height));
+         End;
+       End;
+     End;
+   End;
+ Finally
+ End;
+ If vNewFrame Then
   Begin
-    {$IF DEFINED (ANDROID) || (IOS)}
-    Mybmp.PixelFormat := TPixelFormat.RGBA16;
-    {$ENDIF}
-    {$IF DEFINED (MSWINDOWS)}
-    Mybmp.PixelFormat := pf16bit;
-    {$ENDIF}
-    MakeGrey(Mybmp);
-  End
-  Else
-  Mybmp.PixelFormat := PixelFormat;
-  BitmapToJpg(Mybmp, JPG);
-  JPG.SaveToStream(TargetMemoryStream);
-  JPG.Free;
+   If DrawCur Then
+    DrawScreenCursor(Mybmp, StrToInt(Monitor));
+   If Not vMultiPoint Then
+    Begin
+     TargetMemoryStream := TMemoryStream.Create;
+     If cCaptureJPG Then
+      Begin
+       BitmapToJpg(Mybmp, JPG);
+       JPG.SaveToStream(TargetMemoryStream);
+       If Assigned(JPG) Then
+        FreeAndNil(JPG);
+      End
+     Else
+      Mybmp.SaveToStream(TargetMemoryStream);
+     TargetMemoryStream.position := 0;
+     If TargetMemoryStream.Size > 0 then
+      Begin
+       SetLength(aBytes, TargetMemoryStream.Size);
+       TargetMemoryStream.Read(aBytes[0], Length(aBytes));
+       ZCompressBytes(aBytes, aFinalBytes);
+       SetLength(aBytes, 0);
+       aPackClass  := TPackClass.Create;
+       Try
+        aPackClass.DataCheck    := tdcAsync;
+        aPackClass.DataSize     := Length(aFinalBytes);
+        aPackClass.ProxyToMyConnectionList := True;
+        aPackClass.BufferSize   := aPackClass.DataSize;
+        aPackClass.PacksGeral   := 0;
+        aPackClass.PackNo       := 0;
+        aPackClass.DataMode     := tdmClientCommand;
+        aPackClass.DataType     := tdtDataBytes;
+        aPackClass.CommandType  := tctScreenCapture;
+        aPackClass.DataBytes    := aFinalBytes;
+        aPackClass.BytesOptions := aResolution;
+        aPackClass.Owner        := Conexao.Connection;
+        aPackClass.Dest         := '';
+       Finally
+       End;
+      End;
+     FreeAndNil(TargetMemoryStream);
+    End
+   Else
+    Begin
+     aMemoryStream  := TMemoryStream.Create;
+     aPackCountData := FDuplication.DirtyCount;
+     aMemoryStream.Write(aPackCountData, SizeOf(aPackCountData));
+     For I := 0 To FDuplication.DirtyCount -1 Do
+      Begin
+       With FDuplication.DirtyRects[I] Do
+        Begin
+         pRectTop    := Top;
+         pRectLeft   := Left;
+         pRectBottom := Bottom;
+         pRectRight  := Right;
+         MybmpPart := Vcl.Graphics.TBitmap.Create;
+         Try
+          MybmpPart.SetSize(pRectRight  - pRectLeft,
+                            pRectBottom - pRectTop);
+          MybmpPart.PixelFormat := PixelFormat;
+          BitBlt(MybmpPart.Canvas.Handle, 0, 0,
+                 pRectRight,              pRectBottom,
+                 Mybmp.Canvas.Handle,     pRectLeft,
+                 pRectTop,                SRCCOPY);
+          TargetMemoryStream := TMemoryStream.Create;
+          If cCaptureJPG Then
+           Begin
+            BitmapToJpg(MybmpPart, JPG);
+            JPG.SaveToStream(TargetMemoryStream);
+           End
+          Else
+           MybmpPart.SaveToStream(TargetMemoryStream);
+          If TargetMemoryStream.Size > 0 Then
+           Begin
+            TargetMemoryStream.Position := 0;
+            aSizeData                   := TargetMemoryStream.Size;
+            aMemoryStream.Write   (pRectTop,           SizeOf(AeInteger));
+            aMemoryStream.Write   (pRectLeft,          SizeOf(AeInteger));
+            aMemoryStream.Write   (pRectBottom,        SizeOf(AeInteger));
+            aMemoryStream.Write   (pRectRight,         SizeOf(AeInteger));
+            aMemoryStream.Write   (aSizeData,          SizeOf(aSizeData));
+            aMemoryStream.CopyFrom(TargetMemoryStream, aSizeData);
+           End;
+         Finally
+          If Assigned(JPG) Then
+           FreeAndNil(JPG);
+          FreeAndNil(MybmpPart);
+          FreeAndNil(TargetMemoryStream);
+         End;
+        End;
+      End;
+     aMemoryStream.Position  := 0;
+     aPackClass              := TPackClass.Create;
+     Try
+      aPackClass.DataCheck    := tdcAsync;
+      aPackClass.ProxyToMyConnectionList := True;
+      aPackClass.PacksGeral   := aPackCountData;
+      aPackClass.PackNo       := 1;
+      aPackClass.DataMode     := tdmClientCommand;
+      aPackClass.DataType     := tdtDataBytes;
+      aPackClass.CommandType  := tctScreenCapture;
+      SetLength(aBytes, aMemoryStream.Size);
+      aMemoryStream.Read(aBytes[0], Length(aBytes));
+      ZCompressBytes(aBytes, aFinalBytes);
+      SetLength(aBytes, 0);
+      aPackClass.DataSize     := Length(aFinalBytes);
+      aPackClass.BufferSize   := aPackClass.DataSize;
+      aPackClass.DataBytes    := aFinalBytes;
+      aPackClass.BytesOptions := aResolution;
+      aPackClass.Owner        := Conexao.Connection;
+      aPackClass.Dest         := '';
+     Finally
+      SetLength(aFinalBytes, 0);
+      FreeAndNil(aMemoryStream);
+     End;
+    End;
+  End;
+ If Assigned(Mybmp) Then
+  FreeAndNil(Mybmp);
 End;
 
 end.
