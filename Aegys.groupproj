@@ -6,7 +6,7 @@
         <Projects Include="Client\Windows\AegysSuporteCliente.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Server\Windows\AegysServer.dproj">
+        <Projects Include="server\Windows\Delphi\AegysServer.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -27,13 +27,13 @@
         <MSBuild Projects="Client\Windows\AegysSuporteCliente.dproj" Targets="Make"/>
     </Target>
     <Target Name="AegysServer">
-        <MSBuild Projects="Server\Windows\AegysServer.dproj"/>
+        <MSBuild Projects="server\Windows\Delphi\AegysServer.dproj"/>
     </Target>
     <Target Name="AegysServer:Clean">
-        <MSBuild Projects="Server\Windows\AegysServer.dproj" Targets="Clean"/>
+        <MSBuild Projects="server\Windows\Delphi\AegysServer.dproj" Targets="Clean"/>
     </Target>
     <Target Name="AegysServer:Make">
-        <MSBuild Projects="Server\Windows\AegysServer.dproj" Targets="Make"/>
+        <MSBuild Projects="server\Windows\Delphi\AegysServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="AegysSuporteCliente;AegysServer"/>

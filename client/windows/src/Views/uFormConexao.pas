@@ -22,19 +22,22 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes,
   System.Variants, System.Actions, System.Win.ScktComp, System.Messaging,
+  System.IOUtils, System.Rtti, System.DateUtils,
 
   windows, shellapi, Messages,
 
   // ERRO
-  Vcl.Forms,
+  Vcl.Forms, VCL.Graphics, Vcl.Imaging.jpeg,
   // ERRO
 
   FMX.Types, FMX.Controls, FMX.Dialogs, FMX.Edit, FMX.Objects,
   FMX.Controls.Presentation, FMX.Layouts, FMX.Ani, FMX.TabControl, FMX.ListBox,
-  FMX.Menus, FMX.StdCtrls, FMX.Forms, FMX.ActnList, FMX.Graphics,
+  FMX.Menus, FMX.StdCtrls, FMX.Forms, FMX.ActnList, FMX.Graphics, FMX.Clipboard,
+  FMX.Platform.Win,
 
   uAegysBase, uAegysDataTypes, uAegysConsts, uAegysClientMotor, uAegysBufferPack,
-  uFunctions, CCR.Clipboard,
+  uAegysZlib, uAegysTools,
+  uFunctions, CCR.Clipboard, StreamManager,
 
   Config.SQLite.FireDAC, uLocale, Execute.DesktopDuplicationAPI
   ;
@@ -166,6 +169,8 @@ type
     procedure OnProcessData          (aPackList         : TPackList);
     procedure OnScreenCapture        (Connection,
                                       ID, Command       : String;
+                                      MultiPack         : Boolean;
+                                      PackCount         : AeInteger;
                                       aBuf              : TAegysBytes);
     procedure OnKeyboardCapture      (Command           : String);
     procedure OnMouseCapture         (Command           : String);
@@ -193,6 +198,7 @@ var
   CF_FILE            : Integer;
   mx, my             : Single;
   FDuplication       : TDesktopDuplicationWrapper;
+  vOldBMP            : TMemoryStream;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -201,12 +207,9 @@ implementation
 
 {$R *.fmx}
 
-uses uFormTelaRemota,  uFileTransfer,    uFormChat,        FMX.Clipboard,
-     System.IOUtils,   System.Rtti,      uLibClass,        uConstants,
-     System.DateUtils, FMX.Platform.Win, uFormConfig,
-     StreamManager,    uFormSenha,       uSendKeyClass,    uAegysTools,
-     NB30;
-
+uses
+  uFormTelaRemota, uFileTransfer, uFormChat, uLibClass, uConstants, uFormConfig,
+  uFormSenha, uSendKeyClass, NB30;
 
 Procedure TFormConexao.ExecuteCommand(aLine : String);
 Var
@@ -593,6 +596,7 @@ var
   CFG: TSQLiteConfig;
 begin
   FDuplication := Nil;
+  vOldBMP      := TMemoryStream.Create;
   CF_FILE := RegisterClipboardFormat('FileName');
   // inicializando os objetos
   Locale := TLocale.Create;
@@ -626,6 +630,7 @@ procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
  If Assigned(FDuplication) Then
   FreeAndNil(FDuplication);
+ FreeAndNil(vOldBMP);
  FreeAndNil(aPackList);
  Locale.DisposeOf;
 end;
@@ -950,7 +955,10 @@ End;
 
 procedure TFormConexao.OnServerLogin(Sender: TObject);
 begin
- SetOnline;
+ TThread.Synchronize(Nil, Procedure
+                          Begin
+                           SetOnline;
+                          End);
 end;
 
 procedure TFormConexao.OnConnect(Sender: TObject);
@@ -975,7 +983,10 @@ End;
 
 procedure TFormConexao.OnDisconnect(Sender: TObject);
 begin
- SetOffline;
+ TThread.Synchronize(Nil, Procedure
+                          Begin
+                           SetOffline;
+                          End);
 end;
 
 Procedure TFormConexao.OnKeyboardCapture (Command           : String);
@@ -1013,40 +1024,30 @@ End;
 Procedure TFormConexao.OnProcessData(aPackList : TPackList);
 Var
  aPackClass  : TPackClass;
- aBytes      : TAegysBytes;
- aScreenShot : TStream;
- aResolution : String;
- Function aCapture : TStream;
+ Procedure aCapture;
  Begin
-  Result := TMemoryStream.Create;
   Try
    If Not Assigned(FDuplication) Then
     FDuplication := TDesktopDuplicationWrapper.Create;
-   GetScreenToMemoryStream(vDrawCursor, TMemoryStream(Result));
+   GetScreenToMemoryStream(aPackClass, vDrawCursor);
   Finally
-   Result.Position := 0;
   End;
  End;
 Begin
  Try
-  aScreenShot             := aCapture;
-  If aScreenShot.Size > 0 Then
+  aPackClass              := Nil;
+  aCapture;
+  If Assigned(aPackClass)  Then
    Begin
-    SetLength(aBytes, aScreenShot.Size);
-    aScreenShot.Read(aBytes[0], Length(aBytes));
-  //  aResolution := Format('%d&%d', [Screen.Height, Screen.Width]);
-    aResolution := Format('%s&%s&%s', [FloatToStr(Screen.Height), FloatToStr(Screen.Width), aMonitor]);
     If Not Assigned(Conexao) Then
      Exit;
     If Assigned(aPackList)   Then
-     aPackList.Add(Conexao.Connection, '', tdmClientCommand, tdcAsync, tctScreenCapture, aBytes, Format('%s&%s&%s', [Conexao.Connection, Conexao.SessionID, aResolution]), True)
+     aPackList.Add(aPackClass)
     Else
      Exit;
    End;
-  Processmessages;
-//  Conexao.SendBytes(aBytes, True, aResolution);
+//  Processmessages;
  Finally
-  FreeAndNil(aScreenShot);
  End;
 End;
 
@@ -1079,6 +1080,8 @@ Begin
  SendDataThread                := TAegysMotorThread.Create;
  aConnection                   := Connection;
  Try
+  If Assigned(FDuplication) Then
+   FreeAndNil(FDuplication);
   Windows.ShowWindow(FormToHWND(Self), SW_Minimize);
   SendDataThread.OnProcessData := OnProcessData;
   SendDataThread.OnPulseData   := OnPulseData;
@@ -1116,12 +1119,41 @@ End;
 Procedure TFormConexao.OnScreenCapture(Connection,
                                        ID,
                                        Command         : String;
+                                       MultiPack       : Boolean;
+                                       PackCount       : AeInteger;
                                        aBuf            : TAegysBytes);
 Var
  ArrayOfPointer : TArrayOfPointer;
  vStream        : TMemoryStream;
  vAltura,
  vLargura       : String;
+ aPackCountData,
+ I, pRectTop,
+ pRectLeft,
+ pRectBottom,
+ pRectRight,
+ aBuffPosition  : AeInteger;
+ aSizeData      : AeInt64;
+ bBuf           : TAegysBytes;
+ aOldbmpPart,
+ MybmpPart      : Vcl.Graphics.TBitmap;
+ JPG            : Vcl.Imaging.jpeg.TJPegImage;
+ vStreamBitmap  : TMemoryStream;
+ Procedure BitmapToJpg(Var Bmp : Vcl.Graphics.TBitmap;
+                       Var JPG : Vcl.Imaging.jpeg.TJPegImage;
+                       Quality : Integer = 100);
+ Begin
+  Try
+   JPG := TJPegImage.Create;
+   Try
+    JPG.Assign(BMP);
+    JPG.CompressionQuality := Quality;
+   Finally
+   End;
+  Finally
+   FreeAndNil(BMP);
+  End;
+ End;
 Begin
  If Assigned(FormTelaRemota) Then
   Begin
@@ -1136,12 +1168,102 @@ Begin
       If vLargura <> '' Then
        vResolucaoLargura := StrToInt(vLargura);
      End;
-    vStream.Write(aBuf[0], Length(aBuf));
-    vStream.Position := 0;
-    FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vStream);
+    If Not MultiPack Then
+     Begin
+      ZDecompressBytes(aBuf, bBuf);
+      vStream.Write(bBuf[0], Length(bBuf));
+      SetLength(bBuf, 0);
+      vStream.Position := 0;
+//      Processmessages;
+      FreeAndNil(vOldBMP);
+      vOldBMP := TMemoryStream.Create;
+      vOldBMP.CopyFrom(vStream, vStream.Size);
+      vStream.Position := 0;
+      Try
+       FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vStream); //.Bitmap.LoadFromStream(vStream);
+      Finally
+//       Processmessages;
+      End;
+     End
+    Else //MultiPack
+     Begin
+      ZDecompressBytes(aBuf, bBuf);
+      aBuf := bBuf;
+      SetLength(bBuf, 0);
+      aBuffPosition := 0;
+      Move(aBuf[aBuffPosition], Pointer(@aPackCountData)^, SizeOf(aPackCountData));
+//      Processmessages;
+      aBuffPosition := SizeOf(aPackCountData);
+      aOldbmpPart   := Vcl.Graphics.TBitmap.Create;
+      vOldBMP.Position := 0;
+      aOldbmpPart.LoadFromStream(vOldBMP);
+//      JPG           := Vcl.Imaging.jpeg.TJPegImage.Create;
+//      Try
+//       vOldBMP.Position := 0;
+//       JPG.LoadFromStream(vOldBMP);
+//      Finally
+//       aOldbmpPart.Assign(JPG);
+//       Processmessages;
+//       FreeAndNil(JPG);
+//      End;
+      For I := 0 To aPackCountData -1 Do
+       Begin
+        Move(aBuf[aBuffPosition], Pointer(@pRectTop)^, SizeOf(pRectTop));
+        aBuffPosition := aBuffPosition + SizeOf(pRectTop);
+        Move(aBuf[aBuffPosition], Pointer(@pRectLeft)^, SizeOf(pRectLeft));
+        aBuffPosition := aBuffPosition + SizeOf(pRectLeft);
+        Move(aBuf[aBuffPosition], Pointer(@pRectBottom)^, SizeOf(pRectBottom));
+        aBuffPosition := aBuffPosition + SizeOf(pRectBottom);
+        Move(aBuf[aBuffPosition], Pointer(@pRectRight)^, SizeOf(pRectRight));
+        aBuffPosition := aBuffPosition + SizeOf(pRectRight);
+        Move(aBuf[aBuffPosition], Pointer(@aSizeData)^, SizeOf(aSizeData));
+        aBuffPosition := aBuffPosition + SizeOf(aSizeData);
+        SetLength(bBuf, aSizeData);
+        Move(aBuf[aBuffPosition], bBuf[0], aSizeData);
+        aBuffPosition := aBuffPosition + aSizeData;
+        MybmpPart     := Vcl.Graphics.TBitmap.Create;
+        vStreamBitmap := TMemoryStream.Create;
+        Try
+         vStreamBitmap.Write(bBuf[0], aSizeData);
+         vStreamBitmap.Position := 0;
+//         JPG := Vcl.Imaging.jpeg.TJPegImage.Create;
+         Try
+          //JPG.LoadFromStream(vStreamBitmap);
+          MybmpPart.LoadFromStream(vStreamBitmap);
+//          Processmessages;
+//          MybmpPart.Assign(JPG);
+         Finally
+//          FreeAndNil(JPG);
+         End;
+         BitBlt(aOldbmpPart.Canvas.Handle, pRectLeft, pRectTop,
+                pRectRight,                pRectBottom,
+                MybmpPart.Canvas.Handle, 0, 0, SRCCOPY);
+        Finally
+//         Processmessages;
+         FreeAndNil(vStreamBitmap);
+         FreeAndNil(MybmpPart);
+        End;
+       End;
+      vOldBMP.Clear;
+      Try
+//       BitmapToJpg(aOldbmpPart, JPG);
+//       JPG.SaveToStream(vOldBMP);
+       FreeAndNil(vOldBMP);
+       vOldBMP := TMemoryStream.Create;
+       aOldbmpPart.SaveToStream(vOldBMP);
+       FreeAndNil(aOldbmpPart);
+//       Processmessages;
+      Finally
+       //FreeAndNil(JPG);
+       vOldBMP.Position := 0;
+       FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vOldBMP); //.Bitmap.LoadFromStream(vStream);
+//       Processmessages;
+      End;
+     End;
    Finally
     FreeAndNil(vStream);
    End;
+//   Processmessages;
   End;
 End;
 

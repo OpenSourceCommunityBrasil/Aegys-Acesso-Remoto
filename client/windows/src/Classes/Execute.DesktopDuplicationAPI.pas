@@ -35,7 +35,8 @@ type
   public
     constructor Create;
     function GetFrame: Boolean;
-    procedure DrawFrame(var Bitmap: TBitmap);
+    procedure DrawFrame(var Bitmap  : TBitmap;
+                        PixelFormat : TPixelFormat = pf32Bit);
     property Error: HRESULT read FError;
     property MoveCount: Integer read FMoveCount;
     property MoveRects: PDXGI_OUTDUPL_MOVE_RECT read FMoveRects;
@@ -93,21 +94,22 @@ begin
     Exit;
 end;
 
-procedure TDesktopDuplicationWrapper.DrawFrame(var Bitmap: TBitmap);
+procedure TDesktopDuplicationWrapper.DrawFrame(var Bitmap: TBitmap;
+                                               PixelFormat : TPixelFormat = pf32Bit);
 var
   Desc: TD3D11_TEXTURE2D_DESC;
   Temp: ID3D11Texture2D;
   Resource: TD3D11_MAPPED_SUBRESOURCE;
   i: Integer;
   p: PByte;
+  aBitmap : TBitmap;
 begin
   FTexture.GetDesc(Desc);
-
+  aBitmap := TBitmap.Create;
   if Bitmap = nil then
     Bitmap := TBitmap.Create;
-
-  Bitmap.PixelFormat := pf32Bit;
-  Bitmap.SetSize(Desc.Width, Desc.Height);
+  aBitmap.PixelFormat := pf32bit;
+  aBitmap.SetSize(Desc.Width, Desc.Height);
 
   Desc.BindFlags := 0;
   Desc.CPUAccessFlags := Ord(D3D11_CPU_ACCESS_READ) or Ord(D3D11_CPU_ACCESS_WRITE);
@@ -129,10 +131,13 @@ begin
   // copy pixels - we assume a 32bits bitmap !
   for i := 0 to Desc.Height - 1 do
   begin
-    Move(p^, Bitmap.ScanLine[i]^, 4 * Desc.Width);
+    Move(p^, aBitmap.ScanLine[i]^, 4 * Desc.Width);
     Inc(p, 4 * Desc.Width);
   end;
-
+  Bitmap.SetSize(Desc.Width, Desc.Height);
+  Bitmap.PixelFormat := PixelFormat;
+  BitBlt(BitMap.Canvas.Handle, 0, 0, Desc.Width, Desc.Height, aBitmap.Canvas.Handle, 0, 0, SRCCOPY);
+  aBitmap.Free;
   FTexture := nil;
   FDuplicate.ReleaseFrame;
 end;

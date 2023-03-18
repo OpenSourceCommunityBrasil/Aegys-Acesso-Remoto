@@ -10,9 +10,7 @@ uses
   uAegysBase in '..\..\..\Component\Base\uAegysBase.pas',
   uAegysThreads in '..\..\..\Component\Base\uAegysThreads.pas',
   uAegysZlib in '..\..\..\Component\Utils\uAegysZlib.pas',
-  uConstants in '..\..\..\commons\uConstants.pas',
-  uSQLiteConfig in '..\..\..\commons\uSQLiteConfig.pas',
-  uLocale in '..\..\..\commons\uLocale.pas';
+  uConstants in '..\..\..\commons\uConstants.pas';
 
 {$R *.res}
 

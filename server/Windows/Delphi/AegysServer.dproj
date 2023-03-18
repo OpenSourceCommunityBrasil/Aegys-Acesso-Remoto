@@ -144,8 +144,6 @@
         <DCCReference Include="..\..\..\Component\Base\uAegysThreads.pas"/>
         <DCCReference Include="..\..\..\Component\Utils\uAegysZlib.pas"/>
         <DCCReference Include="..\..\..\commons\uConstants.pas"/>
-        <DCCReference Include="..\..\..\commons\uSQLiteConfig.pas"/>
-        <DCCReference Include="..\..\..\commons\uLocale.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -183,6 +181,12 @@
                 <DeployFile LocalName="Win64\Debug\AegysServer.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>AegysServer.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\AegysServer.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>AegysServer.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

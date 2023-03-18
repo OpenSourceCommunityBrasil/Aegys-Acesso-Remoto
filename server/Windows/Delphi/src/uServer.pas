@@ -17,7 +17,7 @@ uses
   FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
   FireDAC.DApt.Intf,  FireDAC.Comp.DataSet, FireDAC.Comp.Client,
   // aegys
-  uAegysBase, uConstants, uLocale
+  uAegysBase, uConstants
 
   ;
 
@@ -223,7 +223,7 @@ begin
  vAegysService                    := TAegysService.Create(Self);
  vAegysService.OnGetClientDetails := GetNewID;
  Connect;
- tReload.Enabled                  := True;
+// tReload.Enabled                  := True;
 end;
 
 procedure TfServer.FormDestroy(Sender: TObject);
