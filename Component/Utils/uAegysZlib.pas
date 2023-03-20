@@ -188,7 +188,7 @@ End;
 
 Procedure ZCompressStreamBytes(Var inStream     : TStream;
                                Var outBytes     : TAegysBytes;
-                               CompressionLevel : TCompressionLevel = clFastest);Overload;
+                               CompressionLevel : TCompressionLevel = clFastest);
 Var
   DS        : TCompressionStream;
   outStream : TMemoryStream;

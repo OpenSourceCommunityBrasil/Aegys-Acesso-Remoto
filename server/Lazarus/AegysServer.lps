@@ -8,7 +8,7 @@
       <Unit>
         <Filename Value="AegysServer.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="54" Y="13"/>
+        <CursorPos X="5" Y="15"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
@@ -19,10 +19,9 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uServer"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="141"/>
-        <CursorPos X="55" Y="148"/>
+        <TopLine Value="133"/>
+        <CursorPos X="29" Y="14"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -30,19 +29,18 @@
       <Unit>
         <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="174"/>
+        <CursorPos Y="188"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\Component\Base\uAegysTools.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
+        <TopLine Value="561"/>
         <UsageCount Value="20"/>
       </Unit>
       <Unit>
@@ -134,7 +132,7 @@
         <UsageCount Value="20"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="6">
+    <JumpHistory HistoryIndex="14">
       <Position>
         <Filename Value="src\userver.pas"/>
         <Caret Line="98" Column="17" TopLine="82"/>
@@ -161,7 +159,39 @@
       </Position>
       <Position>
         <Filename Value="src\userver.pas"/>
-        <Caret Line="22" Column="22" TopLine="79"/>
+        <Caret Line="148" Column="55" TopLine="141"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="189" Column="11" TopLine="176"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="14" Column="29" TopLine="133"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="189" Column="31" TopLine="176"/>
+      </Position>
+      <Position>
+        <Filename Value="AegysServer.lpr"/>
+        <Caret Line="15" Column="5"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="14" Column="29" TopLine="133"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="8" Column="13" TopLine="139"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="189" Column="31" TopLine="176"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="18" Column="22"/>
       </Position>
     </JumpHistory>
     <RunParams>
