@@ -42,9 +42,6 @@ Type
  TTagEffect   = (te_Open, te_Close);
  TExecuteProc = Reference to Procedure;
 
-Const
- cMousePack = 4;
-
 type
   TFormTelaRemota = Class(TForm)
     ActionList1        : TActionList;
