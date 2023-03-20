@@ -34,7 +34,7 @@ type
     FDirtyCount: Integer;
   public
     constructor Create;
-    function GetFrame: Boolean;
+    function GetFrame(aFullFrame : Boolean): Boolean;
     procedure DrawFrame(var Bitmap  : TBitmap;
                         PixelFormat : TPixelFormat = pf32Bit);
     property Error: HRESULT read FError;
@@ -142,56 +142,65 @@ begin
   FDuplicate.ReleaseFrame;
 end;
 
-function TDesktopDuplicationWrapper.GetFrame: Boolean;
-var
-  FrameInfo: TDXGI_OUTDUPL_FRAME_INFO;
-  Resource: IDXGIResource;
-  BufLen : Integer;
-  BufSize: Uint;
-begin
-  Result := False;
-
-  if FTexture <> nil then
-  begin
-    FTexture := nil;
-    FDuplicate.ReleaseFrame;
-  end;
-
-  FError := FDuplicate.AcquireNextFrame(0, FrameInfo, Resource);
-  if Failed(FError) then
-    Exit;
-
-  if FrameInfo.TotalMetadataBufferSize > 0 then
-  begin
-    FError := Resource.QueryInterface(IID_ID3D11Texture2D, FTexture);
-    if failed(FError) then
+Function TDesktopDuplicationWrapper.GetFrame(aFullFrame : Boolean) : Boolean;
+Var
+ FrameInfo: TDXGI_OUTDUPL_FRAME_INFO;
+ Resource: IDXGIResource;
+ BufLen : Integer;
+ BufSize: Uint;
+Begin
+ Result := False;
+ If (FTexture <> Nil) Then
+  Begin
+   FTexture := nil;
+   FDuplicate.ReleaseFrame;
+  End
+ Else If aFullFrame Then
+  FDuplicate.ReleaseFrame;
+ FError := FDuplicate.AcquireNextFrame(0, FrameInfo, Resource);
+ If Failed(FError) Then
+  Exit;
+ While True Do
+  Begin
+   If FrameInfo.TotalMetadataBufferSize > 0 Then
+    Begin
+     FError      := Resource.QueryInterface(IID_ID3D11Texture2D, FTexture);
+     If failed(FError) Then
       Exit;
-
-    Resource := nil;
-
-    BufLen := FrameInfo.TotalMetadataBufferSize;
-    if Length(FMetaData) < BufLen then
+     Resource    := Nil;
+     BufLen      := FrameInfo.TotalMetadataBufferSize;
+     If Length(FMetaData) < BufLen Then
       SetLength(FMetaData, BufLen);
-
-    FMoveRects := Pointer(FMetaData);
-
-    FError := FDuplicate.GetFrameMoveRects(BufLen, FMoveRects, BufSize);
-    if Failed(FError) then
+     FMoveRects  := Pointer(FMetaData);
+     FError      := FDuplicate.GetFrameMoveRects(BufLen, FMoveRects, BufSize);
+     If Failed(FError) Then
       Exit;
-    FMoveCount := BufSize div sizeof(TDXGI_OUTDUPL_MOVE_RECT);
-
-    FDirtyRects := @FMetaData[BufSize];
-    Dec(BufLen, BufSize);
-
-    FError := FDuplicate.GetFrameDirtyRects(BufLen, FDirtyRects, BufSize);
-    if Failed(FError) then
+     FMoveCount  := BufSize div sizeof(TDXGI_OUTDUPL_MOVE_RECT);
+     FDirtyRects := @FMetaData[BufSize];
+     Dec(BufLen, BufSize);
+     FError := FDuplicate.GetFrameDirtyRects(BufLen, FDirtyRects, BufSize);
+     If Failed(FError) Then
       Exit;
-    FDirtyCount := BufSize div sizeof(TRECT);
-
-    Result := True;
-  end else begin
-    FDuplicate.ReleaseFrame;
-  end;
-end;
+     FDirtyCount := BufSize div sizeof(TRECT);
+     Result      := True;
+    End
+   Else
+    Begin
+     If aFullFrame Then
+      Begin
+       FError    := FDuplicate.AcquireNextFrame(0, FrameInfo, Resource);
+       If Failed(FError) Then
+        Exit;
+      End
+     Else
+      Begin
+       FDuplicate.ReleaseFrame;
+       Break;
+      End;
+    End;
+   If Result Then
+    Break;
+  End;
+End;
 
 end.

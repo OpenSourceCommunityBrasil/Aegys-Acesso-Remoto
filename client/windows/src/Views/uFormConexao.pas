@@ -166,7 +166,8 @@ type
                                       Alias             : String);
     function  OnPulseData            (aPack             : TAegysBytes;
                                       CommandType       : TCommandType = tctScreenCapture): Boolean;
-    procedure OnProcessData          (aPackList         : TPackList);
+    procedure OnProcessData          (aPackList         : TPackList;
+                                      aFullFrame        : Boolean);
     procedure OnScreenCapture        (Connection,
                                       ID, Command       : String;
                                       MultiPack         : Boolean;
@@ -249,12 +250,12 @@ Begin
     Begin
      BlockInput(False);
      SetCursorPos(MousePosX, MousePosY);
-     ProcessMessages;
+     Application.ProcessMessages;
      BlockInput(True);
     End
    Else
     SetCursorPos(MousePosX, MousePosY);
-   Processmessages;
+   Application.Processmessages;
    Position := Pos(cMousePos, aLine);
   End;
  Position := Pos(cMouseClickLeftDown, aLine);
@@ -276,7 +277,7 @@ Begin
      BlockInput(false);
      SetCursorPos(MousePosX, MousePosY);
      Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-     ProcessMessages;
+     Application.ProcessMessages;
      BlockInput(true);
     End
    Else
@@ -304,7 +305,7 @@ Begin
      BlockInput(false);
      SetCursorPos(MousePosX, MousePosY);
      Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-     ProcessMessages;
+     Application.ProcessMessages;
      blockinput(true);
     End
    Else
@@ -332,7 +333,7 @@ Begin
      BlockInput(false);
      SetCursorPos(MousePosX, MousePosY);
      Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-     ProcessMessages;
+     Application.ProcessMessages;
      Blockinput(true);
     End
    Else
@@ -360,7 +361,7 @@ Begin
      BlockInput(false);
      SetCursorPos(MousePosX, MousePosY);
      Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-     ProcessMessages;
+     Application.ProcessMessages;
      BlockInput(true);
     End
    Else
@@ -388,7 +389,7 @@ Begin
      BlockInput(false);
      SetCursorPos(MousePosX, MousePosY);
      Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-     ProcessMessages;
+     Application.ProcessMessages;
      BlockInput(true);
     End
    Else
@@ -416,7 +417,7 @@ Begin
      BlockInput(false);
      SetCursorPos(MousePosX, MousePosY);
      Mouse_Event(MOUSEEVENTF_ABSOLUTE or MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-     ProcessMessages;
+     Application.ProcessMessages;
      BlockInput(true);
     End
    Else
@@ -435,7 +436,7 @@ Begin
     Begin
      BlockInput(false);
      Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(StrToInt(aLine)), 0);
-     ProcessMessages;
+     Application.ProcessMessages;
      BlockInput(true);
     End
    Else
@@ -559,7 +560,7 @@ Begin
              FileStream.Position := 0;
              FileStream.Read(aFileStream, FileStream.Size);
              Conexao.SendBytes(EGuestID.Text, aFileStream);
-             Processmessages;
+             Application.Processmessages;
             Finally
              SetLength(aFileStream, 0);
              FreeAndNil(FileStream);
@@ -588,7 +589,7 @@ procedure TFormConexao.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if Assigned(Conexao) then
     FreeAndNil(Conexao);
-  Application.Terminate;
+
 end;
 
 procedure TFormConexao.FormCreate(Sender: TObject);
@@ -628,8 +629,6 @@ end;
 
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
- If Assigned(FDuplication) Then
-  FreeAndNil(FDuplication);
  FreeAndNil(vOldBMP);
  FreeAndNil(aPackList);
  Locale.DisposeOf;
@@ -735,10 +734,10 @@ end;
 
 procedure TFormConexao.actConnectExecute(Sender: TObject);
 begin
- If Assigned(FormTelaRemota) Then
-  FreeAndNil(FormTelaRemota);
  If LbtnConectar.Enabled Then
   Begin
+   If Assigned(FormTelaRemota) Then
+    FreeAndNil(FormTelaRemota);
    vDrawCursor := False;
    If not(LlyGuestIDCaption.Text = '   -   -   ') then
     begin
@@ -879,7 +878,8 @@ begin
   tmrIntervalo.Enabled := False;
   tmrClipboard.Enabled := False;
   MudarStatusConexao(1, Locale.GetLocale(lsMESSAGES, lvMsgPeerDisconnected));
-  Windows.ShowWindow(FormToHWND(Application.MainForm), SW_RESTORE);
+  If Conexao.ConnectionList.Count = 0 Then
+   Windows.ShowWindow(FormToHWND(Application.MainForm), SW_RESTORE);
 end;
 
 procedure TFormConexao.SetOnline;
@@ -964,6 +964,7 @@ end;
 procedure TFormConexao.OnConnect(Sender: TObject);
 begin
  //SetOnline;
+ Application.ProcessMessages;
 end;
 
 procedure TFormConexao.OnBeginTransaction(Connection        : String;
@@ -1021,15 +1022,21 @@ Begin
  //Processmessages;
 End;
 
-Procedure TFormConexao.OnProcessData(aPackList : TPackList);
+Procedure TFormConexao.OnProcessData(aPackList  : TPackList;
+                                     aFullFrame : Boolean);
 Var
  aPackClass  : TPackClass;
  Procedure aCapture;
+ Var
+  vMonitor : String;
  Begin
   Try
+   vMonitor := aMonitor;
+   If vMonitor = '' Then
+    vMonitor := '0';
    If Not Assigned(FDuplication) Then
     FDuplication := TDesktopDuplicationWrapper.Create;
-   GetScreenToMemoryStream(aPackClass, vDrawCursor);
+   GetScreenToMemoryStream(aPackClass, vDrawCursor, pf15bit, vMonitor, aFullFrame);
   Finally
   End;
  End;
@@ -1046,7 +1053,7 @@ Begin
     Else
      Exit;
    End;
-//  Processmessages;
+  Processmessages;
  Finally
  End;
 End;
@@ -1077,18 +1084,27 @@ Procedure TFormConexao.OnPeerConnected(Connection        : String;
                                        ClientPassword,
                                        Alias             : String); //Captura de tela
 Begin
- SendDataThread                := TAegysMotorThread.Create;
- aConnection                   := Connection;
- Try
-  If Assigned(FDuplication) Then
-   FreeAndNil(FDuplication);
-  Windows.ShowWindow(FormToHWND(Self), SW_Minimize);
-  SendDataThread.OnProcessData := OnProcessData;
-  SendDataThread.OnPulseData   := OnPulseData;
-  SendDataThread.Resume;
- Finally
+ If (Not Assigned(SendDataThread))     Or
+    (Conexao.ConnectionList.Count = 1) Then
+  Begin
+   If Not Assigned(SendDataThread) Then
+    Begin
+     SendDataThread                := TAegysMotorThread.Create;
+     aConnection                   := Connection;
+     Try
+      Windows.ShowWindow(FormToHWND(Self), SW_Minimize);
+      SendDataThread.OnProcessData := OnProcessData;
+      SendDataThread.OnPulseData   := OnPulseData;
+      SendDataThread.Resume;
+     Finally
 
- End;
+     End;
+    End
+   Else
+    SendDataThread.GetFullFrame;
+  End
+ Else
+  SendDataThread.GetFullFrame;
 End;
 
 Procedure TFormConexao.OnPeerDisconnected(Connection        : String;
@@ -1096,7 +1112,8 @@ Procedure TFormConexao.OnPeerDisconnected(Connection        : String;
                                           ClientPassword,
                                           Alias             : String); //Captura de tela
 Begin
- Windows.ShowWindow(FormToHWND(Self), SW_RESTORE);
+// If Conexao.ConnectionList.Count = 0 Then
+//  Windows.ShowWindow(FormToHWND(Self), SW_RESTORE);
  SetPeerDisconnected;
 End;
 
@@ -1107,13 +1124,15 @@ Procedure TFormConexao.OnPeerKick(Connection      : String;
 Begin
  If Assigned(FormTelaRemota) Then
   FormTelaRemota.Close;
- KillThreads;  //TODO XyberX, Pois isso daqui para a Captura geral...
+ If Conexao.ConnectionList.Count = 0 Then
+  KillThreads;  //TODO XyberX, Pois isso daqui para a Captura geral...
  btnConectar.Enabled  := True;
  LbtnConectar.Enabled := btnConectar.Enabled;
  tmrIntervalo.Enabled := False;
  tmrClipboard.Enabled := False;
  MudarStatusConexao(1, 'Peer Disconnected');
- Windows.ShowWindow(FormToHWND(Self), SW_RESTORE);
+ If Conexao.ConnectionList.Count = 0 Then
+  Windows.ShowWindow(FormToHWND(Self), SW_RESTORE);
 End;
 
 Procedure TFormConexao.OnScreenCapture(Connection,
@@ -1124,7 +1143,7 @@ Procedure TFormConexao.OnScreenCapture(Connection,
                                        aBuf            : TAegysBytes);
 Var
  ArrayOfPointer : TArrayOfPointer;
- vStream        : TMemoryStream;
+ vStream        : TStream;
  vAltura,
  vLargura       : String;
  aPackCountData,
@@ -1139,21 +1158,21 @@ Var
  MybmpPart      : Vcl.Graphics.TBitmap;
  JPG            : Vcl.Imaging.jpeg.TJPegImage;
  vStreamBitmap  : TMemoryStream;
- Procedure BitmapToJpg(Var Bmp : Vcl.Graphics.TBitmap;
-                       Var JPG : Vcl.Imaging.jpeg.TJPegImage;
-                       Quality : Integer = 100);
- Begin
-  Try
-   JPG := TJPegImage.Create;
-   Try
-    JPG.Assign(BMP);
-    JPG.CompressionQuality := Quality;
-   Finally
-   End;
-  Finally
-   FreeAndNil(BMP);
-  End;
- End;
+// Procedure BitmapToJpg(Var Bmp : Vcl.Graphics.TBitmap;
+//                       Var JPG : Vcl.Imaging.jpeg.TJPegImage;
+//                       Quality : Integer = 100);
+// Begin
+//  Try
+//   JPG := TJPegImage.Create;
+//   Try
+//    JPG.Assign(BMP);
+//    JPG.CompressionQuality := Quality;
+//   Finally
+//   End;
+//  Finally
+//   FreeAndNil(BMP);
+//  End;
+// End;
 Begin
  If Assigned(FormTelaRemota) Then
   Begin
@@ -1170,19 +1189,16 @@ Begin
      End;
     If Not MultiPack Then
      Begin
-      ZDecompressBytes(aBuf, bBuf);
-      vStream.Write(bBuf[0], Length(bBuf));
-      SetLength(bBuf, 0);
+      ZDecompressBytesStream(aBuf, vStream);
       vStream.Position := 0;
-//      Processmessages;
       FreeAndNil(vOldBMP);
       vOldBMP := TMemoryStream.Create;
       vOldBMP.CopyFrom(vStream, vStream.Size);
       vStream.Position := 0;
       Try
        FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vStream); //.Bitmap.LoadFromStream(vStream);
+       Application.Processmessages;
       Finally
-//       Processmessages;
       End;
      End
     Else //MultiPack
@@ -1192,20 +1208,10 @@ Begin
       SetLength(bBuf, 0);
       aBuffPosition := 0;
       Move(aBuf[aBuffPosition], Pointer(@aPackCountData)^, SizeOf(aPackCountData));
-//      Processmessages;
       aBuffPosition := SizeOf(aPackCountData);
       aOldbmpPart   := Vcl.Graphics.TBitmap.Create;
       vOldBMP.Position := 0;
       aOldbmpPart.LoadFromStream(vOldBMP);
-//      JPG           := Vcl.Imaging.jpeg.TJPegImage.Create;
-//      Try
-//       vOldBMP.Position := 0;
-//       JPG.LoadFromStream(vOldBMP);
-//      Finally
-//       aOldbmpPart.Assign(JPG);
-//       Processmessages;
-//       FreeAndNil(JPG);
-//      End;
       For I := 0 To aPackCountData -1 Do
        Begin
         Move(aBuf[aBuffPosition], Pointer(@pRectTop)^, SizeOf(pRectTop));
@@ -1226,44 +1232,33 @@ Begin
         Try
          vStreamBitmap.Write(bBuf[0], aSizeData);
          vStreamBitmap.Position := 0;
-//         JPG := Vcl.Imaging.jpeg.TJPegImage.Create;
          Try
-          //JPG.LoadFromStream(vStreamBitmap);
           MybmpPart.LoadFromStream(vStreamBitmap);
-//          Processmessages;
-//          MybmpPart.Assign(JPG);
          Finally
-//          FreeAndNil(JPG);
          End;
          BitBlt(aOldbmpPart.Canvas.Handle, pRectLeft, pRectTop,
                 pRectRight,                pRectBottom,
                 MybmpPart.Canvas.Handle, 0, 0, SRCCOPY);
         Finally
-//         Processmessages;
          FreeAndNil(vStreamBitmap);
          FreeAndNil(MybmpPart);
         End;
        End;
       vOldBMP.Clear;
       Try
-//       BitmapToJpg(aOldbmpPart, JPG);
-//       JPG.SaveToStream(vOldBMP);
        FreeAndNil(vOldBMP);
        vOldBMP := TMemoryStream.Create;
        aOldbmpPart.SaveToStream(vOldBMP);
        FreeAndNil(aOldbmpPart);
-//       Processmessages;
       Finally
-       //FreeAndNil(JPG);
        vOldBMP.Position := 0;
        FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vOldBMP); //.Bitmap.LoadFromStream(vStream);
-//       Processmessages;
+       Application.Processmessages;
       End;
      End;
    Finally
     FreeAndNil(vStream);
    End;
-//   Processmessages;
   End;
 End;
 

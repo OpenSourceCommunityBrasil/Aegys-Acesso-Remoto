@@ -164,7 +164,7 @@ Var
   aMonitor,
   aResolution   : String;
   TargetMemoryStream,
-  aMemoryStream : TMemoryStream;
+  aMemoryStream : TStream;
   Procedure BitmapToJpg(Var Bmp : Vcl.Graphics.TBitmap;
                         Var JPG : Vcl.Imaging.jpeg.TJPegImage;
                         Quality : Integer = 15);
@@ -193,7 +193,7 @@ Begin
  aResolution := Format('%s&%s&%s', [FloatToStr(Screen.Monitors[vMonitor].Height), FloatToStr(Screen.Monitors[vMonitor].Width), aMonitor]);
  Try
   vMultiPoint := False;
-  vNewFrame   := FDuplication.GetFrame;
+  vNewFrame   := (FDuplication.GetFrame(FullFrame)) Or (FullFrame);
   If vNewFrame Then
    Begin
     FDuplication.DrawFrame(Mybmp, PixelFormat);
@@ -238,10 +238,7 @@ Begin
      TargetMemoryStream.position := 0;
      If TargetMemoryStream.Size > 0 then
       Begin
-       SetLength(aBytes, TargetMemoryStream.Size);
-       TargetMemoryStream.Read(aBytes[0], Length(aBytes));
-       ZCompressBytes(aBytes, aFinalBytes);
-       SetLength(aBytes, 0);
+       ZCompressStreamBytes(TargetMemoryStream, aFinalBytes);
        aPackClass  := TPackClass.Create;
        Try
         aPackClass.DataCheck    := tdcAsync;
@@ -308,6 +305,7 @@ Begin
            FreeAndNil(JPG);
           FreeAndNil(MybmpPart);
           FreeAndNil(TargetMemoryStream);
+          Application.Processmessages;
          End;
         End;
       End;
@@ -337,6 +335,7 @@ Begin
      End;
     End;
   End;
+ Application.Processmessages;
  If Assigned(Mybmp) Then
   FreeAndNil(Mybmp);
 End;

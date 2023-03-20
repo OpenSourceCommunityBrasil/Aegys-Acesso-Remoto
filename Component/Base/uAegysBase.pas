@@ -262,9 +262,43 @@ Type
 End;
 
 Type
+ PAegysConnections    = ^TAegysConnections;
+ TAegysConnections    = Record
+  Connection,
+  ClientID,
+  ClientPassword,
+  Alias               : AeString;
+  StartConnectionTime : TDateTime;
+  Download,
+  Upload              : AEInt64;
+ End;
+ TAegysConnectionList   = Class(TList)
+ Private
+  Function  GetRec         (Index         : Integer)        : TAegysConnections;Overload;
+  Procedure PutRec         (Index         : Integer;
+                            Item          : TAegysConnections);                 Overload;
+  Procedure ClearAll;
+ Protected
+ Public
+  Constructor Create;
+  Destructor Destroy; Override;
+  Function   GetConnection (aConnStr      : String;
+                            Id, PWD       : String)        : TAegysConnections;
+  Procedure  Delete        (Index         : Integer);                           Overload;
+  Procedure  Delete        (aConnStr,
+                            Id, PWD       : String);                            Overload;
+  Function   Add           (Item          : TAegysConnections)  : Integer;      Overload;
+  Function   Add           (aConnStr,
+                            aId, aPWD,
+                            aAlias        : String)  : Integer;      Overload;
+  Property   Items         [Index         : Integer]        : TAegysConnections Read GetRec Write PutRec; Default;
+ End;
+
+Type
  TAegysClient = Class(TComponent)
  Protected
   //Variáveis, Procedures e  Funções Protegidas
+  aAegysConnectionList     : TAegysConnectionList;
   vTcpReceive,
   vTcpRequest              : TIdTCPClient;
  Private
@@ -342,7 +376,6 @@ Type
   Function    GetPacketLength: Integer;
   Procedure   Connect;
   Procedure   Disconnect;
-  Procedure   GetConnectedList;
   Procedure   DisconnectAllPeers;
   Procedure   DisconnectPeer(aID,
                              aPass,
@@ -392,6 +425,7 @@ Type
   Property    RequestTimeOut             : Integer                       Read vRequestTimeOut          Write vRequestTimeOut;
   Property    ConnectTimeOut             : Integer                       Read vConnectTimeOut          Write vConnectTimeOut;
   Property    Connected                  : Boolean                       Read vActive;
+  Property    ConnectionList             : TAegysConnectionList          Read aAegysConnectionList;
   //{$IFDEF FPC}
   //Property    DatabaseCharSet            : TDatabaseCharSet              Read vDatabaseCharSet         Write vDatabaseCharSet;
   //{$ENDIF}
@@ -508,6 +542,8 @@ Begin
 End;
 
 Procedure TAegysService.Disconnect(AContext : TIdContext);
+Var
+ aMessageError : String;
  Procedure BroadCastDisconnect(AegysSession : TAegysSession);
  Var
   I          : Integer;
@@ -624,6 +660,39 @@ Begin
    End;
 //  Processmessages;
  Except
+  On E : EIdSocketError Do Abort;
+  On E : EIdReadTimeout Do ;
+  On E : Exception      Do
+   Begin
+    aMessageError := E.Message;
+    Try
+    {$IFNDEF FPC}
+     {$IF Not Defined(HAS_FMX)}
+      If Assigned(TAegysSession(AContext.Data)) Then
+     {$ELSE}
+      {$IFDEF HAS_UTF8}
+       If Assigned(TAegysSession({$IF CompilerVersion > 33}AContext.Data{$ELSE}AContext.DataObject{$IFEND})) Then
+      {$ELSE}
+       If Assigned(TAegysSessionData(TAegysSession(AContext.DataObject))) Then
+      {$ENDIF}
+     {$IFEND}
+    {$ELSE}
+     If Assigned(TAegysSession(AContext.Data)) Then
+    {$ENDIF}
+      Begin
+       If Not Assigned(AContext) Then
+        Abort;
+       If AContext.Connection <> Nil Then
+        If AContext.Connection.IOHandler <> Nil Then
+         If Not AContext.Connection.IOHandler.Connected Then
+          Abort;
+      End
+     Else
+      Abort;
+    Except
+     aMessageError := E.Message;
+    End;
+   End;
  End;
 End;
 
@@ -888,7 +957,6 @@ Begin
      (aPackSize <> Length(aBuf)) Then
    Begin
     SetLength(aBuf, 0);
-    Processmessages;
     Exit;// Raise Exception.Create(cInvalidBufferData);
    End;
   vDataCommand := False;
@@ -932,7 +1000,6 @@ Begin
                                  If Assigned(vOnConnect) Then
                                   vOnConnect(vAegysSession);
                                  AContext.Connection.IOHandler.WriteDirect(TidBytes(aBuf));
-//                                 Processmessages;
                                 Finally
                                  FreeAndNil(aPackClass);
                                 End;
@@ -946,7 +1013,6 @@ Begin
                             ArrayOfPointer := [@vSockCommand];
                             ParseValues(vCommand, ArrayOfPointer);
                             SetSocketDirection(vSockCommand, AContext, tpdInBound);
-                            //Processmessages;
                            End;
                          End;
         ticSetPortRec  : Begin
@@ -955,7 +1021,6 @@ Begin
                             ArrayOfPointer := [@vSockCommand];
                             ParseValues(vCommand, ArrayOfPointer);
                             SetSocketDirection(vSockCommand, AContext, tpdOutBound);
-                            //Processmessages;
                            End;
                          End;
         Else
@@ -1011,7 +1076,6 @@ Begin
                                            aPackClass.Command  := cIDNotFound + Format('%s', [vYouID]);
                                            aBuf                 := aPackClass.ToBytes;
                                            vAegysSession.SendBytes(aBuf);
-//                                           Processmessages;
                                           End
                                          Else
                                           Begin
@@ -1023,7 +1087,6 @@ Begin
                                            aPackClass.Command := cIDExistsReqPass + Format('%s&%s', [vYouSession.Connection, vYouSession.SessionID]);
                                            aBuf               := aPackClass.ToBytes;
                                            vAegysSession.SendBytes(aBuf);
-                                           //Processmessages;
                                           End;
                                         Finally
                                          SetLength(aBuf, 0);
@@ -1055,21 +1118,18 @@ Begin
                                                                                                       vAegysSession.vSessionID,
                                                                                                       vAegysSession.SessionPWD]);
                                                vAegysSession.SessionList[I].SendBytes(aPackClass.ToBytes);
-                                               //Processmessages;
                                               Finally
                                                If Assigned(vAegysSession.SessionList) Then
                                                 aPackClass.Command  := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
                                                                                                        vAegysSession.SessionList[I].vSessionID,
                                                                                                        vAegysSession.SessionList[I].SessionPWD]);
                                                vAegysSession.SendBytes(aPackClass.ToBytes);
-                                               //Processmessages;
                                                If Assigned(vAegysSession.SessionList) Then
                                                 Begin
                                                  vAegysSession.SessionList[I].SessionList.Delete(vAegysSession.Connection,
                                                                                                  vAegysSession.vSessionID,
                                                                                                  vAegysSession.SessionPWD);
                                                  vAegysSession.SessionList.Delete(I);
-                                                 //Processmessages;
                                                 End;
                                               End;
                                              End;
@@ -1111,21 +1171,18 @@ Begin
                                                                                                         vAegysSession.vSessionID,
                                                                                                         vAegysSession.SessionPWD]);
                                                vYouSession.SendBytes(aPackClass.ToBytes);
-                                               //Processmessages;
                                               Finally
                                                If Assigned(vAegysSession.SessionList) Then
                                                 aPackClass.Command    := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
                                                                                                          vAegysSession.SessionList[I].vSessionID,
                                                                                                          vAegysSession.SessionList[I].SessionPWD]);
                                                vAegysSession.SendBytes         (aPackClass.ToBytes);
-                                               //Processmessages;
                                                If Assigned(vYouSession.SessionList) Then
                                                 vYouSession.SessionList.Delete  (vAegysSession.Connection,
                                                                                  vAegysSession.vSessionID,
                                                                                  vAegysSession.SessionPWD);
                                                If Assigned(vAegysSession.SessionList) Then
                                                 vAegysSession.SessionList.Delete(vSockCommand, vYouID, vYouPass);
-                                               //Processmessages;
                                               End;
                                              Finally
                                               FreeAndNil(aPackClass);
@@ -1152,7 +1209,6 @@ Begin
                                             aPackClass.Command  := cIDNotFound;
                                            aBuf                 := aPackClass.ToBytes;
                                            vAegysSession.SendBytes(aBuf);
-                                           //Processmessages;
                                           Finally
                                            FreeAndNil(aPackClass);
                                           End;
@@ -1188,7 +1244,6 @@ Begin
                                              aBuf                := aPackClass.ToBytes;
                                              If Assigned(vYouSession) Then
                                               vYouSession.SendBytes(aBuf);
-                                             //Processmessages;
                                             End;
                                           Finally
                                            FreeAndNil(aPackClass);
@@ -1211,7 +1266,6 @@ Begin
                                                                                                    vAegysSession.SessionPWD]);
                                            aBuf                 := aPackClass.ToBytes;
                                            vYouSession.SendBytes(aBuf);
-                                           //Processmessages;
                                           End
                                          Else
                                           Begin
@@ -1220,7 +1274,6 @@ Begin
                                            aPackClass.Command   := cIDNotFound;
                                            aBuf                 := aPackClass.ToBytes;
                                            vAegysSession.SendBytes(aBuf);
-                                           //Processmessages;
                                           End;
                                         Finally
                                          FreeAndNil(aPackClass);
@@ -1243,7 +1296,6 @@ Begin
                                                                                                            vMonitor]);
                                            aBuf                 := aPackClass.ToBytes;
                                            vYouSession.SendBytes(aBuf);
-//                                           Processmessages;
                                           End
                                          Else
                                           Begin
@@ -1252,7 +1304,6 @@ Begin
                                            aPackClass.Command   := cIDNotFound;
                                            aBuf                 := aPackClass.ToBytes;
                                            vAegysSession.SendBytes(aBuf);
-//                                           Processmessages;
                                           End;
                                         Finally
                                          FreeAndNil(aPackClass);
@@ -1264,7 +1315,6 @@ Begin
             End
            Else //Client Data
             Begin
-//             Processmessages;
              If aPackClass.ProxyToMyConnectionList Then
               vAegysSession.SendBytes(aPackClass.ToBytes, True)
              Else
@@ -1273,7 +1323,6 @@ Begin
           Finally
            If Assigned(aPackClass) Then
             FreeAndNil(aPackClass);
-           //Processmessages;
           End;
           If Assigned(vOnClientRequestExecute) Then
            vOnClientRequestExecute(vAegysSession);
@@ -1289,14 +1338,15 @@ Begin
    Begin
     If vAegysSession.vAegysClientStage = csRejected Then
      Begin
-      AContext.Connection.IOHandler.CloseGracefully;
+      If AContext.Connection <> Nil Then
+       If AContext.Connection.IOHandler <> Nil Then
+        AContext.Connection.IOHandler.CloseGracefully;
 //     AContext.Connection.Disconnect;
       Exit;
      End;
-//    Processmessages;
    End;
   Sleep(cDelayThread div 2);
-  Processmessages;
+//  Processmessages;
  Except
   On E : EIdSocketError Do Abort;
   On E : EIdReadTimeout Do ;
@@ -1308,9 +1358,12 @@ Begin
     Try
      If Assigned(vAegysSession) Then
       Begin
-       AContext.Connection.IOHandler.CheckForDisconnect(False);
-       If Not AContext.Connection.IOHandler.Connected Then
+       If Not Assigned(AContext) Then
         Abort;
+       If AContext.Connection <> Nil Then
+        If AContext.Connection.IOHandler <> Nil Then
+         If Not AContext.Connection.IOHandler.Connected Then
+          Abort;
       End
      Else
       Abort;
@@ -1558,10 +1611,7 @@ Begin
     Begin
      Try
       If Assigned(SessionList[I]) Then
-       Begin
-        SessionList[I].SendBytes(aBuf);
-        Processmessages;
-       End;
+       SessionList[I].SendBytes(aBuf);
      Except
       On E : Exception Do
        Begin
@@ -1576,7 +1626,6 @@ Begin
         End;
         If Assigned(vBContext.Connection) Then
          vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
-        Processmessages;
        End;
      End;
      Processmessages;
@@ -1588,10 +1637,7 @@ Begin
     Begin
      aAegysSession := SessionList.GetConnection(aPackClass.Dest, aPackClass.Dest, '');
      If Assigned(aAegysSession) Then
-      Begin
-       aAegysSession.SendBytes(aBuf);
-       Processmessages;
-      End
+      aAegysSession.SendBytes(aBuf)
      Else
       Begin
        aPackClass := TPackClass.Create;
@@ -1605,7 +1651,6 @@ Begin
        End;
        If Assigned(vBContext.Connection) Then
         vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
-       Processmessages;
       End;
      Processmessages;
     End;
@@ -1623,10 +1668,7 @@ Begin
   Begin
    aAegysSession := SessionList.GetConnection(aDest, aDest, '');
    If Assigned(aAegysSession) Then
-    Begin
-     aAegysSession.SendBytes(aBuf);
-     Processmessages;
-    End
+    aAegysSession.SendBytes(aBuf)
    Else
     Begin
      aPackClass := TPackClass.Create;
@@ -1653,8 +1695,6 @@ Begin
    Try
     If Assigned(vBContext.Connection) Then
      Begin
-//      vBContext.Connection.CheckForGracefulDisconnect(True);
-      Processmessages;
       If vBContext.Connection.Connected Then
        If Assigned(vBContext.Connection.IOHandler) Then
         vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBuf));
@@ -1738,6 +1778,7 @@ Begin
  Inherited;
  vTcpRequest  := TIdTCPClient.Create(Nil);
  vTcpReceive  := TIdTCPClient.Create(Nil);
+ aAegysConnectionList := TAegysConnectionList.Create;
  aPackList    := TPackList.Create;
  vSessionTime := 0;
  vProcessData := Nil;
@@ -1749,6 +1790,7 @@ Begin
  FreeAndNil(vTcpRequest);
  FreeAndNil(vTcpReceive);
  FreeAndNil(aPackList);
+ FreeAndNil(aAegysConnectionList);
  Inherited;
 End;
 
@@ -1759,12 +1801,15 @@ End;
 
 Procedure TAegysClient.DisconnectAllPeers;
 Begin
- If Assigned(vTcpRequest) Then
+ If Assigned(Self) Then
   Begin
-   If vTcpRequest.Connected Then
-    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers)
-   Else
-    Raise Exception.Create(cCantExecDisconnected);
+   If Assigned(vTcpRequest) Then
+    Begin
+     If vTcpRequest.Connected Then
+      aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers)
+     Else
+      Raise Exception.Create(cCantExecDisconnected);
+    End;
   End;
 End;
 
@@ -1781,15 +1826,10 @@ Begin
   End;
 End;
 
-Procedure TAegysClient.GetConnectedList;
+Function TAegysClient.GetPacketLength: Integer;
 Begin
-
+ Result := aPackList.Count;
 End;
-
-function TAegysClient.GetPacketLength: Integer;
-begin
-  Result := aPackList.Count;
-end;
 
 Procedure TAegysClient.Join(aID, aPass, aVideoQ : String);
 Begin
@@ -1919,10 +1959,12 @@ Begin
                          If Assigned(vOnServerLogin) Then
                           vOnServerLogin(Self);
                          SetPortSocket;
+                         aAegysConnectionList.ClearAll;
                         End;
   ticConnectedPeer    : Begin
                          ArrayOfPointer :=  [@vaConnection, @vClientID, @vClientPassword, @vAlias];
                          ParseValues(Command, ArrayOfPointer);
+                         aAegysConnectionList.Add(vaConnection, vClientID, vClientPassword, vAlias);
                          If Assigned(vOnPeerConnected) Then
                           vOnPeerConnected   (vaConnection,  vClientID,  vClientPassword,  vAlias);
                         End;
@@ -1935,12 +1977,14 @@ Begin
   ticDisconnectedPeer : Begin
                          ArrayOfPointer :=  [@vaConnection, @vClientID, @vClientPassword, @vAlias];
                          ParseValues(Command, ArrayOfPointer);
+                         aAegysConnectionList.Delete(vaConnection, vClientID, vClientPassword);
                          If Assigned(vOnPeerDisconnected) Then
                           vOnPeerDisconnected(vaConnection,  vClientID,  vClientPassword,  vAlias);
                         End;
   ticKick             : Begin
                          ArrayOfPointer :=  [@vaConnection, @vClientID, @vClientPassword, @vAlias];
                          ParseValues(Command, ArrayOfPointer);
+                         aAegysConnectionList.Delete(vaConnection, vClientID, vClientPassword);
                          If Assigned(vOnPeerKick) Then
                           vOnPeerKick(vaConnection,  vClientID,  vClientPassword,  vAlias);
                         End;
@@ -2464,6 +2508,136 @@ Procedure TAegysClientSessionList.PutRec(Index : Integer;
 Begin
  If (Index < Self.Count) And (Index > -1) Then
   TAegysClientSession(TList(Self).Items[Index]^) := Item;
+End;
+
+{ TAegysConnectionList }
+
+Function TAegysConnectionList.Add(aConnStr,
+                                  aId, aPWD,
+                                  aAlias        : String)  : Integer;
+Var
+ vItem : PAegysConnections;
+ Item  : TAegysConnections;
+Begin
+ New(vItem);
+ Item.Connection          := aConnStr;
+ Item.ClientID            := aId;
+ Item.ClientPassword      := aPWD;
+ Item.Alias               := aAlias;
+ Item.StartConnectionTime := Now;
+ vItem^                   := Item;
+ Result                   := Inherited Add(vItem);
+End;
+
+Function TAegysConnectionList.Add(Item : TAegysConnections) : Integer;
+Var
+ vItem: PAegysConnections;
+Begin
+ New(vItem);
+ vItem^        := Item;
+ Result        := Inherited Add(vItem);
+End;
+
+Procedure TAegysConnectionList.ClearAll;
+Var
+ I : Integer;
+Begin
+ I := Count - 1;
+ While I > -1 Do
+  Begin
+   Delete(I);
+   Dec(I);
+  End;
+ Inherited Clear;
+End;
+
+Constructor TAegysConnectionList.Create;
+Begin
+ Inherited;
+End;
+
+procedure TAegysConnectionList.Delete(aConnStr, Id, PWD: String);
+Var
+ I : Integer;
+Begin
+ For I := Count -1 Downto 0 Do
+  Begin
+   If (Items[I].Connection = aConnStr)  Or
+      ((Items[I].ClientID  = Id)        And
+       (Items[I].ClientPassword = PWD)) Then
+    Begin
+     Delete(I);
+     Break;
+    End;
+  End;
+End;
+
+procedure TAegysConnectionList.Delete(Index: Integer);
+begin
+ If (Index > -1)        And
+    (Index <= Count -1) Then
+  Begin
+    Try
+     {$IFDEF FPC}
+      Dispose(PAegysConnections(TList(Self).Items[Index]));
+     {$ELSE}
+      Dispose(TList(Self).Items[Index]);
+     {$ENDIF}
+    Except
+    End;
+    TList(Self).Delete(Index);
+  End;
+End;
+
+Destructor TAegysConnectionList.Destroy;
+Begin
+ ClearAll;
+ Inherited;
+End;
+
+Function TAegysConnectionList.GetConnection(aConnStr,
+                                            Id,
+                                            PWD        : String) : TAegysConnections;
+Var
+ I : Integer;
+Begin
+ Result.Connection     := '';
+ Result.ClientID       := Result.Connection;
+ Result.ClientPassword := Result.ClientID;
+ Result.Alias          := Result.ClientPassword;
+ Result.Download       := 0;
+ Result.Upload         := 0;
+ If Not Assigned(Self) Then
+  Exit;
+ For I := Count -1 DownTo 0 Do
+  Begin
+   If (Items[I].Connection      = aConnStr) Or
+      ((Items[I].ClientID       = Id)       And
+       (Items[I].ClientPassword = PWD))     Then
+    Begin
+     Result := Items[I];
+     Break;
+    End;
+  End;
+End;
+
+Function TAegysConnectionList.GetRec(Index: Integer) : TAegysConnections;
+Begin
+ Result.Connection     := '';
+ Result.ClientID       := Result.Connection;
+ Result.ClientPassword := Result.ClientID;
+ Result.Alias          := Result.ClientPassword;
+ Result.Download       := 0;
+ Result.Upload         := 0;
+ If (Index < Self.Count) And (Index > -1) Then
+  Result := TAegysConnections(TList(Self).Items[Index]^);
+End;
+
+Procedure TAegysConnectionList.PutRec(Index : Integer;
+                                      Item  : TAegysConnections);
+Begin
+ If (Index < Self.Count) And (Index > -1) Then
+  TAegysConnections(TList(Self).Items[Index]^) := Item;
 End;
 
 end.

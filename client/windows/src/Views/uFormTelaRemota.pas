@@ -42,6 +42,9 @@ Type
  TTagEffect   = (te_Open, te_Close);
  TExecuteProc = Reference to Procedure;
 
+Const
+ cMousePack = 4;
+
 type
   TFormTelaRemota = Class(TForm)
     ActionList1        : TActionList;
@@ -529,9 +532,7 @@ Begin
  taction.Enabled  := False;
  cShowForm        := True;
  FormConexao.SetPeerDisconnected;
- FreeAndNil(aPackList);
  Locale.DisposeOf;
- FreeAndNil(aPackList);
  FreeAndNil(vMouseMove);
  If Assigned(fFileTransfer) then
   FreeAndNil(fFileTransfer);
@@ -545,6 +546,7 @@ Begin
   FormTelaRemota := Nil;
   Release;
  End;
+ FreeAndNil(aPackList);
 End;
 
 Procedure TFormTelaRemota.FormCreate (Sender      : TObject);
@@ -567,7 +569,8 @@ Procedure TFormTelaRemota.FormKeyDown(Sender      : TObject;
                                       Var KeyChar : Char;
                                       Shift       : TShiftState);
 Begin
- If (ssAlt in Shift) And (Key = vkF4) Then
+ If ((ssAlt in Shift) And (Key = vkF4)) Or
+    ((Key = vkReturn)) Then
   Abort;
 End;
 
@@ -757,7 +760,7 @@ Begin
    iY          := ((Round(vResolucaoAltura)  * iY) Div 100);
   End;
  Sblockinput := IfThen(vBlockInputs, cBlockInput, '');
- If vMouseMove.Count <= 7 Then
+ If vMouseMove.Count <= cMousePack Then
   vMouseMove.Add(cMousePos + IntToStr(iX) + '<|>' + IntToStr(iY) + cEndTag + Sblockinput)
  Else
   Begin
@@ -834,8 +837,7 @@ Begin
   aPackClass.Command     := AKeys + Sblockinput;
   aPackClass.Dest        := vConnection;
   Conexao.SendBytes(vConnection, aPackClass.ToBytes, '', aPackClass.CommandType);
-  Processmessages;
-//  aPackList.Add(aPackClass);
+  Application.Processmessages;
  Finally
   FreeAndNil(aPackClass);
  End;
@@ -855,8 +857,7 @@ Begin
   aPackClass.Command     := AKeys + Sblockinput;
   aPackClass.Dest        := vConnection;
   Conexao.SendBytes(vConnection, aPackClass.ToBytes, '', aPackClass.CommandType);
-  Processmessages;
-//  aPackList.Add(aPackClass);
+  Application.Processmessages;
  Finally
   FreeAndNil(aPackClass);
  End;

@@ -237,7 +237,7 @@ Begin
      If Not DirectThreadAction[Integer(ttdReceive)] Then
       Begin
        DirectThreadAction[Integer(ttdReceive)] := True;
-//       Processmessages;
+       Processmessages;
        //Process Before Execute one Pack
        If Assigned(vOnBeforeExecuteData) Then
         vOnBeforeExecuteData(aPackList);
@@ -258,6 +258,7 @@ Begin
               ParseLogin(vCommand);
              abInternalCommand := vInternalCommand;
              abCommand         := vCommand;
+             Processmessages;
              ServiceCommands;
             End
            Else
@@ -276,6 +277,7 @@ Begin
                abMultiPack       := aPackClass.PacksGeral > 0;
                abPackCount       := aPackClass.PacksGeral;
                Try
+                Processmessages;
                 ClientCommands;
                Finally
                 SetLength(abBuf, 0);
@@ -284,7 +286,6 @@ Begin
             End;
            If vInternalC Then
             aPackList.Delete(0);
-           Processmessages;
           End;
          If Not vInternalC Then
           Begin
@@ -302,7 +303,6 @@ Begin
               ArrayOfPointer := [@vOwner, @vID];
               ParseValues(vBytesOptions, ArrayOfPointer);
              End;
-//            ParseValues(vBytesOptions, ArrayOfPointer);
             If (aPackClass.CommandType <> tctNone) Then
              Begin
               abInternalCommand := vInternalCommand;
@@ -314,6 +314,7 @@ Begin
               abMultiPack       := aPackClass.PacksGeral > 0;
               abPackCount       := aPackClass.PacksGeral;
               Try
+               Processmessages;
                ClientCommands;
               Finally
                SetLength(abBuf, 0);
@@ -323,7 +324,7 @@ Begin
             aPackList.Delete(0);
             SetLength(aBuf, 0);
            End;
-//           Processmessages;
+           Processmessages;
           End;
         End;
        DirectThreadAction[Integer(ttdReceive)] := False;
@@ -331,6 +332,7 @@ Begin
      If Not DirectThreadAction[Integer(ttdSend)] Then
       Begin
        DirectThreadAction[Integer(ttdSend)] := True;
+       Processmessages;
        //Try Process one Pack
        vPackno := 0;
        If (pPackList^.Count > 0)         And
@@ -343,11 +345,12 @@ Begin
             Break;
            vPackno  := A - I;
            abPackno := vPackno;
+           Processmessages;
            ExecuteData;
           End;
         End;
        DirectThreadAction[Integer(ttdSend)] := False;
-//       Processmessages;
+       Processmessages;
       End;
     Finally
     End;
@@ -356,14 +359,16 @@ Begin
      Begin
       If Assigned(vOnThreadRequestError) Then
        vOnThreadRequestError(500, E.Message);
+      If Not Assigned(TAegysClient(pAegysClient)) Then
+       Break;
 //      TAegysClient(pAegysClient).ThreadDisconnect;
-//      Break;
      End;
    End;
    //Delay Processor
+   Processmessages;
    If vDelayThread > 0 Then
     Sleep(vDelayThread);
-//   Processmessages;
+   Processmessages;
   End;
  FreeAndNil(aPackList);
 End;
