@@ -25,6 +25,7 @@ const
   FOLGAPROCESSAMENTO = 1;
   SERVIDOR           = ''; //'177.10.144.78';//'192.168.15.200';
   cMaxFramesBuffer   = 1;
+  cMousePack = 4;
   {
   !!!Deixe em branco para liberar a combobox na config!!!
   segue lista de servidores disponíveis:
@@ -38,7 +39,7 @@ const
 
   // Controle de Versão
   APPVERSION = '2.1.0';
-  APPBUILDV = '6';
+  APPBUILDV = '7';
 
   // frescuragem do app
   PRIMARY_COLOR = $FF0070BA;

@@ -5,13 +5,14 @@ interface
 uses
   {$IF CompilerVersion > 33.0}
   FireDAC.Phys.SQLiteWrapper.Stat, FireDAC.Stan.ExprFuncs,
-  FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf, FireDAC.Phys,
-  FireDAC.Phys.SQLite, FireDAC.Stan.Def, FireDAC.DApt, FireDAC.Stan.Async,
+  FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf, FireDAC.Phys, FireDAC.Phys.SQLite,
+  FireDAC.Stan.Def, FireDAC.DApt, FireDAC.Stan.Async,
   {$IFEND}
   {$IFDEF Android}
   System.IOUtils,
   {$ENDIF}
   FireDAC.Comp.Client, System.JSON, System.SysUtils
+
     ;
 
 type

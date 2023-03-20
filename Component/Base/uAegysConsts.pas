@@ -24,7 +24,7 @@ Interface
 Const
  //Aegys Basics
  cAeBufferVersion      = 12;
- cDelayThread          = 4;
+ cDelayThread          = 2;
  cServiceTimeout       = 1000;
  cLimitSource          = 500;
  //Messages

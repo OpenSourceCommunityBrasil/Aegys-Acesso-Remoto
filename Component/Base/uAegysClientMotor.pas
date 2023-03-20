@@ -27,7 +27,8 @@ Uses
 Type
  TOnPulseData   = Function (aPack         : TAegysBytes;
                             CommandType   : TCommandType = tctScreenCapture) : Boolean Of Object;
- TOnProcessData = Procedure(aPackList     : TPackList)                                 Of Object;
+ TOnProcessData = Procedure(aPackList     : TPackList;
+                            aFullFrame    : Boolean)                                   Of Object;
  TOnAbortData   = Procedure                                                            Of Object;
 
 Type
@@ -36,6 +37,7 @@ Type
   Procedure ProcessMessages;
   Procedure Execute;Override;
  Private
+  aFullFrame     : Boolean;
   aPackList      : TPackList;
   vDelayThread   : Integer;
   vOnPulseData   : TOnPulseData;
@@ -43,6 +45,7 @@ Type
   vAbortData     : TOnAbortData;
  Public
   Procedure   Kill;
+  Procedure   GetFullFrame;
   Destructor  Destroy; Override;
   Constructor Create(aDelayThread  : Integer = cDelayThread);
   Property    OnPulseData          : TOnPulseData   Read vOnPulseData   Write vOnPulseData;
@@ -52,7 +55,7 @@ End;
 
 Implementation
 
-Uses uConstants;
+Uses uConstants, Execute.DesktopDuplicationAPI, uFormConexao;
 
 procedure TAegysMotorThread.Execute;
 Var
@@ -69,8 +72,12 @@ Begin
        vInExec := True;
        If aPackList.Count <= cDelayThread Then
         Begin
+         Application.Processmessages;
          If Assigned(vOnProcessData) Then
-          vOnProcessData(aPackList);
+          vOnProcessData(aPackList, aFullFrame);
+         If aFullFrame Then
+          aFullFrame := False;
+         Application.Processmessages;
         End;
        Try
         If Not Assigned(aPackList) Then
@@ -83,10 +90,12 @@ Begin
            If Assigned(vOnPulseData) Then
             Begin
              Try
+              Application.Processmessages;
               vOnPulseData(aPackList[0].ToBytes,
                            aPackList[0].CommandType);
               aPackList.Delete(0);
              Finally
+              Application.Processmessages;
              End;
             End;
           Except
@@ -96,15 +105,21 @@ Begin
        Finally
         vInExec := False;
        End;
-       vInExec := False;
       End;
     End
    Else
     Break;
    //Delay Processor
+   Application.Processmessages;
    If vDelayThread > 0 Then
     Sleep(vDelayThread div 2);
+   Application.Processmessages;
   End;
+End;
+
+Procedure TAegysMotorThread.GetFullFrame;
+Begin
+ aFullFrame := True;
 End;
 
 Procedure TAegysMotorThread.Kill;
@@ -119,6 +134,9 @@ End;
 Constructor TAegysMotorThread.Create(aDelayThread  : Integer = cDelayThread);
 Begin
  Inherited Create(False);
+ aFullFrame := True;
+ If Not Assigned(FDuplication) Then
+  FDuplication := TDesktopDuplicationWrapper.Create;
  aPackList             := TPackList.Create;
  vDelayThread          := aDelayThread;
  {$IFNDEF FPC}
@@ -136,6 +154,8 @@ End;
 
 Destructor TAegysMotorThread.Destroy;
 Begin
+ If Assigned(FDuplication) Then
+  FreeAndNil(FDuplication);
  FreeAndNil(aPackList);
  Inherited;
 End;

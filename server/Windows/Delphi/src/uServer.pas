@@ -223,7 +223,7 @@ begin
  vAegysService                    := TAegysService.Create(Self);
  vAegysService.OnGetClientDetails := GetNewID;
  Connect;
-// tReload.Enabled                  := True;
+ tReload.Enabled                  := True;
 end;
 
 procedure TfServer.FormDestroy(Sender: TObject);
