@@ -151,13 +151,9 @@ End;
 procedure TfServer.FormCreate(Sender: TObject);
 begin
  vAegysService                    := TAegysService.Create(Self);
- {$IFDEF FPC}
  vAegysService.OnGetClientDetails := @GetNewID;
- {$ELSE}
- vAegysService.OnGetClientDetails := GetNewID;
- {$ENDIF}
  Connect;
- //tReload.Enabled                  := True;
+ tReload.Enabled                  := True;
 end;
 
 procedure TfServer.FormDestroy(Sender: TObject);
