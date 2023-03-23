@@ -209,6 +209,11 @@ Begin
    InternalCommand := ticAccessGranted;
    Delete(Command, 1, Length(cAccessGranted));
   End
+ Else If Copy(Command, 1, Length(cAccessDenied))      = cAccessDenied         Then
+  Begin
+   InternalCommand := ticAccessDenied;
+   Delete(Command, 1, Length(cAccessDenied));
+  End
  Else If Copy(Command, 1, Length(cGetMonitorCount))   = cGetMonitorCount      Then
   Begin
    InternalCommand := ticGetMonitorCount;

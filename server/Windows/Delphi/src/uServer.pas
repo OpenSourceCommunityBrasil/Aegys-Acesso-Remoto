@@ -1,45 +1,29 @@
-unit uServer;
+unit uServerChat;
 
 interface
 
 uses
-  // windows
-  Winapi.Windows, Winapi.Messages,
-  // system
-  System.SysUtils, System.Variants, System.Classes,
-  // vcl
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
-  Vcl.Grids, Vcl.DBGrids,
-  // database
-  IdContext, Data.DB,
-  // firedac
-  FireDAC.Stan.Intf, FireDAC.Stan.Option,
-  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
-  FireDAC.DApt.Intf,  FireDAC.Comp.DataSet, FireDAC.Comp.Client,
-  // aegys
-  uAegysBase, uConstants
-
-  ;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics,   Vcl.Controls,    Vcl.Forms,       Vcl.Dialogs,     Vcl.StdCtrls,
+  uAegysBase,     IdContext,       Data.DB,         Vcl.ExtCtrls,    Vcl.Grids,
+  Vcl.DBGrids;
 
 type
   TfServer = class(TForm)
-    DBGrid1: TDBGrid;
-    DataSource1: TDataSource;
-    QryConexoes: TFDMemTable;
-    QryConexoesPROTOCOLO: TStringField;
-    QryConexoesID: TStringField;
-    QryConexoesSENHA: TStringField;
-    QryConexoesSENHA2: TStringField;
-    QryConexoesLATENCIA: TStringField;
-    tReload: TTimer;
+    bActive: TButton;
+    lClientsConnect: TLabel;
+    Label1: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure tReloadTimer(Sender: TObject);
+    procedure bActiveClick(Sender: TObject);
   private
     { Private declarations }
-   vAction       : Boolean;
-   vAegysService : TAegysService;
+   vClientsConnected : Integer;
+   vAction           : Boolean;
+   vAegysService     : TAegysService;
    Procedure Connect;
+   Procedure ConnectClient   (Const Sender   : TAegysSession);
+   Procedure DisconnectClient(Const Sender   : TAegysSession);
   public
     { Public declarations }
    Function  GeneratePassword(LastPassword   : String) : String;
@@ -51,10 +35,11 @@ type
   end;
 
 var
-  fServer: TfServer;
+  Form3: TfServer;
 
 implementation
 
+Uses uConsts;
 {$R *.dfm}
 
 Function GenerateIDUnique(mac, hd : String) : String;
@@ -164,72 +149,55 @@ Begin
 End;
 
 
-procedure TfServer.tReloadTimer(Sender: TObject);
-Var
- I            : Integer;
- Conexao      : TAegysSession;
- vSessionList : TSessionList;
-Begin
- vAction         := tReload.Enabled;
- vSessionList    := vAegysService.SessionList;
- tReload.Enabled := False;
- Try
-  QryConexoes.DisableControls;
-  QryConexoes.Close;
-  QryConexoes.Open;
-  For I := vSessionList.Count -1 DownTo 0 Do
-   Begin
-    If Not vAction Then
-     Exit;
-    Try
-     Conexao                    := vSessionList[I];
-     QryConexoes.Append;
-     QryConexoesPROTOCOLO.Value := Conexao.Connection;
-     QryConexoesID.Value        := Conexao.SessionID;
-     QryConexoesSENHA.Value     := Conexao.SessionFixedPWD;
-     QryConexoesSENHA2.Value    := Conexao.SessionPWD;
-     QryConexoesLATENCIA.Value  := IntToStr(Conexao.Latency);
-//     QryConexoesLATENCIA.Value  := IntToStr(Conexao.Latency);
-     QryConexoes.Post;
-    Except
-     Continue;
-    End;
-   End;
- Finally
-///  FreeAndNil(vSessionList);
-  QryConexoes.EnableControls;
-  tReload.Enabled := vAction;
- End;
-End;
+procedure TfServer.bActiveClick(Sender: TObject);
+begin
+ Connect;
+ If vAegysService.Active Then
+  bActive.Caption := 'Deactive Server'
+ Else
+  bActive.Caption := 'Active Server';
+end;
 
 Procedure TfServer.Connect;
 Begin
+ vClientsConnected     := 0;
  vAegysService.ServicePort := PORTA;
  Try
-  vAegysService.Active     := Not vAegysService.Active;
+  vAegysService.Active := Not vAegysService.Active;
  Except
 
  End;
  If vAegysService.Active Then
-  Caption := 'AegysServer' +
-  Format(' Port:%d - Server Online, Version: %s', [PORTA, APPVERSION])
+  Caption := cTitle + Format(' Port:%d - Connect', [PORTA])
  Else
-  Caption := 'AegysServer' +
-  Format(' Port:%d - Server Offline, Version: %s', [PORTA, APPVERSION]);
+  Caption := cTitle + Format(' Port:%d - Disconnect', [PORTA]);
+End;
+
+Procedure TfServer.ConnectClient(Const Sender : TAegysSession);
+Begin
+ Inc(vClientsConnected);
+ lClientsConnect.Caption := FormatFloat('0000', vClientsConnected);
+End;
+
+Procedure TfServer.DisconnectClient(Const Sender : TAegysSession);
+Begin
+ Dec(vClientsConnected);
+ lClientsConnect.Caption := FormatFloat('0000', vClientsConnected);
 End;
 
 procedure TfServer.FormCreate(Sender: TObject);
 begin
  vAegysService                    := TAegysService.Create(Self);
  vAegysService.OnGetClientDetails := GetNewID;
- Connect;
- tReload.Enabled                  := True;
+ vAegysService.OnConnect          := ConnectClient;
+ vAegysService.OnDisconnect       := DisconnectClient;
+ vClientsConnected                := 0;
+// Connect;
 end;
 
 procedure TfServer.FormDestroy(Sender: TObject);
 begin
  vAction                          := False;
- tReload.Enabled                  := vAction;
  FreeAndNil(vAegysService);
  Release;
 end;

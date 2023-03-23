@@ -34,7 +34,8 @@ type
     FDirtyCount: Integer;
   public
     constructor Create;
-    function GetFrame(aFullFrame : Boolean): Boolean;
+    function GetFrame(aFullFrame : Boolean;
+                      aMouse     : Boolean = False): Boolean;
     procedure DrawFrame(var Bitmap  : TBitmap;
                         PixelFormat : TPixelFormat = pf32Bit);
     property Error: HRESULT read FError;
@@ -142,7 +143,8 @@ begin
   FDuplicate.ReleaseFrame;
 end;
 
-Function TDesktopDuplicationWrapper.GetFrame(aFullFrame : Boolean) : Boolean;
+Function TDesktopDuplicationWrapper.GetFrame(aFullFrame : Boolean;
+                                             aMouse     : Boolean = False) : Boolean;
 Var
  FrameInfo: TDXGI_OUTDUPL_FRAME_INFO;
  Resource: IDXGIResource;

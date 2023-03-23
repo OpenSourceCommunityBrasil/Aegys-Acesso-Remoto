@@ -644,4 +644,9 @@ object FormConexao: TFormConexao
       OnExecute = actPasteIDExecute
     end
   end
+  object FDGUIxWaitCursor1: TFDGUIxWaitCursor
+    Provider = 'FMX'
+    Left = 44
+    Top = 268
+  end
 end

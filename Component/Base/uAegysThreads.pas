@@ -258,8 +258,8 @@ Begin
               ParseLogin(vCommand);
              abInternalCommand := vInternalCommand;
              abCommand         := vCommand;
-             Processmessages;
              ServiceCommands;
+             Processmessages;
             End
            Else
             Begin
@@ -277,8 +277,8 @@ Begin
                abMultiPack       := aPackClass.PacksGeral > 0;
                abPackCount       := aPackClass.PacksGeral;
                Try
-                Processmessages;
                 ClientCommands;
+                Processmessages;
                Finally
                 SetLength(abBuf, 0);
                End;
@@ -314,8 +314,8 @@ Begin
               abMultiPack       := aPackClass.PacksGeral > 0;
               abPackCount       := aPackClass.PacksGeral;
               Try
-               Processmessages;
                ClientCommands;
+               Processmessages;
               Finally
                SetLength(abBuf, 0);
               End;
@@ -324,7 +324,6 @@ Begin
             aPackList.Delete(0);
             SetLength(aBuf, 0);
            End;
-           Processmessages;
           End;
         End;
        DirectThreadAction[Integer(ttdReceive)] := False;
@@ -345,20 +344,20 @@ Begin
             Break;
            vPackno  := A - I;
            abPackno := vPackno;
-           Processmessages;
            ExecuteData;
           End;
         End;
        DirectThreadAction[Integer(ttdSend)] := False;
-       Processmessages;
       End;
     Finally
+     Processmessages;
     End;
    Except
     On E : Exception Do
      Begin
       If Assigned(vOnThreadRequestError) Then
        vOnThreadRequestError(500, E.Message);
+      Processmessages;
       If Not Assigned(TAegysClient(pAegysClient)) Then
        Break;
 //      TAegysClient(pAegysClient).ThreadDisconnect;
@@ -368,7 +367,6 @@ Begin
    Processmessages;
    If vDelayThread > 0 Then
     Sleep(vDelayThread);
-   Processmessages;
   End;
  FreeAndNil(aPackList);
 End;

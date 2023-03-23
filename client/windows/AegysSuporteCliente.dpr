@@ -1,7 +1,5 @@
 program AegysSuporteCliente;
 
-
-
 {$R *.dres}
 
 uses
@@ -11,64 +9,63 @@ uses
   Windows,
   classes,
   SysUtils,
-  uDM in 'src\Views\uDM.pas' {DM: TDataModule},
-  uFormConexao in 'src\Views\uFormConexao.pas' {FormConexao},
-  uFormTelaRemota in 'src\Views\uFormTelaRemota.pas' {FormTelaRemota},
-  uFormChat in 'src\Views\uFormChat.pas' {FormChat},
-  uFormConfig in 'src\Views\uFormConfig.pas' {fConfig},
-  uFormSenha in 'src\Views\uFormSenha.pas' {FormSenha},
-  uFileTransfer in 'src\Views\uFileTransfer.pas' {fFileTransfer},
-  uFrameMensagemChat in 'src\Views\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
-  ufrMonitorItem in 'src\Views\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame},
-  uLibClass in 'src\Classes\uLibClass.pas',
-  uSendKeyClass in 'src\Classes\uSendKeyClass.pas',
-  StreamManager in 'src\Classes\StreamManager.pas',
-  Bcrypt in 'src\Classes\Bcrypt.pas',
-  uFunctions in 'src\Classes\uFunctions.pas',
-  uFilesFoldersOP in 'src\Classes\uFilesFoldersOP.pas',
-  uIconsAssoc in 'src\Classes\uIconsAssoc.pas',
-  uConstants in '..\..\commons\uConstants.pas',
-  CCR.Clipboard.Apple.Helpers in 'src\Classes\ClipBoard\CCR.Clipboard.Apple.Helpers.pas',
-  CCR.Clipboard.Apple in 'src\Classes\ClipBoard\CCR.Clipboard.Apple.pas',
-  CCR.Clipboard.Consts in 'src\Classes\ClipBoard\CCR.Clipboard.Consts.pas',
-  CCR.Clipboard.FMX.iOS in 'src\Classes\ClipBoard\CCR.Clipboard.FMX.iOS.pas',
-  CCR.Clipboard.FMX.Mac in 'src\Classes\ClipBoard\CCR.Clipboard.FMX.Mac.pas',
-  CCR.Clipboard.FMX in 'src\Classes\ClipBoard\CCR.Clipboard.FMX.pas',
-  CCR.Clipboard.FMX.Win in 'src\Classes\ClipBoard\CCR.Clipboard.FMX.Win.pas',
-  CCR.Clipboard in 'src\Classes\ClipBoard\CCR.Clipboard.pas',
-  CCR.Clipboard.VCL in 'src\Classes\ClipBoard\CCR.Clipboard.VCL.pas',
-  CCR.Clipboard.Win in 'src\Classes\ClipBoard\CCR.Clipboard.Win.pas',
-  uAegysBase in '..\..\Component\Base\uAegysBase.pas',
-  uAegysBufferPack in '..\..\Component\Base\uAegysBufferPack.pas',
-  uAegysConsts in '..\..\Component\Base\uAegysConsts.pas',
-  uAegysDataTypes in '..\..\Component\Base\uAegysDataTypes.pas',
-  uAegysThreads in '..\..\Component\Base\uAegysThreads.pas',
-  uAegysTools in '..\..\Component\Base\uAegysTools.pas',
-  uAegysClientMotor in '..\..\Component\Base\uAegysClientMotor.pas',
-  uAegysZlib in '..\..\Component\Utils\uAegysZlib.pas',
-  uLocale in '..\..\commons\uLocale.pas',
-  DX12.D3D11 in 'src\Classes\DXHeaders\DX12.D3D11.pas',
-  DX12.D3DCommon in 'src\Classes\DXHeaders\DX12.D3DCommon.pas',
-  DX12.DXGI in 'src\Classes\DXHeaders\DX12.DXGI.pas',
-  DX12.DXGI1_2 in 'src\Classes\DXHeaders\DX12.DXGI1_2.pas',
-  Execute.DesktopDuplicationAPI in 'src\Classes\Execute.DesktopDuplicationAPI.pas',
-  Config.SQLite.FireDAC in '..\..\commons\Config.SQLite.FireDAC.pas';
+  uFormConexao in 'View\uFormConexao.pas' {FormConexao},
+  uFormTelaRemota in 'View\uFormTelaRemota.pas' {FormTelaRemota},
+  uFormChat in 'View\uFormChat.pas' {FormChat},
+  uDM in 'Styles\uDM.pas' {DM: TDataModule},
+  uLibClass in 'Lib\uLibClass.pas',
+  uSendKeyClass in 'Lib\uSendKeyClass.pas',
+  StreamManager in 'Lib\StreamManager.pas',
+  uFormSenha in 'View\uFormSenha.pas' {FormSenha},
+  Bcrypt in 'Lib\Bcrypt.pas',
+  uFormConfig in 'View\uFormConfig.pas' {fConfig},
+  uFrameMensagemChat in 'View\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
+  uConstants in 'Lib\uConstants.pas',
+  uFunctions in 'Lib\uFunctions.pas',
+  CCR.Clipboard.Apple.Helpers in 'Lib\ClipBoard\CCR.Clipboard.Apple.Helpers.pas',
+  CCR.Clipboard.Apple in 'Lib\ClipBoard\CCR.Clipboard.Apple.pas',
+  CCR.Clipboard.Consts in 'Lib\ClipBoard\CCR.Clipboard.Consts.pas',
+  CCR.Clipboard.FMX.iOS in 'Lib\ClipBoard\CCR.Clipboard.FMX.iOS.pas',
+  CCR.Clipboard.FMX.Mac in 'Lib\ClipBoard\CCR.Clipboard.FMX.Mac.pas',
+  CCR.Clipboard.FMX in 'Lib\ClipBoard\CCR.Clipboard.FMX.pas',
+  CCR.Clipboard.FMX.Win in 'Lib\ClipBoard\CCR.Clipboard.FMX.Win.pas',
+  CCR.Clipboard in 'Lib\ClipBoard\CCR.Clipboard.pas',
+  CCR.Clipboard.VCL in 'Lib\ClipBoard\CCR.Clipboard.VCL.pas',
+  CCR.Clipboard.Win in 'Lib\ClipBoard\CCR.Clipboard.Win.pas',
+  ufrMonitorItem in 'View\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame},
+  uSQLiteConfig in 'Lib\uSQLiteConfig.pas',
+  uFilesFoldersOP in 'Lib\uFilesFoldersOP.pas',
+  uFileTransfer in 'View\uFileTransfer.pas' {fFileTransfer},
+  uIconsAssoc in 'Lib\uIconsAssoc.pas',
+  uAegysBase in '..\..\Source\Base\uAegysBase.pas',
+  uAegysBufferPack in '..\..\Source\Base\uAegysBufferPack.pas',
+  uAegysConsts in '..\..\Source\Base\uAegysConsts.pas',
+  uAegysDataTypes in '..\..\Source\Base\uAegysDataTypes.pas',
+  uAegysThreads in '..\..\Source\Base\uAegysThreads.pas',
+  uAegysTools in '..\..\Source\Base\uAegysTools.pas',
+  uAegysClientMotor in 'Lib\uAegysClientMotor.pas',
+  uAegysZlib in '..\..\Source\Libs\uAegysZlib.pas',
+  DX12.D3D11 in 'Lib\DXHeaders\DX12.D3D11.pas',
+  DX12.D3DCommon in 'Lib\DXHeaders\DX12.D3DCommon.pas',
+  DX12.DXGI in 'Lib\DXHeaders\DX12.DXGI.pas',
+  DX12.DXGI1_2 in 'Lib\DXHeaders\DX12.DXGI1_2.pas',
+  Execute.DesktopDuplicationAPI in 'Lib\lib\Execute.DesktopDuplicationAPI.pas',
+  uAegysRFBList in 'RFB\uAegysRFBList.pas',
+  FastBlend in 'RFB\Units\FastBlend.pas',
+  FastDIB in 'RFB\Units\FastDIB.pas',
+  FastDraw in 'RFB\Units\FastDraw.pas',
+  FastFiles in 'RFB\Units\FastFiles.pas',
+  FastFX in 'RFB\Units\FastFX.pas',
+  FastGate in 'RFB\Units\FastGate.pas',
+  FastGen in 'RFB\Units\FastGen.pas',
+  FastGPlus in 'RFB\Units\FastGPlus.pas',
+  FastSize in 'RFB\Units\FastSize.pas',
+  FConvert in 'RFB\Units\FConvert.pas',
+  uAegysUtils in 'RFB\Units\uAegysUtils.pas';
 
 {$R *.res}
 
 procedure ExtractRunAsSystem;
-var
-  resource: TResourceStream;
-begin
-  resource := TResourceStream.Create(HInstance, 'RUN_AS_SYSTEM', RT_RCDATA);
-  try
-    resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
-  finally
-    FreeAndNil(resource);
-  end;
-end;
-
-procedure ExtractCommonFiles;
 var
   resource: TResourceStream;
 begin
@@ -82,6 +79,12 @@ begin
   resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\sqlite3.dll');
   FreeAndNil(resource);
 {$ENDIF}
+  resource := TResourceStream.Create(HInstance, 'RUN_AS_SYSTEM', RT_RCDATA);
+  try
+    resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
+  finally
+    FreeAndNil(resource);
+  end;
 end;
 
 function IsAccountSystem: Boolean;
@@ -143,13 +146,12 @@ begin
     DeleteFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
   end;
 {$ENDIF}
-  ExtractCommonFiles;
-  Application.Title := Locale.GetLocale(lsSYSTEMINFO, lvSysTitle);
+  Application.Title := Locale.GetLocale(MAIN, 'Title');
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM, DM);
   Application.Run;
 
   if Application.Terminated then
-    Locale.Free;
+    Locale.DisposeOf;
 
 end.

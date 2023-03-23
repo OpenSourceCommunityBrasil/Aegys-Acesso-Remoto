@@ -55,7 +55,7 @@ End;
 
 Implementation
 
-Uses uConstants, Execute.DesktopDuplicationAPI, uFormConexao;
+Uses uConstants, Execute.DesktopDuplicationAPI, uFormConexao, uAegysRFBList;
 
 procedure TAegysMotorThread.Execute;
 Var
@@ -67,17 +67,16 @@ Begin
   Begin
    If Assigned(aPackList) Then
     Begin
-     If Not vInExec Then
+     If Not (vInExec) Or (cRFB) Then
       Begin
        vInExec := True;
+       Application.Processmessages;
        If aPackList.Count <= cDelayThread Then
         Begin
-         Application.Processmessages;
          If Assigned(vOnProcessData) Then
           vOnProcessData(aPackList, aFullFrame);
          If aFullFrame Then
           aFullFrame := False;
-         Application.Processmessages;
         End;
        Try
         If Not Assigned(aPackList) Then
@@ -90,7 +89,6 @@ Begin
            If Assigned(vOnPulseData) Then
             Begin
              Try
-              Application.Processmessages;
               vOnPulseData(aPackList[0].ToBytes,
                            aPackList[0].CommandType);
               aPackList.Delete(0);
@@ -134,9 +132,23 @@ End;
 Constructor TAegysMotorThread.Create(aDelayThread  : Integer = cDelayThread);
 Begin
  Inherited Create(False);
- aFullFrame := True;
- If Not Assigned(FDuplication) Then
-  FDuplication := TDesktopDuplicationWrapper.Create;
+ aFullFrame := False;
+ if Not cRFB Then
+  Begin
+   If Not Assigned(FDuplication) Then
+    FDuplication := TDesktopDuplicationWrapper.Create;
+  End
+ Else
+  Begin
+   If Not Assigned(FAegysVarredura) Then
+    FAegysVarredura := TAegysVarredura.Create;
+   FAegysVarredura.Square            := True;
+   FAegysVarredura.CaptureCursor     := False;
+   FAegysVarredura.ToleranceChange   := 0;
+   FAegysVarredura.Pixels            := 16;
+   FAegysVarredura.Quality           := 100;
+   FAegysVarredura.Zoom              := 100;
+  End;
  aPackList             := TPackList.Create;
  vDelayThread          := aDelayThread;
  {$IFNDEF FPC}
@@ -154,8 +166,16 @@ End;
 
 Destructor TAegysMotorThread.Destroy;
 Begin
- If Assigned(FDuplication) Then
-  FreeAndNil(FDuplication);
+ If Not cRFB Then
+  Begin
+   If Assigned(FDuplication) Then
+    FreeAndNil(FDuplication);
+  End
+ Else
+  Begin
+   If Assigned(FAegysVarredura) Then
+    FreeAndNil(FAegysVarredura);
+  End;
  FreeAndNil(aPackList);
  Inherited;
 End;

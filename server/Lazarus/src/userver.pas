@@ -1,4 +1,4 @@
-unit uServer;
+unit uServerChat;
 
 {$mode objfpc}{$H+}
 
@@ -6,24 +6,28 @@ interface
 
 uses
   Classes, SysUtils, DB, BufDataset, Forms, Controls, Graphics, Dialogs,
-  uAegysBase, ExtCtrls, DBGrids;
+  uAegysBase, ExtCtrls, DBGrids, StdCtrls;
 
 type
 
-  { TfServer }
+  { TForm3 }
 
-  TfServer = class(TForm)
-    DBGrid1: TDBGrid;
-    QryConexoes: TBufDataset;
-    DataSource1: TDataSource;
-    tReload: TTimer;
+  TForm3 = class(TForm)
+    bActive: TButton;
+    Label1: TLabel;
+    lClientsConnect: TLabel;
+    procedure bActiveClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure tReloadTimer(Sender: TObject);
   private
-    vAction       : Boolean;
-    vAegysService : TAegysService;
+    vClientsConnected : Integer;
+    vAction           : Boolean;
+    vAegysService     : TAegysService;
     Procedure Connect;
+    Procedure ConnectClient   (Const Sender   : TAegysSession);
+    Procedure DisconnectClient(Const Sender   : TAegysSession);
+    procedure UpdateCaption;
+    procedure UpdateServerStatus;
   public
     Function  GeneratePassword(LastPassword   : String) : String;
     Procedure GetNewID        (ContextList    : TSessionList;
@@ -34,11 +38,11 @@ type
   end;
 
 var
-  fServer: TfServer;
+  Form3: TForm3;
 
 implementation
 
-Uses uConstants;
+Uses uConsts;
 
 {$R *.lfm}
 
@@ -92,7 +96,7 @@ Begin
  Result := sID1 + '-'+ sID2  +'-'+ sID3;
 End;
 
-Function TfServer.GeneratePassword(LastPassword : String) : String;
+Function TForm3.GeneratePassword(LastPassword : String) : String;
 Begin
  Randomize;
  If (LastPassword <> '') Then
@@ -102,7 +106,7 @@ Begin
 End;
 
 
-Procedure TfServer.GetNewID(ContextList      : TSessionList;
+Procedure TForm3.GetNewID(ContextList      : TSessionList;
                           Value            : String;
                           Var ClientID,
                           ClientPassword   : String;
@@ -148,70 +152,74 @@ Begin
  End;
 End;
 
-procedure TfServer.FormCreate(Sender: TObject);
+Procedure TForm3.UpdateCaption;
+Begin
+ lClientsConnect.Caption := FormatFloat('0000', vClientsConnected);
+End;
+
+Procedure TForm3.UpdateServerStatus;
+Begin
+ If vAegysService.Active Then
+  Begin
+   Caption         := cTitle + Format(' Port:%d - Connect', [PORTA]);
+   bActive.Caption := 'Deactive Server';
+  End
+ Else
+  Begin
+   Caption         := cTitle + Format(' Port:%d - Disconnect', [PORTA]);
+   bActive.Caption := 'Active Server';
+  End;
+End;
+
+Procedure TForm3.ConnectClient(Const Sender : TAegysSession);
+Begin
+ Inc(vClientsConnected);
+ TThread.Synchronize(Nil, @UpdateCaption);
+End;
+
+Procedure TForm3.DisconnectClient(Const Sender : TAegysSession);
+Begin
+ Dec(vClientsConnected);
+ TThread.Synchronize(Nil, @UpdateCaption);
+End;
+
+procedure TForm3.FormCreate(Sender: TObject);
 begin
  vAegysService                    := TAegysService.Create(Self);
+ {$IFDEF FPC}
  vAegysService.OnGetClientDetails := @GetNewID;
- Connect;
- tReload.Enabled                  := True;
+ vAegysService.OnConnect          := @ConnectClient;
+ vAegysService.OnDisconnect       := @DisconnectClient;
+ {$ELSE}
+ vAegysService.OnGetClientDetails := GetNewID;
+ vAegysService.OnConnect          := ConnectClient;
+ vAegysService.OnDisconnect       := DisconnectClient;
+ {$ENDIF}
+ vClientsConnected                := 0;
 end;
 
-procedure TfServer.FormDestroy(Sender: TObject);
+procedure TForm3.bActiveClick(Sender: TObject);
+begin
+ Connect;
+end;
+
+procedure TForm3.FormDestroy(Sender: TObject);
 begin
  vAction                          := False;
- tReload.Enabled                  := vAction;
  FreeAndNil(vAegysService);
  Release;
 end;
 
-procedure TfServer.tReloadTimer(Sender: TObject);
-Var
- I            : Integer;
- Conexao      : TAegysSession;
- vSessionList : TSessionList;
+Procedure TForm3.Connect;
 Begin
- vAction         := tReload.Enabled;
- vSessionList    := vAegysService.SessionList;
- tReload.Enabled := False;
- Try
-  QryConexoes.DisableControls;
-  QryConexoes.Close;
-  QryConexoes.CreateDataset;
-  For I := vSessionList.Count -1 DownTo 0 Do
-   Begin
-    If Not vAction Then
-     Exit;
-    Try
-     Conexao                    := vSessionList[I];
-     QryConexoes.Insert;
-     QryConexoes.FindField('PROTOCOLO').AsString := Conexao.Connection;
-     QryConexoes.FindField('ID').AsString        := Conexao.SessionID;
-     QryConexoes.FindField('SENHA').AsString     := Conexao.SessionFixedPWD;
-     QryConexoes.FindField('SENHA2').AsString    := Conexao.SessionPWD;
-     QryConexoes.FindField('LATENCIA').AsString  := IntToStr(Conexao.Latency);
-     QryConexoes.Post;
-    Except
-     Continue;
-    End;
-   End;
- Finally
-  QryConexoes.EnableControls;
-  tReload.Enabled := vAction;
- End;
-End;
-
-Procedure TfServer.Connect;
-Begin
+ vClientsConnected     := 0;
  vAegysService.ServicePort := PORTA;
  Try
   vAegysService.Active     := Not vAegysService.Active;
  Except
 
  End;
- If vAegysService.Active Then
-  Caption := 'AegysServer' + Format(' Port:%d - Connect', [PORTA])
- Else
-  Caption := 'AegysServer' + Format(' Port:%d - Disconnect', [PORTA]);
+ UpdateServerStatus;
 End;
 
 end.
