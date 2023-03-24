@@ -1,12 +1,25 @@
-unit uServerChat;
+unit uServer;
 
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
-  Vcl.Graphics,   Vcl.Controls,    Vcl.Forms,       Vcl.Dialogs,     Vcl.StdCtrls,
-  uAegysBase,     IdContext,       Data.DB,         Vcl.ExtCtrls,    Vcl.Grids,
-  Vcl.DBGrids;
+  // windows
+  Winapi.Windows, Winapi.Messages,
+  // system
+  System.SysUtils, System.Variants, System.Classes,
+  // vcl
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+  Vcl.Grids, Vcl.DBGrids,
+  // database
+  IdContext, Data.DB,
+  // firedac
+  FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf,  FireDAC.Comp.DataSet, FireDAC.Comp.Client,
+  // aegys
+  uAegysBase, uConstants
+
+  ;
 
 type
   TfServer = class(TForm)
@@ -35,11 +48,10 @@ type
   end;
 
 var
-  Form3: TfServer;
+  fServer: TfServer;
 
 implementation
 
-Uses uConsts;
 {$R *.dfm}
 
 Function GenerateIDUnique(mac, hd : String) : String;
@@ -153,9 +165,9 @@ procedure TfServer.bActiveClick(Sender: TObject);
 begin
  Connect;
  If vAegysService.Active Then
-  bActive.Caption := 'Deactive Server'
+  bActive.Caption := 'Deactivate Server'
  Else
-  bActive.Caption := 'Active Server';
+  bActive.Caption := 'Activate Server';
 end;
 
 Procedure TfServer.Connect;
@@ -168,9 +180,11 @@ Begin
 
  End;
  If vAegysService.Active Then
-  Caption := cTitle + Format(' Port:%d - Connect', [PORTA])
+  Caption := 'AegysServer' +
+  Format(' Port:%d - Server Online, Version: %s', [PORTA, APPVERSION])
  Else
-  Caption := cTitle + Format(' Port:%d - Disconnect', [PORTA]);
+  Caption := 'AegysServer' +
+  Format(' Port:%d - Server Offline, Version: %s', [PORTA, APPVERSION]);
 End;
 
 Procedure TfServer.ConnectClient(Const Sender : TAegysSession);

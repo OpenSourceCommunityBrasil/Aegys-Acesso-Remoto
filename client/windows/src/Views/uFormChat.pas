@@ -25,7 +25,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, FMX.Objects,
   FMX.Layouts, FMX.ListBox, Winapi.Messages, uFormConexao, uFunctions,
-  System.Actions, FMX.ActnList, MMSystem, uConstants;
+  System.Actions, FMX.ActnList, MMSystem, uConstants, uLocale;
 
 type
   TFormChat = class(TForm)

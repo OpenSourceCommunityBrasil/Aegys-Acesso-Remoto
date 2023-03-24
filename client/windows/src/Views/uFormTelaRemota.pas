@@ -20,20 +20,27 @@
 interface
 
 Uses
- System.SysUtils, System.Types,     System.UITypes, System.Classes,  System.StrUtils,
- System.Variants, FMX.Types,        FMX.Controls,   FMX.Forms,       FMX.Graphics,
- FMX.Dialogs,     FMX.Objects,      FMX.StdCtrls,   FMX.Controls.Presentation,
- FMX.Layouts,     System.Actions,   FMX.ActnList,   Winapi.Messages, FMX.Memo.Types,
- FMX.ScrollBox,   FMX.Memo,         uFunctions,     System.UIConsts, System.DateUtils,
- FMX.ListBox,     System.ImageList, FMX.ImgList,    ufrMonitorItem,  uAegysBase,
- Vcl.Graphics,    uAegysBufferPack;
+ System.SysUtils, System.Types, System.UITypes, System.Classes, System.StrUtils,
+ System.Variants, System.Actions, System.UIConsts, System.DateUtils,
+ System.ImageList,
+ FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
+ FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, FMX.ActnList,
+ FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.ListBox, FMX.ImgList,
+ FMX.Platform.Win,
+ Winapi.Messages, Winapi.Windows,
+ uAegysBase, uAegysBufferPack, uAegysConsts, uAegysDataTypes,
+
+ // ERRO
+ Vcl.Graphics,
+ // ERRO
+
+ uFunctions, ufrMonitorItem, StreamManager, uLibClass,
+ uConstants, uLocale
+     ;
 
 Type
  TTagEffect   = (te_Open, te_Close);
  TExecuteProc = Reference to Procedure;
-
-Const
- cMousePack = 4;
 
 type
   TFormTelaRemota = Class(TForm)
@@ -154,10 +161,8 @@ Implementation
 
 {$R *.fmx}
 
-Uses uFileTransfer,       uFormChat,        uFormConexao,
-     uDM, Winapi.Windows, FMX.Platform.Win, uConstants,
-     uAegysConsts,        StreamManager,    uLibClass,
-     uAegysDataTypes;
+Uses
+  uFileTransfer, uFormChat, uFormConexao, uDM;
 
 Procedure TFormTelaRemota.Wait(Value: Integer);
 Var
@@ -513,9 +518,9 @@ End;
 
 Procedure TFormTelaRemota.Translate;
 Begin
- LMouse.Text := Locale.GetLocale(FRMS, 'RemoteMouse');
- LFiles.Text := Locale.GetLocale(FRMS, 'RemoteFile');
- LChat.Text  := Locale.GetLocale(FRMS, 'RemoteChat');
+ LMouse.Text := Locale.GetLocale(lsFORMS, lvFrmRemoteMouse);
+ LFiles.Text := Locale.GetLocale(lsFORMS, lvFrmRemoteFile);
+ LChat.Text  := Locale.GetLocale(lsFORMS, lvFrmRemoteChat);
 End;
 
 Procedure TFormTelaRemota.FormClose  (Sender      : TObject;
@@ -591,7 +596,7 @@ Begin
  sbMouse.StaysPressed      := vMostrarMouse;
  Path4.Fill.Color          := StringToAlphaColor('#FFFF1E1E');
  vBlockInputs              := False;
- lblockinput.Text          := Locale.GetLocale(FRMS, 'RemoteBlock');
+ lblockinput.Text          := Locale.GetLocale(lsFORMS, lvFrmRemoteBlock);
  If cShowForm Then
   Begin
    FCollapsed := true;
@@ -613,13 +618,13 @@ Begin
   Begin
    Path4.Fill.Color := StringToAlphaColor('#FF166600');
    vBlockInputs     := True;
-   lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteRelease');
+   lblockinput.Text := Locale.GetLocale(lsFORMS, lvFrmRemoteRelease);
   End
  Else
   Begin
    Path4.Fill.Color := StringToAlphaColor('#FFFF1E1E');
    vBlockInputs     := False;
-   lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteBlock');
+   lblockinput.Text := Locale.GetLocale(lsFORMS, lvFrmRemoteBlock);
   End;
 End;
 
