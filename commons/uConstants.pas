@@ -26,6 +26,7 @@ const
   SERVIDOR           = ''; //'177.10.144.78';//'192.168.15.200';
   cMaxFramesBuffer   = 1;
   cMousePack = 4;
+  aFatorTela = 3;
   {
   !!!Deixe em branco para liberar a combobox na config!!!
   segue lista de servidores disponíveis:

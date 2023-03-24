@@ -199,7 +199,9 @@ var
   vDrawCursor,
   Bblockinput        : Boolean;
   vResolucaoLargura,
+  vOldResolucaoLargura,
   vResolucaoAltura,
+  vOldResolucaoAltura,
   CF_FILE            : Integer;
   mx, my             : Single;
   FDuplication       : TDesktopDuplicationWrapper;
@@ -774,6 +776,8 @@ procedure TFormConexao.actConnectExecute(Sender: TObject);
 begin
  If LbtnConectar.Enabled Then
   Begin
+   vOldResolucaoAltura   := -1;
+   vOldResolucaoLargura  := -1;
    If Assigned(FormTelaRemota) Then
     FreeAndNil(FormTelaRemota);
    vDrawCursor := False;
@@ -1199,6 +1203,69 @@ Var
  MybmpPart      : Vcl.Graphics.TBitmap;
  JPG            : Vcl.Imaging.jpeg.TJPegImage;
  vStreamBitmap  : TMemoryStream;
+ Procedure ResizeScreen(Altura, Largura : Integer);
+ Var
+  vScreenSizeFact,
+  vFatorA : Integer;
+  Function MDC(a, b : Integer) : Integer;
+  Var
+   resto : Integer;
+  Begin
+   While b <> 0 Do
+    Begin
+     resto := a mod b;
+     a     := b;
+     b     := resto;
+    End;
+   Result := a;
+  End;
+  Function ProporcaoTela(Direita, Topo : Integer) : Integer;
+  Begin
+   Result := Round(Direita / MDC(Direita, Topo))
+  End;
+ Begin
+  If ((vResolucaoAltura  >  0)  And
+      (vResolucaoLargura >  0)) And
+     ((vResolucaoAltura  <> vOldResolucaoAltura)   Or
+      (vResolucaoLargura <> vOldResolucaoLargura)) Then
+   Begin
+    vOldResolucaoAltura   := vResolucaoAltura;
+    vOldResolucaoLargura  := vResolucaoLargura;
+    If vOldResolucaoAltura  > vOldResolucaoLargura Then
+     Begin
+      vFatorA          := Round((vOldResolucaoLargura  / vOldResolucaoAltura)  * 100);
+      FormTelaRemota.Width  := Round((Screen.Height    / 100) * vFatorA);
+      If vOldResolucaoAltura > Screen.Height Then
+       vFatorA          := Round((Screen.Height        / vOldResolucaoAltura)  * 100)
+      Else
+       vFatorA          := Round((vOldResolucaoAltura  / Screen.Height)        * 100);
+      vScreenSizeFact  := Round((Screen.Height / 100)  * vFatorA);
+      FormTelaRemota.Height := vScreenSizeFact;
+      FormTelaRemota.Top    := Round((Screen.Height / 2) - (FormTelaRemota.Height / 2));
+      FormTelaRemota.Left   := Round(Screen.Width - FormTelaRemota.Width);
+     End
+    Else
+     Begin
+      If vOldResolucaoAltura  > Screen.Height Then
+       vFatorA              := Round((Screen.Height         / vOldResolucaoAltura)   * 100)
+      Else If vOldResolucaoAltura = Screen.Height Then
+       vFatorA              := Round(((vOldResolucaoAltura  - 100) / Screen.Height)  * 100)
+      Else
+       vFatorA              := Round((vOldResolucaoAltura   / Screen.Height)         * 100);
+      FormTelaRemota.Height := Round((Screen.Height         / 100) * vFatorA);
+      If vOldResolucaoLargura  > Screen.Width Then
+       vFatorA              := Round((Screen.Width          / vOldResolucaoLargura)  * 100)
+      Else If vOldResolucaoLargura  = Screen.Width Then
+       vFatorA              := Round(((vOldResolucaoLargura - 50) / Screen.Width)    * 100)
+      Else
+       vFatorA              := Round((vOldResolucaoLargura   / Screen.Width)         * 100);
+      vScreenSizeFact       := Round((Screen.Width          / 100) * vFatorA);
+      FormTelaRemota.Width  := vScreenSizeFact;
+      FormTelaRemota.Top    := Round((Screen.Height / 2) - (FormTelaRemota.Height / 2));
+      FormTelaRemota.Left   := Round((Screen.Width  / 2) - (FormTelaRemota.Width  / 2));
+     End;
+   End;
+ End;
 Begin
  If Assigned(FormTelaRemota) Then
   Begin
@@ -1215,13 +1282,15 @@ Begin
      End;
     If Not MultiPack Then
      Begin
-      ZDecompressBytesStream(aBuf, vStream);
+//      ZDecompressBytesStream(aBuf, vStream);
+      vStream.Write(aBuf[0], Length(aBuf));
       vStream.Position := 0;
       FreeAndNil(vOldBMP);
       vOldBMP := TMemoryStream.Create;
       vOldBMP.CopyFrom(vStream, vStream.Size);
       vStream.Position := 0;
       Try
+       ResizeScreen(vResolucaoAltura, vResolucaoLargura);
        FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vStream); //.Bitmap.LoadFromStream(vStream);
        Application.Processmessages;
       Finally

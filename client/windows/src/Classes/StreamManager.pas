@@ -29,10 +29,12 @@ uses
   ,Vcl.Graphics
   ,Winapi.Windows
   ,Vcl.Forms
-  , uAegysBufferPack;
+  , uAegysBufferPack,
+  FMX.Surfaces;
 
 Const
-  TNeutroColor = 255;
+ TNeutroColor = 255;
+ cJPGQual     = 25;
 
 Type
   TRGBTriple = Packed Record
@@ -169,6 +171,62 @@ Var
   aResolution   : String;
   TargetMemoryStream,
   aMemoryStream : TStream;
+  vBitmapSurface : TBitmapSurface;
+  vSaveParams    : FMX.Graphics.TBitmapCodecSaveParams;
+  vBmptTmp       : FMX.Graphics.TBitmap;
+  Procedure GetShot;
+  Const
+   CAPTUREBLT = $40000000;
+  Var
+   DesktopCanvas : TCanvas;
+   Procedure ScreenShoot;
+   Var
+    DC    : HDC;
+   begin
+    DC    := GetDC(0);
+    Try
+     DesktopCanvas := TCanvas.Create;
+     DesktopCanvas.Handle := DC;
+     Mybmp.SetSize(Screen.Width,
+                   Screen.Height);
+     Mybmp.PixelFormat := TPixelFormat.pf24bit;
+     BitBlt(Mybmp.Canvas.Handle, 0, 0, Screen.Width, Screen.Height, DesktopCanvas.Handle, 0, 0, SRCCOPY or CAPTUREBLT);
+    Finally
+     ReleaseDC(0, DC);
+     FreeAndNil(DesktopCanvas);
+     Application.Processmessages;
+    End;
+   End;
+  Begin
+   ScreenShoot;
+  End;
+  procedure VCLtoFMX_Bitmap(const VCLBmp : VCL.Graphics.TBitmap ; out FMXBmp : FMX.Graphics.TBitmap);
+  Var
+   bData : FMX.Graphics.TBitmapData;
+   x, y : Integer;
+   pfmxbyte, pvclbyte : PByte;
+  Begin
+   VCLBmp.PixelFormat := pf24bit;
+   FMXBmp.SetSize(VCLBmp.Width, VCLBmp.Height);
+   FMXBmp.Map(FMX.Graphics.TMapAccess.ReadWrite, bdata);
+   Try
+    For y := 0 To FMXBmp.Height - 1 Do
+     Begin
+      pfmxbyte := bdata.GetScanline(y);
+      pvclbyte := VCLBmp.Scanline[y];
+      For x := 0 To FMXBmp.Width - 1 Do
+       Begin
+        pfmxbyte^ := pvclbyte^; Inc(pvclbyte); Inc(pfmxbyte);
+        pfmxbyte^ := pvclbyte^; Inc(pvclbyte); Inc(pfmxbyte);
+        pfmxbyte^ := pvclbyte^; Inc(pvclbyte); Inc(pfmxbyte);
+        pfmxbyte^ := $FF; Inc(pfmxbyte); // Full opacity
+       End;
+      Application.Processmessages;
+     End;
+   Finally
+    FMXBmp.Unmap(bdata);
+   End;
+  End;
 Begin
  Mybmp      := Nil;
  aPackClass := Nil;
@@ -185,44 +243,16 @@ Begin
     vNewFrame   := FDuplication.GetFrame(False) Or (FullFrame);
     If vNewFrame Then
      Begin
-      If Not FullFrame Then
-       Begin
-        Mybmp := Vcl.Graphics.TBitmap.Create;
-        FDuplication.DrawFrame(Mybmp, PixelFormat);
-        vMultiPoint := FDuplication.DirtyCount >= 1;
-        If vMultiPoint Then
-         Begin
-          If FDuplication.DirtyCount = 1 Then
-           Begin
-           {$POINTERMATH ON}
-            pRectTop    := FDuplication.DirtyRects[0].Top;
-            pRectLeft   := FDuplication.DirtyRects[0].Left;
-            pRectBottom := FDuplication.DirtyRects[0].Bottom;
-            pRectRight  := FDuplication.DirtyRects[0].Right;
-            vMultiPoint := Not((pRectTop   = 0) And
-                               (pRectLeft  = 0) And
-                               (pRectRight  = Screen.Monitors[vMonitor].Width) And
-                               (pRectBottom = Screen.Monitors[vMonitor].Height));
-           End;
-         End;
-       End
-      Else
-       Begin
-        If Assigned(Mybmp) Then
-         FreeAndNil(Mybmp);
-        Mybmp := Vcl.Graphics.TBitmap.Create;
-        Mybmp.Assign(aFullBmp);
-       End;
+      Mybmp := Vcl.Graphics.TBitmap.Create;
+      FDuplication.DrawFrame(Mybmp, PixelFormat);
      End;
    End
   Else
    Begin
-    If FAegysVarredura.CaptureCursor <> DrawCur Then
-     FAegysVarredura.CaptureCursor := DrawCur;
-    vFirstImg   := Not FAegysVarredura.FirstScreen;
-    FAegysVarredura.Process;
-    vNewFrame   := (FAegysVarredura.FilaImagens.Count > 0);
-    vMultiPoint := vNewFrame;
+    Mybmp := Vcl.Graphics.TBitmap.Create;
+    GetShot;
+    vNewFrame := True;
+    Application.Processmessages;
    End;
  Finally
  End;
@@ -231,204 +261,47 @@ Begin
    If Not cRFB Then
     If DrawCur Then
      DrawScreenCursor(Mybmp, StrToInt(Monitor));
-   If Not vMultiPoint Then
+   TargetMemoryStream := TMemoryStream.Create;
+   If Assigned(aFullBmp) Then
+    FreeAndNil(aFullBmp);
+   vBitmapSurface      := TBitmapSurface.Create;
+   vBmptTmp            := FMX.Graphics.TBitmap.Create;
+   VCLtoFMX_Bitmap(Mybmp, vBmptTmp);
+   FreeAndNil(Mybmp);
+   vBitmapSurface.Assign(TBitmapSurface(vBmptTmp));
+   FreeAndNil(vBmptTmp);
+   FreeAndNil(TargetMemoryStream);
+   vSaveParams.Quality := cJPGQual;
+   TargetMemoryStream  := TMemoryStream.Create;
+   FMX.Graphics.TBitmapCodecManager.SaveToStream(TargetMemoryStream, vBitmapSurface, '.jpg', @vSaveParams);
+   If Assigned(vBitmapSurface) then
+    FreeAndNil(vBitmapSurface);
+   TargetMemoryStream.position := 0;
+   If TargetMemoryStream.Size > 0 then
     Begin
-     TargetMemoryStream := TMemoryStream.Create;
-     If Assigned(aFullBmp) Then
-      FreeAndNil(aFullBmp);
-     aFullBmp := Vcl.Graphics.TBitmap.Create;
-     aFullBmp.Assign(Mybmp);
-     Mybmp.SaveToStream(TargetMemoryStream);
-     TargetMemoryStream.position := 0;
-     If TargetMemoryStream.Size > 0 then
-      Begin
-       ZCompressStreamBytes(TargetMemoryStream, aFinalBytes);
-       aPackClass  := TPackClass.Create;
-       Try
-        aPackClass.DataCheck    := tdcAsync;
-        aPackClass.DataSize     := Length(aFinalBytes);
-        aPackClass.ProxyToMyConnectionList := True;
-        aPackClass.BufferSize   := aPackClass.DataSize;
-        aPackClass.PacksGeral   := 0;
-        aPackClass.PackNo       := 0;
-        aPackClass.DataMode     := tdmClientCommand;
-        aPackClass.DataType     := tdtDataBytes;
-        aPackClass.CommandType  := tctScreenCapture;
-        aPackClass.DataBytes    := aFinalBytes;
-        aPackClass.BytesOptions := aResolution;
-        aPackClass.Owner        := Conexao.Connection;
-        aPackClass.Dest         := '';
-       Finally
-       End;
-      End;
-     FreeAndNil(TargetMemoryStream);
-    End
-   Else
-    Begin
-     aMemoryStream  := TMemoryStream.Create;
-     If Not cRFB Then
-      Begin
-       aPackCountData := FDuplication.DirtyCount;
-       aMemoryStream.Write(aPackCountData, SizeOf(aPackCountData));
-       For I := 0 To FDuplication.DirtyCount -1 Do
-        Begin
-         With FDuplication.DirtyRects[I] Do
-          Begin
-           pRectTop    := Top;
-           pRectLeft   := Left;
-           pRectBottom := Bottom;
-           pRectRight  := Right;
-           MybmpPart := Vcl.Graphics.TBitmap.Create;
-           Try
-            MybmpPart.SetSize(pRectRight  - pRectLeft,
-                              pRectBottom - pRectTop);
-            MybmpPart.PixelFormat := PixelFormat;
-            BitBlt(MybmpPart.Canvas.Handle, 0, 0,
-                   pRectRight,              pRectBottom,
-                   Mybmp.Canvas.Handle,     pRectLeft,
-                   pRectTop,                SRCCOPY);
-            BitBlt(aFullBmp.Canvas.Handle, pRectTop, pRectLeft,
-                   pRectRight,              pRectBottom,
-                   Mybmp.Canvas.Handle,     pRectLeft,
-                   pRectTop,                SRCCOPY);
-            TargetMemoryStream := TMemoryStream.Create;
-            MybmpPart.SaveToStream(TargetMemoryStream);
-            If TargetMemoryStream.Size > 0 Then
-             Begin
-              TargetMemoryStream.Position := 0;
-              aSizeData                   := TargetMemoryStream.Size;
-              aMemoryStream.Write   (pRectTop,           SizeOf(AeInteger));
-              aMemoryStream.Write   (pRectLeft,          SizeOf(AeInteger));
-              aMemoryStream.Write   (pRectBottom,        SizeOf(AeInteger));
-              aMemoryStream.Write   (pRectRight,         SizeOf(AeInteger));
-              aMemoryStream.Write   (aSizeData,          SizeOf(aSizeData));
-              aMemoryStream.CopyFrom(TargetMemoryStream, aSizeData);
-             End;
-           Finally
-            FreeAndNil(MybmpPart);
-            FreeAndNil(TargetMemoryStream);
-            Application.Processmessages;
-           End;
-          End;
-        End;
-      End
-     Else
-      Begin
-       If Not vFirstImg Then
-        Begin
-         aPackCountData := FAegysVarredura.FilaImagens.Count;
-         aMemoryStream.Write(aPackCountData, SizeOf(aPackCountData));
-         For I := 0 To FAegysVarredura.FilaImagens.Count -1 Do
-          Begin
-           With FAegysVarredura.FilaImagens.Items[I] Do
-            Begin
-             pRectTop    := col;
-             pRectLeft   := Line;
-             pRectBottom := Imagem.Height;
-             pRectRight  := Imagem.Width;
-  //           MybmpPart := Vcl.Graphics.TBitmap.Create;
-             Try
-  //            MybmpPart.SetSize(pRectRight  - pRectLeft,
-  //                              pRectBottom - pRectTop);
-  //            MybmpPart.PixelFormat := PixelFormat;
-  //            BitBlt(MybmpPart.Canvas.Handle, 0, 0,
-  //                   pRectRight,              pRectBottom,
-  //                   Imagem.Canvas.Handle,    pRectLeft,
-  //                   pRectTop,                SRCCOPY);
-              BitBlt(aFullBmp.Canvas.Handle, pRectTop, pRectLeft,
-                     pRectRight,              pRectBottom,
-                     Imagem.Canvas.Handle,    0,
-                     0,                       SRCCOPY);
-              TargetMemoryStream := TMemoryStream.Create;
-              Imagem.SaveToStream(TargetMemoryStream);
-              If TargetMemoryStream.Size > 0 Then
-               Begin
-                TargetMemoryStream.Position := 0;
-                aSizeData                   := TargetMemoryStream.Size;
-                aMemoryStream.Write   (pRectLeft,          SizeOf(AeInteger));
-                aMemoryStream.Write   (pRectTop,           SizeOf(AeInteger));
-                aMemoryStream.Write   (pRectBottom,        SizeOf(AeInteger));
-                aMemoryStream.Write   (pRectRight,         SizeOf(AeInteger));
-                aMemoryStream.Write   (aSizeData,          SizeOf(aSizeData));
-                aMemoryStream.CopyFrom(TargetMemoryStream, aSizeData);
-               End;
-             Finally
-  //            FreeAndNil(MybmpPart);
-              FreeAndNil(TargetMemoryStream);
-              Application.Processmessages;
-             End;
-            End;
-          End;
-        End
-       Else
-        Begin
-         aPackCountData := 0;
-         aFullBmp.PixelFormat := pf16bit;
-         aFullBmp.SetSize(Screen.Width, Screen.Height);
-         For I := 0 To FAegysVarredura.FilaImagens.Count -1 Do
-          Begin
-           With FAegysVarredura.FilaImagens.Items[I] Do
-            Begin
-             pRectTop    := col;
-             pRectLeft   := Line;
-             pRectBottom := Imagem.Height;
-             pRectRight  := Imagem.Width;
-             Try
-              BitBlt(aFullBmp.Canvas.Handle, pRectTop, pRectLeft,
-                     pRectRight,              pRectBottom,
-                     Imagem.Canvas.Handle,    0,
-                     0,                       SRCCOPY);
-             Finally
-             End;
-            End;
-          End;
-         Application.Processmessages;
-         TargetMemoryStream := TMemoryStream.Create;
-         Try
-          aMemoryStream.Position := 0;
-//          aFullBmp.SaveToFile('0.bmp');
-          aFullBmp.SaveToStream(aMemoryStream);
-//          If TargetMemoryStream.Size > 0 Then
-//           Begin
-//            TargetMemoryStream.Position := 0;
-//            aMemoryStream.CopyFrom(TargetMemoryStream, aSizeData);
-//           End;
-         Finally
-//          FreeAndNil(TargetMemoryStream);
-         End;
-        End;
-      End;
-     aMemoryStream.Position  := 0;
-     aPackClass              := TPackClass.Create;
+//     ZCompressStreamBytes(TargetMemoryStream, aFinalBytes);
+     SetLength(aFinalBytes, TargetMemoryStream.Size);
+     TargetMemoryStream.Read(aFinalBytes[0], Length(aFinalBytes));
+     aPackClass  := TPackClass.Create;
      Try
       aPackClass.DataCheck    := tdcAsync;
+      aPackClass.DataSize     := Length(aFinalBytes);
       aPackClass.ProxyToMyConnectionList := True;
-      aPackClass.PacksGeral   := aPackCountData;
-      If aPackCountData = 0 Then
-       aPackClass.PackNo      := 0
-      Else
-       aPackClass.PackNo      := 1;
+      aPackClass.BufferSize   := aPackClass.DataSize;
+      aPackClass.PacksGeral   := 0;
+      aPackClass.PackNo       := 0;
       aPackClass.DataMode     := tdmClientCommand;
       aPackClass.DataType     := tdtDataBytes;
       aPackClass.CommandType  := tctScreenCapture;
-//      SetLength(aBytes, aMemoryStream.Size);
-//      aMemoryStream.Read(aBytes[0], Length(aBytes));
-      ZCompressStreamBytes(aMemoryStream, aFinalBytes);
-//      SetLength(aBytes, 0);
-      aPackClass.DataSize     := Length(aFinalBytes);
-      aPackClass.BufferSize   := aPackClass.DataSize;
       aPackClass.DataBytes    := aFinalBytes;
       aPackClass.BytesOptions := aResolution;
       aPackClass.Owner        := Conexao.Connection;
       aPackClass.Dest         := '';
      Finally
-      SetLength(aFinalBytes, 0);
-      FreeAndNil(aMemoryStream);
      End;
     End;
+   FreeAndNil(TargetMemoryStream);
   End;
- If Assigned(Mybmp) Then
-  FreeAndNil(Mybmp);
  If cRFB Then
   FAegysVarredura.FilaImagens.Clear;
 End;
