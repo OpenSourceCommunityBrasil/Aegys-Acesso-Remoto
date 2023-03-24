@@ -7,16 +7,15 @@ uses
   cthreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, uAegysZlib, uAegysTools, uAegysThreads, uAegysDataTypes, uAegysConsts,
-  uAegysBufferPack, uAegysBase, uServerChat, indylaz;
+  Forms,
+  uServer in 'src\userver.pas', uAegysBase, uAegysZlib, uConstants;
 
 {$R *.res}
 
 begin
   RequireDerivedFormResource:=True;
-  Application.Scaled:=True;
+  Application.Scaled := True;
   Application.Initialize;
-  Application.CreateForm(TForm3, Form3);
   Application.Run;
 end.
 

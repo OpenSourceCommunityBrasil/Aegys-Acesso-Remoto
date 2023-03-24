@@ -5,8 +5,9 @@ unit uServer;
 interface
 
 uses
-  Classes, SysUtils, DB, BufDataset, Forms, Controls, Graphics, Dialogs,
-  uAegysBase, ExtCtrls, DBGrids, StdCtrls;
+  Classes, SysUtils, BufDataset, Forms, Controls, Graphics, Dialogs,
+  ExtCtrls, DBGrids, StdCtrls,
+  uAegysBase, uConstants;
 
 type
 
@@ -41,8 +42,6 @@ var
   fServer: TfServer;
 
 implementation
-
-Uses uConstants;
 
 {$R *.lfm}
 
@@ -161,13 +160,13 @@ Procedure TfServer.UpdateServerStatus;
 Begin
  If vAegysService.Active Then
   Begin
-   Caption         := cTitle + Format(' Port:%d - Connect', [PORTA]);
-   bActive.Caption := 'Deactive Server';
+   Caption         := 'AegysServer' + Format(' Port:%d - Connect', [PORTA]);
+   bActive.Caption := 'Deactivate Server';
   End
  Else
   Begin
-   Caption         := cTitle + Format(' Port:%d - Disconnect', [PORTA]);
-   bActive.Caption := 'Active Server';
+   Caption         := 'AegysServer' + Format(' Port:%d - Disconnect', [PORTA]);
+   bActive.Caption := 'Activate Server';
   End;
 End;
 

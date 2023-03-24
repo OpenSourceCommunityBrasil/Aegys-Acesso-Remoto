@@ -14,10 +14,113 @@
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
-      <Icon Value="0"/>
     </General>
-    <BuildModes Count="1">
+    <BuildModes Count="4">
       <Item1 Name="Default" Default="True"/>
+      <Item2 Name="Debug">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="AegysServer"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="src;../../Component/Base;../../Component/Utils;../../commons"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+              <UseHeaptrc Value="True"/>
+              <TrashVariables Value="True"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="Win64">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="AegysServer"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="src;../../Component/Base;../../Component/Utils;../../commons"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <TargetOS Value="win64"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <DebugInfoType Value="dsDwarf3"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item3>
+      <Item4 Name="Linux64">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="AegysServer"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="src;../../Component/Base;../../Component/Utils;../../commons"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="linux"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item4>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -34,51 +137,31 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="5">
       <Unit0>
         <Filename Value="AegysServer.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="userverchat.pas"/>
+        <Filename Value="src/userver.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form3"/>
+        <ComponentName Value="fServer"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="uServerChat"/>
+        <UnitName Value="uServer"/>
       </Unit1>
       <Unit2>
-        <Filename Value="../../../../Source/Base/uAegysBase.pas"/>
+        <Filename Value="../../Component/Base/uAegysBase.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
       <Unit3>
-        <Filename Value="../../../../Source/Base/uAegysBufferPack.pas"/>
+        <Filename Value="../../Component/Utils/uAegysZlib.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../../../../Source/Base/uAegysConsts.pas"/>
+        <Filename Value="../../commons/uConstants.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
-      <Unit5>
-        <Filename Value="../../../../Source/Base/uAegysDataTypes.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="../../../../Source/Base/uAegysThreads.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="../../../../Source/Base/uAegysTools.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="../../../../Source/Libs/uAegysZlib.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="../../../../Source/Includes/uAegys.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit9>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -87,8 +170,8 @@
       <Filename Value="AegysServer"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);../../../../Source/Includes"/>
-      <OtherUnitFiles Value="../../../../Source/Libs;../../../../Source/Base"/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="src;../../Component/Base;../../Component/Utils;../../commons"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

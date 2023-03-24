@@ -1,4 +1,4 @@
-object Form3: TForm3
+object fServer: TfServer
   Left = 256
   Height = 152
   Top = 145
@@ -11,13 +11,12 @@ object Form3: TForm3
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '2.2.4.0'
   object bActive: TButton
     Left = 80
     Height = 25
     Top = 96
     Width = 145
-    Caption = 'Active Server'
+    Caption = 'Activate Server'
     OnClick = bActiveClick
     TabOrder = 0
   end
@@ -38,7 +37,7 @@ object Form3: TForm3
     Height = 23
     Top = 8
     Width = 149
-    Caption = 'Clients Connected'
+    Caption = 'Connected Clients'
     Font.Color = clWindowText
     Font.Height = -19
     Font.Name = 'Tahoma'
