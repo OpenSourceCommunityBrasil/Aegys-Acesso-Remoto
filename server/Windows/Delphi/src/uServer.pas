@@ -1,28 +1,15 @@
-unit uServer;
+unit uServerChat;
 
 interface
 
 uses
-  // windows
-  Winapi.Windows, Winapi.Messages,
-  // system
-  System.SysUtils, System.Variants, System.Classes,
-  // vcl
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
-  Vcl.Grids, Vcl.DBGrids,
-  // database
-  IdContext, Data.DB,
-  // firedac
-  FireDAC.Stan.Intf, FireDAC.Stan.Option,
-  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
-  FireDAC.DApt.Intf,  FireDAC.Comp.DataSet, FireDAC.Comp.Client,
-  // aegys
-  uAegysBase, uConstants
-
-  ;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics,   Vcl.Controls,    Vcl.Forms,       Vcl.Dialogs,     Vcl.StdCtrls,
+  uAegysBase,     IdContext,       Data.DB,         Vcl.ExtCtrls,    Vcl.Grids,
+  Vcl.DBGrids;
 
 type
-  TfServer = class(TForm)
+  TForm3 = class(TForm)
     bActive: TButton;
     lClientsConnect: TLabel;
     Label1: TLabel;
@@ -48,10 +35,11 @@ type
   end;
 
 var
-  fServer: TfServer;
+  Form3: TForm3;
 
 implementation
 
+Uses uConsts;
 {$R *.dfm}
 
 Function GenerateIDUnique(mac, hd : String) : String;
@@ -104,7 +92,7 @@ Begin
  Result := sID1 + '-'+ sID2  +'-'+ sID3;
 End;
 
-Function TfServer.GeneratePassword(LastPassword : String) : String;
+Function TForm3.GeneratePassword(LastPassword : String) : String;
 Begin
  Randomize;
  If (LastPassword <> '') Then
@@ -114,7 +102,7 @@ Begin
 End;
 
 
-Procedure TfServer.GetNewID(ContextList      : TSessionList;
+Procedure TForm3.GetNewID(ContextList      : TSessionList;
                           Value            : String;
                           Var ClientID,
                           ClientPassword   : String;
@@ -161,16 +149,16 @@ Begin
 End;
 
 
-procedure TfServer.bActiveClick(Sender: TObject);
+procedure TForm3.bActiveClick(Sender: TObject);
 begin
  Connect;
  If vAegysService.Active Then
-  bActive.Caption := 'Deactivate Server'
+  bActive.Caption := 'Deactive Server'
  Else
-  bActive.Caption := 'Activate Server';
+  bActive.Caption := 'Active Server';
 end;
 
-Procedure TfServer.Connect;
+Procedure TForm3.Connect;
 Begin
  vClientsConnected     := 0;
  vAegysService.ServicePort := PORTA;
@@ -180,36 +168,35 @@ Begin
 
  End;
  If vAegysService.Active Then
-  Caption := 'AegysServer' +
-  Format(' Port:%d - Server Online, Version: %s', [PORTA, APPVERSION])
+  Caption := cTitle + Format(' Port:%d - Connect', [PORTA])
  Else
-  Caption := 'AegysServer' +
-  Format(' Port:%d - Server Offline, Version: %s', [PORTA, APPVERSION]);
+  Caption := cTitle + Format(' Port:%d - Disconnect', [PORTA]);
 End;
 
-Procedure TfServer.ConnectClient(Const Sender : TAegysSession);
+Procedure TForm3.ConnectClient(Const Sender : TAegysSession);
 Begin
  Inc(vClientsConnected);
  lClientsConnect.Caption := FormatFloat('0000', vClientsConnected);
 End;
 
-Procedure TfServer.DisconnectClient(Const Sender : TAegysSession);
+Procedure TForm3.DisconnectClient(Const Sender : TAegysSession);
 Begin
  Dec(vClientsConnected);
  lClientsConnect.Caption := FormatFloat('0000', vClientsConnected);
 End;
 
-procedure TfServer.FormCreate(Sender: TObject);
+procedure TForm3.FormCreate(Sender: TObject);
 begin
  vAegysService                    := TAegysService.Create(Self);
  vAegysService.OnGetClientDetails := GetNewID;
  vAegysService.OnConnect          := ConnectClient;
  vAegysService.OnDisconnect       := DisconnectClient;
+ vAegysService.RequestTimeout     := 5000;
  vClientsConnected                := 0;
 // Connect;
 end;
 
-procedure TfServer.FormDestroy(Sender: TObject);
+procedure TForm3.FormDestroy(Sender: TObject);
 begin
  vAction                          := False;
  FreeAndNil(vAegysService);

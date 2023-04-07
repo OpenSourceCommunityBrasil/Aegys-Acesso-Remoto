@@ -42,6 +42,8 @@ Uses
 
 Type
  TOnBeforeExecuteData  = Procedure (Var aPackList   : TPackList)   Of Object;
+ TOnActionRequest      = Procedure (aType           : Char)        Of Object;
+ TOnDisconnect         = Procedure (Sender          : TObject)     Of Object;
  TOnExecuteData        = Procedure (Var aPackList   : TPackList;
                                     aPackNo         : AeInt64)     Of Object;
  TOnDataReceive        = Procedure (aData           : TAegysBytes) Of Object;
@@ -72,8 +74,10 @@ Type
   vOnExecuteData                          : TOnExecuteData;
   vAbortData                              : TOnAbortData;
   vOnThreadRequestError                   : TOnThreadRequestError;
+  vOnCheckDisconnect                      : TOnActionRequest;
   vOnServiceCommands                      : TOnServiceCommands;
   vOnClientCommands                       : TOnClientCommands;
+  vOnDisconnect                           : TOnDisconnect;
   abInternalCommand                       : TInternalCommand;
   abCommandType                           : TCommandType;
   abPackCount,
@@ -99,7 +103,9 @@ Type
                      OnAbortData          : TOnAbortData;
                      OnServiceCommands    : TOnServiceCommands;
                      OnClientCommands     : TOnClientCommands;
-                     OnThreadRequestError : TOnThreadRequestError);
+                     OnThreadRequestError : TOnThreadRequestError;
+                     OnCheckDisconnect    : TOnActionRequest;
+                     OnDisconnect         : TOnDisconnect);
 End;
 
 Implementation
@@ -129,7 +135,9 @@ Constructor TAegysThread.Create(Var aPackList        : TPackList;
                                 OnAbortData          : TOnAbortData;
                                 OnServiceCommands    : TOnServiceCommands;
                                 OnClientCommands     : TOnClientCommands;
-                                OnThreadRequestError : TOnThreadRequestError);
+                                OnThreadRequestError : TOnThreadRequestError;
+                                OnCheckDisconnect    : TOnActionRequest;
+                                OnDisconnect         : TOnDisconnect);
 Begin
  If Not Assigned(aPackList) Then
   Begin
@@ -147,6 +155,8 @@ Begin
  vOnDataReceive        := OnDataReceive;
  vOnServiceCommands    := OnServiceCommands;
  vOnClientCommands     := OnClientCommands;
+ vOnCheckDisconnect    := OnCheckDisconnect;
+ vOnDisconnect         := OnDisconnect;
  {$IFNDEF FPC}
   {$IF Defined(HAS_FMX)}
    {$IF Not Defined(HAS_UTF8)}
@@ -325,6 +335,11 @@ Begin
             SetLength(aBuf, 0);
            End;
           End;
+        End
+       Else
+        Begin
+         If Assigned(vOnCheckDisconnect) Then
+          vOnCheckDisconnect('R');
         End;
        DirectThreadAction[Integer(ttdReceive)] := False;
       End;
@@ -346,6 +361,11 @@ Begin
            abPackno := vPackno;
            ExecuteData;
           End;
+        End
+       Else
+        Begin
+         If Assigned(vOnCheckDisconnect) Then
+          vOnCheckDisconnect('S');
         End;
        DirectThreadAction[Integer(ttdSend)] := False;
       End;
@@ -360,7 +380,13 @@ Begin
       Processmessages;
       If Not Assigned(TAegysClient(pAegysClient)) Then
        Break;
-//      TAegysClient(pAegysClient).ThreadDisconnect;
+      If E.Message = cSocketDisconnected Then
+       Begin
+        Terminate;
+        If Assigned(vOnDisconnect) Then
+         vOnDisconnect(TAegysClient(pAegysClient));
+        Continue;
+       End;
      End;
    End;
    //Delay Processor

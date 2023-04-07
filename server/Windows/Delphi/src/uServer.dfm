@@ -1,4 +1,4 @@
-object fServer: TfServer
+object Form3: TForm3
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu]
@@ -12,9 +12,11 @@ object fServer: TfServer
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PixelsPerInch = 96
   TextHeight = 13
   object lClientsConnect: TLabel
     Left = 128
@@ -34,7 +36,7 @@ object fServer: TfServer
     Top = 8
     Width = 149
     Height = 23
-    Caption = 'Connected Clients'
+    Caption = 'Clients Connected'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -19
@@ -47,7 +49,7 @@ object fServer: TfServer
     Top = 96
     Width = 145
     Height = 25
-    Caption = 'Activate Server'
+    Caption = 'Active Server'
     TabOrder = 0
     OnClick = bActiveClick
   end

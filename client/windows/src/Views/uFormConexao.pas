@@ -164,7 +164,7 @@ type
                                       Var ClientID,
                                       ClientPassword,
                                       Alias             : String);
-    function  OnPulseData            (aPack             : TAegysBytes;
+    Function  OnPulseData            (aPack             : TAegysBytes;
                                       CommandType       : TCommandType = tctScreenCapture): Boolean;
     procedure OnProcessData          (aPackList         : TPackList;
                                       aFullFrame        : Boolean);
@@ -195,7 +195,6 @@ var
   FormConexao        : TFormConexao;
   Conexao            : TAegysClient;
   aMonitor           : String;
-  cRfB,
   vDrawCursor,
   Bblockinput        : Boolean;
   vResolucaoLargura,
@@ -204,8 +203,6 @@ var
   vOldResolucaoAltura,
   CF_FILE            : Integer;
   mx, my             : Single;
-  FDuplication       : TDesktopDuplicationWrapper;
-  FAegysVarredura    : TAegysVarredura;
   vOldBMP            : TMemoryStream;
 
 const
@@ -633,10 +630,6 @@ procedure TFormConexao.FormCreate(Sender: TObject);
 var
   CFG: TSQLiteConfig;
 begin
- if Not cRFB then
-  FreeAndNil(FDuplication)
- Else
-  FreeAndNil(FAegysVarredura);
   vOldBMP      := TMemoryStream.Create;
   CF_FILE := RegisterClipboardFormat('FileName');
   // inicializando os objetos
@@ -727,6 +720,7 @@ procedure TFormConexao.MudarStatusConexao(AStatus: Integer; AMensagem: string);
 var
   cColor: TAlphaColor;
 begin
+ cColor := TAlphaColorRec.Yellow;
   case AStatus of
     1:
       cColor := TAlphaColorRec.Yellow;
@@ -894,21 +888,6 @@ Begin
    {$ENDIF}
    FreeAndNil(SendDataThread);
   End;
-// If Assigned(SendCommandEvents) Then //Thread de Comandos
-//  Begin
-//   Try
-//    SendCommandEvents.Kill;
-//   Except
-//   End;
-//   {$IFDEF FPC}
-//    WaitForThreadTerminate(SendCommandEvents.Handle, 100);
-//   {$ELSE}
-//    {$IF Not Defined(HAS_FMX)}
-//     WaitForSingleObject  (SendCommandEvents.Handle, 100);
-//    {$IFEND}
-//   {$ENDIF}
-//   FreeAndNil(SendCommandEvents);
-//  End;
 End;
 
 procedure TFormConexao.SetPeerDisconnected;
@@ -1000,6 +979,7 @@ begin
  TThread.Synchronize(Nil, Procedure
                           Begin
                            SetOnline;
+                           aConnection := Conexao.Connection;
                           End);
 end;
 
@@ -1083,13 +1063,14 @@ Var
    vMonitor := aMonitor;
    If vMonitor = '' Then
     vMonitor := '0';
-   GetScreenToMemoryStream(aPackClass, vDrawCursor, pf15bit, vMonitor, aFullFrame);
+   GetScreenToMemoryStream(aPackClass, vDrawCursor, pf16bit, vMonitor, aFullFrame);
   Finally
   End;
  End;
 Begin
  Try
   aPackClass              := Nil;
+  Processmessages;
   aCapture;
   If Assigned(aPackClass)  Then
    Begin
@@ -1118,9 +1099,6 @@ Begin
   FormTelaRemota.Connection       := Connection;
   aConnection                     := FormTelaRemota.Connection;
   FormTelaRemota.Show;
-//  SendCommandEvents               := TAegysMotorThread.Create(FormTelaRemota.aPackList);
-//  SendCommandEvents.OnPulseData   := OnPulseData;
-//  SendCommandEvents.Resume;
  Finally
 
  End;
@@ -1201,7 +1179,6 @@ Var
  bBuf           : TAegysBytes;
  aOldbmpPart,
  MybmpPart      : Vcl.Graphics.TBitmap;
- JPG            : Vcl.Imaging.jpeg.TJPegImage;
  vStreamBitmap  : TMemoryStream;
  Procedure ResizeScreen(Altura, Largura : Integer);
  Var
@@ -1240,7 +1217,7 @@ Var
       Else
        vFatorA          := Round((vOldResolucaoAltura  / Screen.Height)        * 100);
       vScreenSizeFact  := Round((Screen.Height / 100)  * vFatorA);
-      FormTelaRemota.Height := vScreenSizeFact;
+      FormTelaRemota.Height := vScreenSizeFact + ((Screen.Height - vScreenSizeFact) div 2);
       FormTelaRemota.Top    := Round((Screen.Height / 2) - (FormTelaRemota.Height / 2));
       FormTelaRemota.Left   := Round(Screen.Width - FormTelaRemota.Width);
      End
@@ -1276,9 +1253,9 @@ Begin
       ArrayOfPointer := [@vAltura, @vLargura];
       ParseValues(Command, ArrayOfPointer);
       If vAltura <> '' Then
-       vResolucaoAltura  := StrToInt(vAltura);
+       vResolucaoAltura  := Round(StrToFloat(vAltura));
       If vLargura <> '' Then
-       vResolucaoLargura := StrToInt(vLargura);
+       vResolucaoLargura := Round(StrToFloat(vLargura));
      End;
     If Not MultiPack Then
      Begin
@@ -1461,7 +1438,4 @@ Begin
  Conexao.SessionTime := Conexao.SessionTime + 1;
 End;
 
-Initialization
- cRFB := RFB_Data;
-
-end.
+End.

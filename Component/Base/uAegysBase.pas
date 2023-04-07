@@ -23,7 +23,7 @@ Interface
 
 Uses
  //Delphi Basic Units
- SysUtils, Classes, Variants,
+ SysUtils, Classes, Variants, DateUtils,
  {$IFDEF MSWINDOWS}
     Windows,
  {$ENDIF}
@@ -41,6 +41,7 @@ Uses
  //Indy 10.6 Basic Units
  IdContext,         IdTCPConnection,  IdTCPClient,     IdComponent,     IdBaseComponent,
  IdCustomTCPServer, IdTCPServer,      IdStack,         IdExceptionCore, IdGlobal,
+ IdSocketHandle,    IdStackConsts,
  //Aegys Basic Units
  uAegysBufferPack, uAegysConsts,    uAegysDataTypes, uAegysThreads;
 
@@ -159,6 +160,8 @@ Type
                                         MultiPack         : Boolean;
                                         PackCount         : AeInteger;
                                         aBuf              : TAegysBytes)      Of Object;
+ TAegysOnSendPackError     = Procedure (aBuf              : TAegysBytes;
+                                        aError            : String)           Of Object;
  TAegysOnReceiveCommand    = Procedure (InternalCommand   : TInternalCommand;
                                         Command           : String)         Of Object;
  TAegysOnAccessDenied      = Procedure                                      Of Object;
@@ -304,6 +307,7 @@ Type
   vTcpRequest              : TIdTCPClient;
  Private
   //Variáveis, Procedures e Funções Privadas
+  aOldTime                 : TDateTime;
   vAcceptUnAssist,
   vAcceptStream,
   vAcceptFileStream,
@@ -346,6 +350,7 @@ Type
   vOnChatReceive           : TAegysOnClientCommand;
   vOnBeginTransaction      : TAegysOnBeginTransaction;
   vOnBeginTransactionError : TAegysOnBeginTransactionError;
+  vOnSendPackError         : TAegysOnSendPackError;
   Procedure WriteDirect         (aClient         : TIdTCPClient;
                                  aBuf            : TAegysBytes);
   Procedure KillThread;
@@ -366,6 +371,7 @@ Type
                                  aBuf            : TAegysBytes);
   Procedure OnRequestDisconnect (Sender          : TObject);
   Procedure SetActive           (Value           : Boolean);
+  Procedure OnCheckDisconnect   (aType           : Char);
  Public
   //Métodos, Propriedades, Variáveis, Procedures e Funções Publicas
   Constructor Create        (AOwner      : TComponent);      Override;
@@ -455,6 +461,7 @@ Type
   Property    OnBeginTransaction         : TAegysOnBeginTransaction      Read vOnBeginTransaction      Write vOnBeginTransaction;
   Property    OnBeginTransactionError    : TAegysOnBeginTransactionError Read vOnBeginTransactionError Write vOnBeginTransactionError;
   Property    OnAccessGranted            : TAegysOnPeerConnected         Read vOnAccessGranted         Write vOnAccessGranted;
+  Property    OnSendPackError            : TAegysOnSendPackError         Read vOnSendPackError         Write vOnSendPackError;
 End;
 
 Procedure ProcessMessages;
@@ -507,9 +514,20 @@ Begin
 End;
 
 Procedure TAegysService.Connect(AContext : TIdContext);
+// procedure SetTimeout(ABinding : TIdSocketHandle;
+//                      timeinms : integer);
+// Var
+//  timeInMilliseconds : DWORD;
+// Begin
+//  timeInMilliseconds := timeinms;
+//  // Set the send and receive timeout
+//  ABinding.SetSockOpt(SOL_SOCKET, SO_RCVTIMEO, timeInMilliSeconds);
+//  ABinding.SetSockOpt(SOL_SOCKET, SO_SNDTIMEO, timeInMilliSeconds);
+// End;
 Begin
  AContext.Connection.IOHandler.ConnectTimeout := vConnectTimeout;
- AContext.Connection.IOHandler.ReadTimeout    := RequestTimeout;
+ AContext.Connection.IOHandler.ReadTimeout    := vServiceTimeout;
+// SetTimeout(AContext.Binding, vServiceTimeout);
 End;
 
 Constructor TAegysService.Create(AOwner: TComponent);
@@ -793,6 +811,7 @@ Var
  aMessageError,
  vPorDirection,
  vSockCommand,
+ vOldCommand,
  vCommand,
  vMonitor,
  vMyID,
@@ -873,15 +892,28 @@ Begin
  Try
 //  AContext.Connection.IOHandler.CheckForDisconnect;
   vAccept := True;
-  If AContext.Connection.IOHandler.InputBufferIsEmpty Then
-   Begin
-    Sleep(cDelayThread div 2);
-    Exit;
-   End;
+  Try
+   If AContext.Connection.IOHandler.InputBufferIsEmpty Then
+    Begin
+     AContext.Connection.CheckForGracefulDisconnect(False);
+     Sleep(cDelayThread div 2);
+     Exit;
+    End;
+  Except
+   AContext.Connection.CheckForGracefulDisconnect(False);
+   If Not AContext.Connection.Connected Then
+    Raise;
+  End;
   If Not AContext.Connection.IOHandler.InputBufferIsEmpty Then
    Begin
     aBuffSize     := AContext.Connection.IOHandler.InputBuffer.Size;
-    AContext.Connection.IOHandler.ReadBytes(TIdBytes(aBuf), SizeOf(aPackSize));
+    Try
+     AContext.Connection.IOHandler.ReadBytes(TIdBytes(aBuf), SizeOf(aPackSize));
+    Except
+     AContext.Connection.CheckForGracefulDisconnect(False);
+     If Not AContext.Connection.Connected Then
+      Raise;
+    End;
     Move(aBuf[0], aPackSize, SizeOf(aPackSize));
     aFirstBufSize := Length(aBuf);
     bPackSize     := 0;
@@ -892,19 +924,41 @@ Begin
       Else
        Begin
         Try
-         If AContext.Connection.IOHandler.CheckForDataOnSource Then
+         Processmessages;
+         If AContext.Connection.IOHandler.CheckForDataOnSource(vServiceTimeout) Then
           Begin
-           If Not AContext.Connection.IOHandler.InputBufferIsEmpty Then
-            bPackSize := AContext.Connection.IOHandler.InputBuffer.Size;
-          End;
+           Try
+            If Not AContext.Connection.IOHandler.InputBufferIsEmpty Then
+             bPackSize := AContext.Connection.IOHandler.InputBuffer.Size;
+           Except
+            AContext.Connection.CheckForGracefulDisconnect(False);
+            If Not AContext.Connection.Connected Then
+             Raise;
+           End;
+          End
+         Else
+          Break;
         Except
-         Break;//bPackSize := 0
+         On E : Exception      Do
+          Begin
+           aMessageError := E.Message;
+           Break;
+          End;
         End;
        End;
       If (Length(aBuf) + bPackSize) > aPackSize Then
        bPackSize := aPackSize - Length(aBuf);
       If bPackSize > 0 Then
-       AContext.Connection.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize)
+       Begin
+        Try
+         AContext.Connection.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize);
+         Processmessages;
+        Except
+         AContext.Connection.CheckForGracefulDisconnect(False);
+         If Not AContext.Connection.Connected Then
+          Raise;
+        End;
+       End
       Else
        Break;
      End;
@@ -923,9 +977,10 @@ Begin
     aPackClass := TPackClass.Create;
     Try
      aPackClass.FromBytes(aBuf);
-     vCommand := aPackClass.Command;
+     vCommand    := aPackClass.Command;
      If vCommand <> '' Then
       ParseCommand(vCommand, vInternalCommand);
+     vOldCommand := vCommand;
      Processmessages;
      If vInternalCommand <> ticNone Then
       Begin
@@ -1134,9 +1189,9 @@ Begin
                                                vYouSession.SendBytes(aPackClass.ToBytes);
                                               Finally
                                                If Assigned(vAegysSession.SessionList) Then
-                                                aPackClass.Command    := cKickPeer + Format('%s&%s&%s', [vAegysSession.SessionList[I].Connection,
-                                                                                                         vAegysSession.SessionList[I].vSessionID,
-                                                                                                         vAegysSession.SessionList[I].SessionPWD]);
+                                                aPackClass.Command    := cKickPeer + Format('%s&%s&%s', [vYouSession.Connection,
+                                                                                                         vYouSession.vSessionID,
+                                                                                                         vYouSession.SessionPWD]);
                                                vAegysSession.SendBytes         (aPackClass.ToBytes);
                                                If Assigned(vYouSession.SessionList) Then
                                                 vYouSession.SessionList.Delete  (vAegysSession.Connection,
@@ -1331,17 +1386,56 @@ Begin
      If Assigned(vAegysSession) Then
       Begin
        If Not Assigned(AContext) Then
-        Abort;
+        Begin
+         Disconnect(Nil);
+         Abort;
+        End;
        If AContext.Connection <> Nil Then
-        If AContext.Connection.IOHandler <> Nil Then
-         Begin
-          AContext.Connection.IOHandler.CheckForDisconnect;
-          If Not AContext.Connection.IOHandler.Connected Then
+        Begin
+         If AContext.Connection.IOHandler <> Nil Then
+          Begin
+           AContext.Connection.IOHandler.CheckForDisconnect;
+           If Not AContext.Connection.IOHandler.Connected Then
+            Abort
+           Else
+            Begin
+             If vOldCommand <> '' Then
+              Begin
+               ArrayOfPointer := [@vSockCommand, @vYouID, @vYouPass];
+               ParseValues(vOldCommand, ArrayOfPointer);
+
+               aPackClass  := TPackClass.Create;
+               aPackClass.DataMode    := tdmServerCommand;
+               aPackClass.DataCheck   := tdcAsync;
+               Try
+                aPackClass.Command    := cKickPeer + Format('%s&%s&%s', [vSockCommand, 
+                                                                         vYouID, 
+                                                                         vYouPass]);
+                vAegysSession.SendBytes         (aPackClass.ToBytes);
+               Finally
+                If Assigned(vAegysSession.SessionList) Then
+                 vAegysSession.SessionList.Delete(vSockCommand, vYouID, vYouPass);
+               End;
+              End;
+            End; 
+          End
+         Else
+          Begin
+           Disconnect(AContext);
            Abort;
-         End;
+          End;
+        End
+       Else
+        Begin
+         Disconnect(AContext);
+         Abort;
+        End;
       End
      Else
-      Abort;
+      Begin
+       Disconnect(Nil);
+       Abort;
+      End;
     Except
      aMessageError := E.Message;
     End;
@@ -1672,8 +1766,14 @@ Begin
        Finally
         FreeAndNil(aPackClass);
        End;
-       If Assigned(vBContext.Connection) Then
-        vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
+       Try
+        If Assigned(vBContext.Connection) Then
+         vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
+       Except
+        vBContext.Connection.CheckForGracefulDisconnect(False);
+        If Not vBContext.Connection.Connected Then
+         Raise;
+       End;
       End;
      Processmessages;
     End;
@@ -1704,10 +1804,16 @@ Begin
       FreeAndNil(aPackClass);
      End;
      Processmessages;
-     If Assigned(vBContext.Connection) Then
-      If Assigned(vBContext.Connection.IOHandler) Then
-       vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
-     Processmessages;
+     Try
+      If Assigned(vBContext.Connection) Then
+       If Assigned(vBContext.Connection.IOHandler) Then
+        vBContext.Connection.IOHandler.WriteDirect(TIdBytes(aBufError), -1);
+      Processmessages;
+     Except
+      vBContext.Connection.CheckForGracefulDisconnect(False);
+      If Not vBContext.Connection.Connected Then
+       Raise;
+     End;
     End;
   End;
 End;
@@ -1726,7 +1832,9 @@ Begin
       Processmessages;
      End;
    Except
-
+    vBContext.Connection.CheckForGracefulDisconnect(False);
+    If Not vBContext.Connection.Connected Then
+     Raise;
    End;
   End;
 End;
@@ -1802,12 +1910,14 @@ End;
 Constructor TAegysClient.Create(AOwner: TComponent);
 Begin
  Inherited;
- vTcpRequest  := TIdTCPClient.Create(Nil);
- vTcpReceive  := TIdTCPClient.Create(Nil);
+ vTcpRequest  := TIdTCPClient.Create(AOwner);
+ vTcpReceive  := TIdTCPClient.Create(AOwner);
  aAegysConnectionList := TAegysConnectionList.Create;
  aPackList    := TPackList.Create;
  vSessionTime := 0;
  vProcessData := Nil;
+ vRequestTimeOut := 10000;
+ vConnectTimeOut := 5000;
 End;
 
 Destructor TAegysClient.Destroy;
@@ -2052,7 +2162,7 @@ End;
 Procedure TAegysClient.OnBeforeExecuteData (Var abPackList : TPackList);
  Procedure ReceiveStreamClient;
  Var
-  I             : Integer;
+//  I             : Integer;
   aBuf          : TAegysBytes;
   aFirstBufSize : AEInteger;
   aBuffSize,
@@ -2061,60 +2171,71 @@ Procedure TAegysClient.OnBeforeExecuteData (Var abPackList : TPackList);
   vActiveTcp    : TIdTCPClient;
  Begin
   SetLength(aBuf, 0);
-  I := 0;
-  While I <= 1 Do
+  vActiveTcp := vTcpReceive;
+  If Assigned(vActiveTcp) Then
    Begin
-    If I = 0 then
-     vActiveTcp := vTcpReceive
-    Else
-     vActiveTcp := vTcpRequest;
-    Inc(I);
-    If Assigned(vActiveTcp) Then
+    If (vActiveTcp.Connected) Then
      Begin
-      If vActiveTcp.Connected Then
-       Begin
-        Try
-         If Not (vActiveTcp.IOHandler.InputBufferIsEmpty) Then
-          Begin
-           Try
-            aBuffSize     := vActiveTcp.IOHandler.InputBuffer.Size;
-            vActiveTcp.IOHandler.ReadBytes(TIdBytes(aBuf), SizeOf(aPackSize));
-            Move(aBuf[0], aPackSize, SizeOf(aPackSize));
-            aFirstBufSize := Length(aBuf);
-            bPackSize     := 0;
+      Try
+       If Not (vActiveTcp.IOHandler.InputBufferIsEmpty) Then
+        Begin
+         Try
+          aBuffSize     := vActiveTcp.IOHandler.InputBuffer.Size;
+          vActiveTcp.IOHandler.ReadBytes(TIdBytes(aBuf), SizeOf(aPackSize));
+          Move(aBuf[0], aPackSize, SizeOf(aPackSize));
+          aFirstBufSize := Length(aBuf);
+          bPackSize     := 0;
+          Processmessages;
+          While (aPackSize <> Length(aBuf)) And
+                (aPackSize >  Length(aBuf)) And
+                (aPackSize > 0)             Do
+           Begin
+            If bPackSize = 0 Then
+             bPackSize := aBuffSize - SizeOf(aPackSize)
+            Else
+             bPackSize := vActiveTcp.IOHandler.InputBuffer.Size;
+            If (Length(aBuf) + bPackSize) > aPackSize Then
+             bPackSize := aPackSize - Length(aBuf);
+            If (aPackSize > Length(aBuf)) Then
+             vActiveTcp.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize)
+            Else
+             Break;
             Processmessages;
-            While (aPackSize <> Length(aBuf)) And
-                  (aPackSize >  Length(aBuf)) And
-                  (aPackSize > 0)             Do
-             Begin
-              If bPackSize = 0 Then
-               bPackSize := aBuffSize - SizeOf(aPackSize)
-              Else
-               bPackSize := vActiveTcp.IOHandler.InputBuffer.Size;
-              If (Length(aBuf) + bPackSize) > aPackSize Then
-               bPackSize := aPackSize - Length(aBuf);
-              If (aPackSize > Length(aBuf)) Then
-               vActiveTcp.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize)
-              Else
-               Break;
-              Processmessages;
-             End;
-            If (aPackSize = Length(aBuf)) And
-               (aPackSize > 0)            Then
-             abPackList.Add(aBuf);
-           Finally
-            SetLength(aBuf, 0);
            End;
-          End;
-        Except
-
-        End;
-       End
-      Else
-       Raise Exception.Create(cDisconnectedByServer);
-     End;
-    Processmessages;
+          If (aPackSize = Length(aBuf)) And
+             (aPackSize > 0)            Then
+           abPackList.Add(aBuf);
+         Finally
+          SetLength(aBuf, 0);
+         End;
+        End
+       Else
+        vActiveTcp.CheckForGracefulDisconnect(False);
+      Except
+       On e : Exception Do
+        Raise Exception.Create(e.Message);
+      End;
+     End
+    Else
+     Raise Exception.Create(cDisconnectedByServer);
    End;
+  Processmessages;
+  vActiveTcp := vTcpRequest;
+  If Assigned(vActiveTcp) Then
+   Begin
+    If (vActiveTcp.Connected) Then
+     Begin
+      Try
+       vActiveTcp.IOHandler.CheckForDisconnect(False, False);
+       If Not (vActiveTcp.Connected) Then
+        Raise Exception.Create(cDisconnectedByServer);
+      Except
+       On e : Exception Do
+        Raise Exception.Create(e.Message);
+      End;
+     End;
+   End;
+  Processmessages;
  End;
 Begin
  If Assigned(abPackList) Then
@@ -2136,6 +2257,37 @@ Begin
     abPackList.Delete(0);
    End;
   End;
+End;
+
+Procedure TAegysClient.OnCheckDisconnect(aType           : Char);
+Begin
+ If (aType = 'S') Then
+  Begin
+   If (MilliSecondsBetween(Now, aOldTime) >= vConnectTimeOut) And
+      (vConnectTimeOut > 0) Then
+    Begin
+     aOldTime := Now;
+     If Assigned(vTcpRequest) Then
+      Begin
+       vTcpRequest.CheckForGracefulDisconnect(False);
+       If Not vTcpRequest.Connected Then
+        Raise Exception.Create(cSocketDisconnected);
+      End
+     Else
+      Raise Exception.Create(cSocketDisconnected);
+    End;
+  End;
+// Else
+//  Begin
+//   If Assigned(vTcpReceive) Then
+//    Begin
+//     vTcpReceive.CheckForGracefulDisconnect(False);
+//     If Not vTcpReceive.Connected Then
+//      Raise Exception.Create(cSocketDisconnected);
+//    End
+//   Else
+//    Raise Exception.Create(cSocketDisconnected);
+//  End;
 End;
 
 Procedure TAegysClient.OnRequestDisconnect(Sender : TObject);
@@ -2161,11 +2313,13 @@ Begin
  If Assigned(vTcpRequest) Then
   If vTcpRequest.Connected Then
    Begin
+    aOldTime := Now;
     If aMoreData = '' Then
      aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, aBuffer, Format('%s&%s',    [vConnection, vSessionID]))
     Else
      aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, aBuffer, Format('%s&%s&%s', [vConnection, vSessionID, aMoreData]));
    End;
+ Processmessages;
 End;
 
 Procedure TAegysClient.SendBytes           (aBuffer       : TAegysBytes;
@@ -2176,13 +2330,13 @@ Begin
  If Assigned(vTcpRequest) Then
   If vTcpRequest.Connected Then
    Begin
-//    Processmessages;
+    aOldTime := Now;
     If aMoreData = '' Then
      aPackList.Add( vConnection, '', tdmClientCommand, tdcAsync, CommandType, aBuffer, Format('%s&%s',    [vConnection, vSessionID]),            aDestMyConn)
     Else
      aPackList.Add( vConnection, '', tdmClientCommand, tdcAsync, CommandType, aBuffer, Format('%s&%s&%s', [vConnection, vSessionID, aMoreData]), aDestMyConn);
-//    Processmessages;
    End;
+ Processmessages;
 End;
 
 Procedure TAegysClient.SendBytes           (aBuffer       : TAegysBytes);
@@ -2190,9 +2344,17 @@ Begin
  If Assigned(vTcpRequest) Then
   If vTcpRequest.Connected Then
    Begin
-//    Processmessages;
-    vTcpRequest.IOHandler.WriteDirect(TIdBytes(aBuffer));
-//    Processmessages;
+    aOldTime := Now;
+    Try
+     vTcpRequest.IOHandler.WriteDirect(TIdBytes(aBuffer));
+    Except
+     On e : Exception Do
+      Begin
+       If Assigned(vOnSendPackError) Then
+        vOnSendPackError(aBuffer, e.Message);
+      End;
+    End;
+    Processmessages;
    End;
 End;
 
@@ -2200,11 +2362,13 @@ Procedure TAegysClient.SendCommand         (Value         : String);
 Begin
  If Assigned(vTcpRequest) Then
   Begin
+   aOldTime := Now;
    If vTcpRequest.Connected Then
     aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Value)
    Else
     Raise Exception.Create(cCantExecDisconnected);
   End;
+ Processmessages;
 End;
 
 Procedure TAegysClient.SendCommand         (aDest         : String;
@@ -2219,6 +2383,7 @@ Begin
      aPack := TPackClass.Create;
      Try
       aPack.FromBytes(aBuffer);
+      aOldTime := Now;
       aPackList.Add(vConnection,
                     aDest,
                     tdmClientCommand,
@@ -2233,6 +2398,7 @@ Begin
    Else
     Raise Exception.Create(cCantExecDisconnected);
   End;
+ Processmessages;
 End;
 
 procedure TAegysClient.SendKeyboard        (aID, Value    : String);
@@ -2252,7 +2418,10 @@ Procedure TAegysClient.SendMessage         (Value         : String;
 Begin
  If Assigned(vTcpRequest) Then
   If vTcpRequest.Connected Then
-   aPackList.Add(vConnection, '', tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), aDestMyConn);
+   Begin
+    aOldTime := Now;
+    aPackList.Add(vConnection, '', tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), aDestMyConn);
+   End;
 End;
 
 Procedure TAegysClient.SendMessage         (aID,
@@ -2261,7 +2430,10 @@ Procedure TAegysClient.SendMessage         (aID,
 Begin
  If Assigned(vTcpRequest) Then
   If vTcpRequest.Connected Then
-   aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), False);
+   Begin
+    aOldTime := Now;
+    aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), False);
+   End;
 End;
 
 Procedure TAegysClient.SendMouse  (aID,
@@ -2399,6 +2571,11 @@ Begin
        End;
       If (vTcpRequest.Connected) And (vTcpReceive.Connected) Then
        Begin
+//        vTcpRequest.Socket.ReadTimeout    := vRequestTimeOut;
+//        vTcpReceive.Socket.ReadTimeout    := vRequestTimeOut;
+//        vTcpRequest.Socket.ConnectTimeout := vConnectTimeOut;
+//        vTcpReceive.Socket.ConnectTimeout := vConnectTimeOut;
+        aOldTime             := Now;
         vWelcomeString       := vWelcomeMessage;
         {$IFDEF FPC}
         vProcessData         := TAegysThread.Create(aPackList,
@@ -2410,7 +2587,9 @@ Begin
                                                     @OnAbortData,
                                                     @OnServiceCommands,
                                                     @OnClientCommands,
-                                                    @OnThreadRequestError);
+                                                    @OnThreadRequestError,
+                                                    @OnCheckDisconnect,
+                                                    @vOnDisconnect);
         {$ELSE}
         vProcessData         := TAegysThread.Create(aPackList,
                                                     TComponent(Pointer(@Self)^),
@@ -2421,7 +2600,9 @@ Begin
                                                     OnAbortData,
                                                     OnServiceCommands,
                                                     OnClientCommands,
-                                                    OnThreadRequestError);
+                                                    OnThreadRequestError,
+                                                    OnCheckDisconnect,
+                                                    OnDisconnect);
         {$ENDIF}
         vProcessData.Resume;
         vActive := Value;

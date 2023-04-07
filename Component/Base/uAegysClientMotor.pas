@@ -43,6 +43,7 @@ Type
   vOnPulseData   : TOnPulseData;
   vOnProcessData : TOnProcessData;
   vAbortData     : TOnAbortData;
+  aActualError   : String;
  Public
   Procedure   Kill;
   Procedure   GetFullFrame;
@@ -55,53 +56,60 @@ End;
 
 Implementation
 
-Uses uConstants, Execute.DesktopDuplicationAPI, uFormConexao, uAegysRFBList;
+Uses uConstants;
 
 procedure TAegysMotorThread.Execute;
 Var
- I       : Integer;
  vInExec : Boolean;
 Begin
- vInExec := False;
+ vInExec      := False;
+ aActualError := '';
  While (Not(Terminated)) Do
   Begin
    If Assigned(aPackList) Then
     Begin
-     If Not (vInExec) Or (cRFB) Then
+     If Not (vInExec) Then
       Begin
        vInExec := True;
-       Application.Processmessages;
-       If aPackList.Count <= cDelayThread Then
+       If aPackList.Count <= cFrameSkip Then
         Begin
-         If Assigned(vOnProcessData) Then
-          vOnProcessData(aPackList, aFullFrame);
-         If aFullFrame Then
-          aFullFrame := False;
+         Application.Processmessages;
+         Try
+          If Assigned(vOnProcessData) Then
+           vOnProcessData(aPackList, aFullFrame);
+          If aFullFrame Then
+           aFullFrame := False;
+         Except
+          On E : Exception Do
+           Begin
+            aActualError := E.Message;
+           End;
+         End;
         End;
        Try
         If Not Assigned(aPackList) Then
          Break;
-        If (aPackList.Count <= cDelayThread) And
-           (aPackList.Count > 0) Then
+        If (aPackList.Count > 0) Then
          Begin
-          Try
-           //Process Before Execute one Pack
-           If Assigned(vOnPulseData) Then
-            Begin
-             Try
-              vOnPulseData(aPackList[0].ToBytes,
-                           aPackList[0].CommandType);
-              aPackList.Delete(0);
-             Finally
-              Application.Processmessages;
-             End;
+          //Process Before Execute one Pack
+          If Assigned(vOnPulseData) Then
+           Begin
+            Try
+             vOnPulseData(aPackList[0].ToBytes,
+                          aPackList[0].CommandType);
+             Application.Processmessages;
+             aPackList.Delete(0);
+            Except
+             On E : Exception Do
+              Begin
+               aActualError := E.Message;
+              End;
             End;
-          Except
-           Break;
-          End;
+           End;
          End;
        Finally
         vInExec := False;
+        Application.Processmessages;
        End;
       End;
     End
@@ -133,22 +141,6 @@ Constructor TAegysMotorThread.Create(aDelayThread  : Integer = cDelayThread);
 Begin
  Inherited Create(False);
  aFullFrame := False;
- if Not cRFB Then
-  Begin
-   If Not Assigned(FDuplication) Then
-    FDuplication := TDesktopDuplicationWrapper.Create;
-  End
- Else
-  Begin
-   If Not Assigned(FAegysVarredura) Then
-    FAegysVarredura := TAegysVarredura.Create;
-   FAegysVarredura.Square            := True;
-   FAegysVarredura.CaptureCursor     := False;
-   FAegysVarredura.ToleranceChange   := 0;
-   FAegysVarredura.Pixels            := 16;
-   FAegysVarredura.Quality           := 100;
-   FAegysVarredura.Zoom              := 100;
-  End;
  aPackList             := TPackList.Create;
  vDelayThread          := aDelayThread;
  {$IFNDEF FPC}
@@ -166,16 +158,6 @@ End;
 
 Destructor TAegysMotorThread.Destroy;
 Begin
- If Not cRFB Then
-  Begin
-   If Assigned(FDuplication) Then
-    FreeAndNil(FDuplication);
-  End
- Else
-  Begin
-   If Assigned(FAegysVarredura) Then
-    FreeAndNil(FAegysVarredura);
-  End;
  FreeAndNil(aPackList);
  Inherited;
 End;
