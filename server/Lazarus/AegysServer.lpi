@@ -14,7 +14,6 @@
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
-      <Icon Value="0"/>
     </General>
     <BuildModes Count="4">
       <Item1 Name="Default" Default="True"/>
@@ -146,7 +145,7 @@
       <Unit1>
         <Filename Value="src/userver.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="fServer"/>
+        <ComponentName Value="Form3"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uServer"/>

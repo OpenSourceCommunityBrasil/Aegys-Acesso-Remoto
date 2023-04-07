@@ -3,36 +3,35 @@
   <ProjectSession>
     <Version Value="12"/>
     <BuildModes Active="Win64"/>
-    <Units Count="16">
+    <Units Count="17">
       <Unit0>
         <Filename Value="AegysServer.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <CursorPos X="55" Y="11"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="38" Y="10"/>
         <UsageCount Value="21"/>
-        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="src/userver.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="fServer"/>
+        <ComponentName Value="Form3"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uServer"/>
-        <EditorIndex Value="1"/>
-        <CursorPos Y="187"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="47"/>
+        <CursorPos X="22" Y="11"/>
+        <FoldState Value=" T3i30m02218 PjJkZ0J"/>
         <UsageCount Value="21"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../Component/Base/uAegysBase.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="2580"/>
+        <CursorPos X="67" Y="2592"/>
         <UsageCount Value="21"/>
+        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../Component/Utils/uAegysZlib.pas"/>
@@ -109,43 +108,20 @@
       </Unit14>
       <Unit15>
         <Filename Value="../../Component/Base/uAegysBufferPack.pas"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="12"/>
         <CursorPos X="62" Y="25"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="../../Component/Base/uAegysThreads.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="84"/>
+        <CursorPos X="15" Y="97"/>
+        <UsageCount Value="10"/>
+      </Unit16>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
-      <Position1>
-        <Filename Value="AegysServer.lpr"/>
-        <Caret Line="11" Column="31"/>
-      </Position1>
-      <Position2>
-        <Filename Value="src/userver.pas"/>
-        <Caret Line="129" Column="31" TopLine="119"/>
-      </Position2>
-      <Position3>
-        <Filename Value="src/userver.pas"/>
-        <Caret Line="10" Column="24"/>
-      </Position3>
-      <Position4>
-        <Filename Value="../../Component/Base/uAegysBufferPack.pas"/>
-        <Caret Line="25" Column="62" TopLine="12"/>
-      </Position4>
-      <Position5>
-        <Filename Value="src/userver.pas"/>
-        <Caret Line="43" Column="15" TopLine="33"/>
-      </Position5>
-      <Position6>
-        <Filename Value="src/userver.pas"/>
-        <Caret Line="10" Column="30"/>
-      </Position6>
-      <Position7>
-        <Filename Value="src/userver.pas"/>
-        <Caret Line="18" Column="29"/>
-      </Position7>
-    </JumpHistory>
+    <JumpHistory HistoryIndex="-1"/>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes ActiveMode=""/>

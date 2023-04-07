@@ -1,4 +1,4 @@
-unit uServerChat;
+unit uServer;
 
 {$mode objfpc}{$H+}
 
@@ -10,9 +10,9 @@ uses
 
 type
 
-  { TForm3 }
+  { TfServer }
 
-  TForm3 = class(TForm)
+  TfServer = class(TForm)
     bActive: TButton;
     Label1: TLabel;
     lClientsConnect: TLabel;
@@ -38,11 +38,9 @@ type
   end;
 
 var
-  Form3: TForm3;
+  fServer: TfServer;
 
 implementation
-
-Uses uConsts;
 
 {$R *.lfm}
 
@@ -96,7 +94,7 @@ Begin
  Result := sID1 + '-'+ sID2  +'-'+ sID3;
 End;
 
-Function TForm3.GeneratePassword(LastPassword : String) : String;
+Function TfServer.GeneratePassword(LastPassword : String) : String;
 Begin
  Randomize;
  If (LastPassword <> '') Then
@@ -106,7 +104,7 @@ Begin
 End;
 
 
-Procedure TForm3.GetNewID(ContextList      : TSessionList;
+Procedure TfServer.GetNewID(ContextList      : TSessionList;
                           Value            : String;
                           Var ClientID,
                           ClientPassword   : String;
@@ -152,12 +150,12 @@ Begin
  End;
 End;
 
-Procedure TForm3.UpdateCaption;
+Procedure TfServer.UpdateCaption;
 Begin
  lClientsConnect.Caption := FormatFloat('0000', vClientsConnected);
 End;
 
-Procedure TForm3.UpdateServerStatus;
+Procedure TfServer.UpdateServerStatus;
 Begin
  If vAegysService.Active Then
   Begin
@@ -171,19 +169,19 @@ Begin
   End;
 End;
 
-Procedure TForm3.ConnectClient(Const Sender : TAegysSession);
+Procedure TfServer.ConnectClient(Const Sender : TAegysSession);
 Begin
  Inc(vClientsConnected);
  TThread.Synchronize(Nil, @UpdateCaption);
 End;
 
-Procedure TForm3.DisconnectClient(Const Sender : TAegysSession);
+Procedure TfServer.DisconnectClient(Const Sender : TAegysSession);
 Begin
  Dec(vClientsConnected);
  TThread.Synchronize(Nil, @UpdateCaption);
 End;
 
-procedure TForm3.FormCreate(Sender: TObject);
+procedure TfServer.FormCreate(Sender: TObject);
 begin
  vAegysService                    := TAegysService.Create(Self);
  {$IFDEF FPC}
@@ -198,19 +196,19 @@ begin
  vClientsConnected                := 0;
 end;
 
-procedure TForm3.bActiveClick(Sender: TObject);
+procedure TfServer.bActiveClick(Sender: TObject);
 begin
  Connect;
 end;
 
-procedure TForm3.FormDestroy(Sender: TObject);
+procedure TfServer.FormDestroy(Sender: TObject);
 begin
  vAction                          := False;
  FreeAndNil(vAegysService);
  Release;
 end;
 
-Procedure TForm3.Connect;
+Procedure TfServer.Connect;
 Begin
  vClientsConnected     := 0;
  vAegysService.ServicePort := PORTA;
