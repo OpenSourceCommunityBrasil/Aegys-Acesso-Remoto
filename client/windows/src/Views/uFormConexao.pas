@@ -36,10 +36,10 @@ uses
   FMX.Platform.Win,
 
   uAegysBase, uAegysDataTypes, uAegysConsts, uAegysClientMotor, uAegysBufferPack,
-  uAegysZlib, uAegysTools, uAegysRFBList,
+  uAegysZlib, uAegysTools,
   uFunctions, CCR.Clipboard, StreamManager,
 
-  Config.SQLite.FireDAC, uLocale, Execute.DesktopDuplicationAPI
+  Config.SQLite.FireDAC, uLocale
   ;
 
 type
@@ -1217,7 +1217,7 @@ Var
       Else
        vFatorA          := Round((vOldResolucaoAltura  / Screen.Height)        * 100);
       vScreenSizeFact  := Round((Screen.Height / 100)  * vFatorA);
-      FormTelaRemota.Height := vScreenSizeFact + ((Screen.Height - vScreenSizeFact) div 2);
+      FormTelaRemota.Height := vScreenSizeFact + ((round(Screen.Height) - vScreenSizeFact) div 2);
       FormTelaRemota.Top    := Round((Screen.Height / 2) - (FormTelaRemota.Height / 2));
       FormTelaRemota.Left   := Round(Screen.Width - FormTelaRemota.Width);
      End

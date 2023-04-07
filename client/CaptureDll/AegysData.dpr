@@ -1,21 +1,16 @@
 library AegysData;
 
 uses
-  System.SysUtils,
-  System.Classes,
-  Vcl.Forms,
-  Windows,
-  Vcl.Graphics,
-  Variants,
-  Winapi.Wincodec,
-  Winapi.ActiveX;
+  System.SysUtils, System.Classes,
+  Windows, Variants,
+  Vcl.Forms, Vcl.Graphics,
+  Winapi.Wincodec, Winapi.ActiveX;
 
 Const
  cJPGQual = 20;
 
 Var
  BitsPerPixel : Byte;
-
 
 {$R *.res}
 
