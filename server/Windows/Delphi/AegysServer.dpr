@@ -2,21 +2,21 @@ program AegysServer;
 
 uses
   Vcl.Forms,
-  uServerChat in 'uServerChat.pas' {Form3},
-  uAegysBufferPack in '..\..\..\Source\Base\uAegysBufferPack.pas',
-  uAegysConsts in '..\..\..\Source\Base\uAegysConsts.pas',
-  uAegysDataTypes in '..\..\..\Source\Base\uAegysDataTypes.pas',
-  uAegysTools in '..\..\..\Source\Base\uAegysTools.pas',
-  uAegysBase in '..\..\..\Source\Base\uAegysBase.pas',
-  uAegysThreads in '..\..\..\Source\Base\uAegysThreads.pas',
-  uConsts in 'uConsts.pas',
-  uAegysZlib in '..\..\..\Source\Libs\uAegysZlib.pas';
+  uServer in 'src\uServer.pas' {fServer},
+  uConstants in '..\..\..\commons\uConstants.pas',
+  uAegysBase in '..\..\..\Component\Base\uAegysBase.pas',
+  uAegysBufferPack in '..\..\..\Component\Base\uAegysBufferPack.pas',
+  uAegysConsts in '..\..\..\Component\Base\uAegysConsts.pas',
+  uAegysDataTypes in '..\..\..\Component\Base\uAegysDataTypes.pas',
+  uAegysZlib in '..\..\..\Component\Utils\uAegysZlib.pas',
+  uAegysTools in '..\..\..\Component\Base\uAegysTools.pas',
+  uAegysThreads in '..\..\..\Component\Base\uAegysThreads.pas';
 
 {$R *.res}
 
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TForm3, Form3);
+  Application.CreateForm(TfServer, fServer);
   Application.Run;
 end.

@@ -1,22 +1,20 @@
-object Form3: TForm3
+object fServer: TfServer
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Aegys Support Server'
-  ClientHeight = 153
-  ClientWidth = 313
+  ClientHeight = 152
+  ClientWidth = 309
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PixelsPerInch = 96
   TextHeight = 13
   object lClientsConnect: TLabel
     Left = 128
@@ -36,7 +34,7 @@ object Form3: TForm3
     Top = 8
     Width = 149
     Height = 23
-    Caption = 'Clients Connected'
+    Caption = 'Connected Clients'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -19
@@ -49,7 +47,7 @@ object Form3: TForm3
     Top = 96
     Width = 145
     Height = 25
-    Caption = 'Active Server'
+    Caption = 'Activate Server'
     TabOrder = 0
     OnClick = bActiveClick
   end
