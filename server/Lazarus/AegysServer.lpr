@@ -8,7 +8,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms,
-  uServer in 'src\userver.pas', uAegysBase, uAegysZlib, uConstants;
+  uServer in 'src\userver.pas', uAegysBase, uAegysZlib;
 
 {$R *.res}
 

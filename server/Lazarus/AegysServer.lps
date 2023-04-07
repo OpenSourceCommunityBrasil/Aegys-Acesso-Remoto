@@ -2,72 +2,17 @@
 <CONFIG>
   <ProjectSession>
     <Version Value="12"/>
-    <BuildModes Active="Linux64"/>
+    <BuildModes Active="Win64"/>
     <Units Count="16">
       <Unit0>
         <Filename Value="AegysServer.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <CursorPos X="61" Y="10"/>
+        <CursorPos X="55" Y="11"/>
         <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="userverchat.pas"/>
-        <ComponentName Value="Form3"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="uServerChat"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="../../../../Source/Base/uAegysBase.pas"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="../../../../Source/Base/uAegysBufferPack.pas"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="../../../../Source/Base/uAegysConsts.pas"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="../../../../Source/Base/uAegysDataTypes.pas"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="../../../../Source/Base/uAegysThreads.pas"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="../../../../Source/Base/uAegysTools.pas"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="../../../../Source/Libs/uAegysZlib.pas"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="../../../../Source/Includes/uAegys.inc"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="uconsts.pas"/>
-        <UnitName Value="uConsts"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="10"/>
-      </Unit10>
-      <Unit11>
         <Filename Value="src/userver.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="fServer"/>
@@ -75,13 +20,12 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uServer"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="185"/>
         <CursorPos Y="187"/>
         <UsageCount Value="21"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
-      </Unit11>
-      <Unit12>
+      </Unit1>
+      <Unit2>
         <Filename Value="../../Component/Base/uAegysBase.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
@@ -89,16 +33,8 @@
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="21"/>
-      </Unit12>
-      <Unit13>
-        <Filename Value="../../Component/Base/uAegysBufferPack.pas"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="12"/>
-        <CursorPos X="62" Y="25"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit13>
-      <Unit14>
+      </Unit2>
+      <Unit3>
         <Filename Value="../../Component/Utils/uAegysZlib.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
@@ -106,8 +42,8 @@
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="21"/>
-      </Unit14>
-      <Unit15>
+      </Unit3>
+      <Unit4>
         <Filename Value="../../commons/uConstants.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
@@ -115,6 +51,69 @@
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="21"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="userverchat.pas"/>
+        <ComponentName Value="Form3"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="uServerChat"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="../../../../Source/Base/uAegysBase.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="../../../../Source/Base/uAegysBufferPack.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../../../../Source/Base/uAegysConsts.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../../../../Source/Base/uAegysDataTypes.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../../../../Source/Base/uAegysThreads.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../../../../Source/Base/uAegysTools.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="../../../../Source/Libs/uAegysZlib.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="../../../../Source/Includes/uAegys.inc"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="20"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="uconsts.pas"/>
+        <UnitName Value="uConsts"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="../../Component/Base/uAegysBufferPack.pas"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="12"/>
+        <CursorPos X="62" Y="25"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit15>
     </Units>
     <JumpHistory Count="7" HistoryIndex="6">
