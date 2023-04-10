@@ -143,16 +143,19 @@ begin
   try
     for I := 0 to pred(Componentcount) do
     begin
-      if Components[I] is TComboBox then
+      if (Components[I] is TComboBox) AND
+        ((Components[I] as TComboBox).ItemIndex > -1) then
         aJSON.AddPair((Components[I] as TComboBox).Name,
           IntToStr((Components[I] as TComboBox).Selected.Index))
-      else if Components[I] is TEdit then
+      else if (Components[I] is TEdit) AND
+        not((Components[I] as TEdit).Text.IsEmpty) then
         aJSON.AddPair((Components[I] as TEdit).Name,
           (Components[I] as TEdit).Text)
       else if Components[I] is TSwitch then
         aJSON.AddPair((Components[I] as TSwitch).Name,
           IntToStr((Components[I] as TSwitch).IsChecked.ToInteger))
-      else if Components[I] is TComboEdit then
+      else if (Components[I] is TComboEdit) AND
+        not((Components[I] as TComboEdit).Text.IsEmpty) then
         aJSON.AddPair((Components[I] as TComboEdit).Name,
           (Components[I] as TComboEdit).Text);
     end;
