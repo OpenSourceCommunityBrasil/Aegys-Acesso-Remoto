@@ -31,7 +31,7 @@ Const
  cResuqestTimeout      = 7000;
  cConnectionTimeout    = 3000;
  //Messages
- cCaptureTitle         = 'Remote Access, Connection "%s",ID "%s"';
+ cCaptureTitle         = 'Remote Access, Connection "%s", FPS "%d"';
  cCantExecDisconnected = 'Cannot Execute Action when Disconnected';
  cCantJoinDisconnected = 'Cannot join when Disconnected';
  cInvalidBufferData    = 'Invalid Buffer Data...';

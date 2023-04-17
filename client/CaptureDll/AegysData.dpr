@@ -87,6 +87,7 @@ Var
    Frame.WriteSource(WICBitmap, @Rect);
    Frame.Commit;
    Encoder.Commit;
+   Application.ProcessMessages;
    SetLength(Buffer, 0);
   Finally
    Encoder        := Nil;
@@ -108,10 +109,10 @@ Begin
    32 : Bitmap.PixelFormat := pf32bit;
   End;
   bitblt(Bitmap.Canvas.Handle, 0 ,0 , screen.Width, screen.Height, hdcScreen, 0, 0, SRCCOPY);
-  Application.ProcessMessages;
   SaveBitmapAsJpeg(cJPGQual, Result);
  Finally
   ReleaseDC (0, hdcScreen);
+  Bitmap.FreeImage;
   FreeAndNil(Bitmap);
   Application.ProcessMessages;
   CoUninitialize();

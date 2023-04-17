@@ -34,8 +34,9 @@ uses
   FMX.Surfaces;
 
 Const
- TNeutroColor = 255;
- cJPGQual     = 25;
+ TNeutroColor     = 255;
+ cJPGQual         = 25;
+ cCompressionData = True;
 
 Type
  TCaptureScreenProc = Function : TStream;
@@ -114,17 +115,23 @@ Begin
  vMonitor := vMonitor -1;
  aResolution := Format('%s&%s&%s', [FloatToStr(Screen.Monitors[vMonitor].Height), FloatToStr(Screen.Monitors[vMonitor].Width), aMonitor]);
  Try
+  Application.ProcessMessages;
   TargetMemoryStream := CaptureScreenProc;
  Finally
+  Application.ProcessMessages;
  End;
  If Assigned(TargetMemoryStream) Then
   Begin
    TargetMemoryStream.Position := 0;
    If TargetMemoryStream.Size > 0 then
     Begin
-  //     ZCompressStreamBytes(TargetMemoryStream, aFinalBytes);
-     SetLength(aFinalBytes, TargetMemoryStream.Size);
-     TargetMemoryStream.Read(aFinalBytes[0], Length(aFinalBytes));
+     If cCompressionData Then
+      ZCompressStreamBytes(TargetMemoryStream, aFinalBytes)
+     Else
+      Begin
+       SetLength(aFinalBytes, TargetMemoryStream.Size);
+       TargetMemoryStream.Read(aFinalBytes[0], Length(aFinalBytes));
+      End;
      FreeAndNil(TargetMemoryStream);
      aPackClass               := TPackClass.Create;
      Try
