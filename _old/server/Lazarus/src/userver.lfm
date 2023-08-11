@@ -1,0 +1,48 @@
+object Form3: TForm3
+  Left = 256
+  Height = 152
+  Top = 145
+  Width = 303
+  BorderIcons = [biSystemMenu, biMinimize]
+  Caption = 'Aegys Support Server'
+  ClientHeight = 152
+  ClientWidth = 303
+  DockSite = True
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '2.2.4.0'
+  object bActive: TButton
+    Left = 80
+    Height = 25
+    Top = 96
+    Width = 145
+    Caption = 'Active Server'
+    OnClick = bActiveClick
+    TabOrder = 0
+  end
+  object lClientsConnect: TLabel
+    Left = 128
+    Height = 23
+    Top = 37
+    Width = 50
+    Caption = '00000'
+    Font.Color = clWindowText
+    Font.Height = -19
+    Font.Name = 'Tahoma'
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label1: TLabel
+    Left = 80
+    Height = 23
+    Top = 8
+    Width = 149
+    Caption = 'Clients Connected'
+    Font.Color = clWindowText
+    Font.Height = -19
+    Font.Name = 'Tahoma'
+    ParentColor = False
+    ParentFont = False
+  end
+end
