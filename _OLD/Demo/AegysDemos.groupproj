@@ -6,22 +6,16 @@
         <Projects Include="DataTransfer\BufferTest.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="ChatTest\Server\AegysServer.dproj">
+        <Projects Include="ChatTest\Client\ClientChat.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="ChatTest\Client\ClientChat.dproj">
+        <Projects Include="ChatTest\Server\AegysServer.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="ChatTest\Client\FMX\ClientFMXChat.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="AegysMobileClient\Android\PAegysAndroidAPP.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="AegysClient\AegysSuporteCliente.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="AegysClient\CaptureDll\AegysData.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -41,15 +35,6 @@
     <Target Name="BufferTest:Make">
         <MSBuild Projects="DataTransfer\BufferTest.dproj" Targets="Make"/>
     </Target>
-    <Target Name="AegysServer">
-        <MSBuild Projects="ChatTest\Server\AegysServer.dproj"/>
-    </Target>
-    <Target Name="AegysServer:Clean">
-        <MSBuild Projects="ChatTest\Server\AegysServer.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="AegysServer:Make">
-        <MSBuild Projects="ChatTest\Server\AegysServer.dproj" Targets="Make"/>
-    </Target>
     <Target Name="ClientChat">
         <MSBuild Projects="ChatTest\Client\ClientChat.dproj"/>
     </Target>
@@ -58,6 +43,15 @@
     </Target>
     <Target Name="ClientChat:Make">
         <MSBuild Projects="ChatTest\Client\ClientChat.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AegysServer">
+        <MSBuild Projects="ChatTest\Server\AegysServer.dproj"/>
+    </Target>
+    <Target Name="AegysServer:Clean">
+        <MSBuild Projects="ChatTest\Server\AegysServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysServer:Make">
+        <MSBuild Projects="ChatTest\Server\AegysServer.dproj" Targets="Make"/>
     </Target>
     <Target Name="ClientFMXChat">
         <MSBuild Projects="ChatTest\Client\FMX\ClientFMXChat.dproj"/>
@@ -68,15 +62,6 @@
     <Target Name="ClientFMXChat:Make">
         <MSBuild Projects="ChatTest\Client\FMX\ClientFMXChat.dproj" Targets="Make"/>
     </Target>
-    <Target Name="PAegysAndroidAPP">
-        <MSBuild Projects="AegysMobileClient\Android\PAegysAndroidAPP.dproj"/>
-    </Target>
-    <Target Name="PAegysAndroidAPP:Clean">
-        <MSBuild Projects="AegysMobileClient\Android\PAegysAndroidAPP.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="PAegysAndroidAPP:Make">
-        <MSBuild Projects="AegysMobileClient\Android\PAegysAndroidAPP.dproj" Targets="Make"/>
-    </Target>
     <Target Name="AegysSuporteCliente">
         <MSBuild Projects="AegysClient\AegysSuporteCliente.dproj"/>
     </Target>
@@ -86,23 +71,14 @@
     <Target Name="AegysSuporteCliente:Make">
         <MSBuild Projects="AegysClient\AegysSuporteCliente.dproj" Targets="Make"/>
     </Target>
-    <Target Name="AegysData">
-        <MSBuild Projects="AegysClient\CaptureDll\AegysData.dproj"/>
-    </Target>
-    <Target Name="AegysData:Clean">
-        <MSBuild Projects="AegysClient\CaptureDll\AegysData.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="AegysData:Make">
-        <MSBuild Projects="AegysClient\CaptureDll\AegysData.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Build">
-        <CallTarget Targets="BufferTest;AegysServer;ClientChat;ClientFMXChat;PAegysAndroidAPP;AegysSuporteCliente;AegysData"/>
+        <CallTarget Targets="BufferTest;ClientChat;AegysServer;ClientFMXChat;AegysSuporteCliente"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="BufferTest:Clean;AegysServer:Clean;ClientChat:Clean;ClientFMXChat:Clean;PAegysAndroidAPP:Clean;AegysSuporteCliente:Clean;AegysData:Clean"/>
+        <CallTarget Targets="BufferTest:Clean;ClientChat:Clean;AegysServer:Clean;ClientFMXChat:Clean;AegysSuporteCliente:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="BufferTest:Make;AegysServer:Make;ClientChat:Make;ClientFMXChat:Make;PAegysAndroidAPP:Make;AegysSuporteCliente:Make;AegysData:Make"/>
+        <CallTarget Targets="BufferTest:Make;ClientChat:Make;AegysServer:Make;ClientFMXChat:Make;AegysSuporteCliente:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
