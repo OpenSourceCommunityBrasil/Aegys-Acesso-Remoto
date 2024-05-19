@@ -54,12 +54,10 @@ type
     procedure EPasswordKeyDown(Sender: TObject; var Key: Word;
       var KeyChar: Char; Shift: TShiftState);
     procedure PROC_COLAR_SENHAExecute(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure EPasswordKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
   private
     { Private declarations }
-    Locale: TLocale;
     procedure SetColors;
   public
     { Public declarations }
@@ -89,21 +87,15 @@ procedure TFormSenha.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if Canceled then
   begin
-    FormConexao.MudarStatusConexao(3, Locale.GetLocale(MSGS, 'Cancelled'));
+    FormConexao.MudarStatusConexao(3, 'Cancelada...');
     FormConexao.btnConectar.Enabled := True;
   end;
 end;
 
 procedure TFormSenha.FormCreate(Sender: TObject);
 begin
-  Locale := TLocale.Create;
   SetColors;
   // SetWindowLong(Handle, GWL_EXSTYLE, WS_EX_APPWINDOW);
-end;
-
-procedure TFormSenha.FormDestroy(Sender: TObject);
-begin
-  Locale.DisposeOf;
 end;
 
 procedure TFormSenha.FormShow(Sender: TObject);

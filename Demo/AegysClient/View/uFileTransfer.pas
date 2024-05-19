@@ -145,6 +145,7 @@ type
    Property  DestCount       : Integer Read vDestCount;
    Property  Directory_Local : String  Read vDirectory_Local;
    Property  ActiveFolder    : String  Read vActiveFolder;
+   Property  DestConnection  : String  Read aDest Write aDest;
   end;
 
 var
@@ -154,7 +155,7 @@ implementation
 
 {$R *.fmx}
 
-Uses uAegysBase, uAegysDataTypes;
+Uses uAegysBase, uAegysDataTypes, uAegysConsts, uAegysBufferPack;
 
 Function TfFileTransfer.GetIcon(FileName: String): FMX.Graphics.TBitmap;
 Var
@@ -294,6 +295,23 @@ Begin
 End;
 
 procedure TfFileTransfer.GoToDirectory(Directory : String);
+Var
+ aPackClass : TPackClass;
+ vBuf       : TAegysBytes;
+ Procedure NewPack;
+ Begin
+  aPackClass             := TPackClass.Create;
+  aPackClass.DataMode    := tdmClientCommand;
+  aPackClass.Owner       := Conexao.Connection;
+  aPackClass.Dest        := aDest;
+  aPackClass.DataCheck   := tdcAsync;
+  aPackClass.CommandType := tctFileTransfer;
+ End;
+ Procedure FreePack;
+ Begin
+  SetLength(vBuf, 0);
+  FreeAndNil(aPackClass);
+ End;
 Begin
  If Length(Directory) > 0 Then
   Begin
@@ -301,8 +319,14 @@ Begin
     Directory := Directory + '\';
    vDirectory_Edit := Directory;
    SGRemote.Enabled := False;
-   Conexao.SendMessage(aDest, '<|GETFOLDERS|>' + vDirectory_Edit + '<|END_GETFOLDERS|>', tctFileTransfer);
-   Application.ProcessMessages;
+   NewPack;
+   Try
+    aPackClass.Command     := Format('%s%s', [cGetFolders, vDirectory_Edit]);
+    vBuf                   := aPackClass.ToBytes;
+    Conexao.SendBytes(vBuf, twmBuffer);
+   Finally
+    FreePack;
+   End;
   End;
 End;
 
@@ -356,8 +380,12 @@ End;
 procedure TfFileTransfer.FormClose(Sender       : TObject;
                                    Var Action   : TCloseAction);
 begin
+ If Assigned(vIconsIndex) Then
+  FreeAndNil(vIconsIndex);
+ If Assigned(ShellProps) Then
+  FreeAndNil(ShellProps);
  fFileTransfer := Nil;
- Release;
+ Action := TCloseAction.caFree;
 end;
 
 Procedure TfFileTransfer.OnLocalDblClick(Sender : TObject);
@@ -637,7 +665,7 @@ begin
    cbLocalDrivers.OnChange(cbLocalDrivers);
   End;
  lNomeComputadorLocal.Text := ShellProps.LocalStation;
- Conexao.SendMessage(aDest, '<|GETDRIVERS|><|END_GETDRIVERS|>', tctFileTransfer);
+ Conexao.SendMessage(aDest, cGetDrivers, tctFileTransfer);
  Application.ProcessMessages;
 end;
 

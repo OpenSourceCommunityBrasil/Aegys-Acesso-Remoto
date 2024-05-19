@@ -92,6 +92,7 @@ object FormChat: TFormChat
           Size.Width = 40.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
+          TextSettings.Trimming = None
           OnClick = sbSendMessageClick
           object phSendMessage: TPath
             Align = Client

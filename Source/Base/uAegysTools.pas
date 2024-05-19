@@ -499,6 +499,36 @@ Begin
   Begin
    InternalCommand := ticConnectionEdit;
    Delete(Command, 1, Length(cMyConfigs));
+  End
+ Else If Copy(Command, 1, Length(cGetFiles))           = cGetFiles             Then
+  Begin
+   InternalCommand := ticGetFiles;
+   Delete(Command, 1, Length(cGetFiles));
+  End
+ Else If Copy(Command, 1, Length(cGetDrivers))         = cGetDrivers           Then
+  Begin
+   InternalCommand := ticGetDrivers;
+   Delete(Command, 1, Length(cGetDrivers));
+  End
+ Else If Copy(Command, 1, Length(cSetFiles))           = cSetFiles             Then
+  Begin
+   InternalCommand := ticSetFiles;
+   Delete(Command, 1, Length(cSetFiles));
+  End
+ Else If Copy(Command, 1, Length(cSetDrivers))         = cSetDrivers           Then
+  Begin
+   InternalCommand := ticSetDrivers;
+   Delete(Command, 1, Length(cSetDrivers));
+  End
+ Else If Copy(Command, 1, Length(cGetFolders))         = cGetFolders           Then
+  Begin
+   InternalCommand := ticGetFolders;
+   Delete(Command, 1, Length(cGetFolders));
+  End
+ Else If Copy(Command, 1, Length(cSetFolders))         = cSetFolders           Then
+  Begin
+   InternalCommand := ticSetFolders;
+   Delete(Command, 1, Length(cSetFolders));
   End;
 End;
 Procedure ParseValues(Var Source : String;

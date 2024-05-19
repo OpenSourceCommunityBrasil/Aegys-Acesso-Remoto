@@ -33,7 +33,6 @@ uses
   CCR.Clipboard.VCL in 'Lib\ClipBoard\CCR.Clipboard.VCL.pas',
   CCR.Clipboard.Win in 'Lib\ClipBoard\CCR.Clipboard.Win.pas',
   ufrMonitorItem in 'View\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame},
-  uSQLiteConfig in 'Lib\uSQLiteConfig.pas',
   uFilesFoldersOP in 'Lib\uFilesFoldersOP.pas',
   uFileTransfer in 'View\uFileTransfer.pas' {fFileTransfer},
   uIconsAssoc in 'Lib\uIconsAssoc.pas',
@@ -46,7 +45,8 @@ uses
   uAegysClientMotor in 'Lib\uAegysClientMotor.pas',
   uAegysZlib in '..\..\Source\Libs\uAegysZlib.pas',
   uFavoritos in 'View\uFavoritos.pas' {fFavoritos},
-  uFavData in 'View\uFavData.pas' {fFavData};
+  uFavData in 'View\uFavData.pas' {fFavData},
+  uASMTools in 'Lib\uASMTools.pas';
 
 {$R *.res}
 
@@ -110,12 +110,8 @@ begin
   FreeSid(pSystemSid);
 end;
 
-var
-  Locale: TLocale;
-
 begin
   Application.Initialize;
-  Locale := TLocale.Create;
   // Workaround to run on SYSTEM account. This is necessary in order to be able to interact with UAC.
 {$IFNDEF DEBUG}
   if not IsAccountSystem then
@@ -131,12 +127,8 @@ begin
     DeleteFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
   end;
 {$ENDIF}
-  Application.Title := Locale.GetLocale(MAIN, 'Title');
+  Application.Title := 'Aegys - Remote Support';
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM, DM);
   Application.Run;
-
-  if Application.Terminated then
-    Locale.DisposeOf;
-
 end.

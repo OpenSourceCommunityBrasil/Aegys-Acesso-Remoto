@@ -124,6 +124,9 @@ Begin
       If aFullFrame Then
        aFullFrame := False;
       Processmessages;
+      If (vDelayThread    > 0) And
+         (aPackList.Count > 1) Then
+       Sleep(vDelayThread div 2);
      Except
       On E : Exception Do
        Begin
@@ -137,8 +140,6 @@ Begin
    Finally
     vInExec := False;
    End;
-//   If vDelayThread > 0 Then
-//    Sleep(vDelayThread div 2);
   End;
 End;
 

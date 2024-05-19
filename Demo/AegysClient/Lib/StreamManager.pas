@@ -20,6 +20,7 @@
 interface
 
 uses
+  System.SysUtils,
   System.Classes,
   System.Types,
   FMX.Forms,
@@ -31,11 +32,12 @@ uses
   , uAegysBufferPack,
   ActiveX,
   FMX.Graphics,
-  FMX.Surfaces;
+  FMX.Surfaces,
+  uASMTools;
 
 Const
  TNeutroColor     = 255;
- cJPGQual         = 25;
+ cJPGQual         = 20;
  cCompressionData = True;
 
 Type
@@ -43,19 +45,51 @@ Type
 
 Var
  DllHandle         : THandle;
+ vActualImage      : TMemoryStream;
  CaptureScreenProc : TCaptureScreenProc = Nil;
  aConnection       : String;
+ hDesktop          : HDESK;
 
 procedure GetScreenToMemoryStream(Var aPackClass     : TPackClass;
                                   DrawCur            : Boolean;
                                   PixelFormat        : TPixelFormat = pf16bit;
                                   Monitor            : String       = '0';
                                   FullFrame          : Boolean      = False);
+Function StreamToBytes           (Stream             : TStream)     : TBytes;
+Function StreamToString          (Stream             : TStream) : AnsiString;
 
 implementation
 
 uses
-  System.SysUtils, uAegysZlib, uAegysDataTypes;
+  uAegysZlib, uAegysDataTypes;
+
+Function StreamToBytes(Stream : TStream) : TBytes;
+Var
+ aSize : Longint;
+Begin
+ If Assigned(Stream) Then
+  If Stream.Size > 0 Then
+   Begin
+    aSize := Stream.Size;
+    Stream.Position := 0;
+    SetLength(Result, aSize);
+    Stream.Read(Result[0], aSize);
+   End;
+End;
+
+Function StreamToString(Stream : TStream) : AnsiString;
+Var
+ aSize : Longint;
+Begin
+ If Assigned(Stream) Then
+  If Stream.Size > 0 Then
+   Begin
+    aSize := Stream.Size;
+    Stream.Position := 0;
+    SetLength(Result, aSize);
+    Stream.Read(Result[1], aSize);
+   End;
+End;
 
 Procedure DrawScreenCursor(Var Bmp: Vcl.Graphics.TBitmap; const MonitorID: Integer);
 Var
@@ -100,11 +134,12 @@ procedure GetScreenToMemoryStream(Var aPackClass     : TPackClass;
                                   Monitor            : String       = '0';
                                   FullFrame          : Boolean      = False);
 Var
-  aFinalBytes        : TAegysBytes;
-  vMonitor           : Integer;
+  aFinalBytes         : TAegysBytes;
+  vMonitor            : Integer;
+  vResultMemoryStream : TMemoryStream;
   aMonitor,
-  aResolution        : String;
-  TargetMemoryStream : TStream;
+  aResolution         : String;
+  TargetMemoryStream  : TStream;
 Begin
  aPackClass := Nil;
  vMonitor   := StrToInt(Monitor) +1;
@@ -114,8 +149,46 @@ Begin
  vMonitor := vMonitor -1;
  aResolution := Format('%s&%s&%s', [FloatToStr(Screen.Monitors[vMonitor].Height), FloatToStr(Screen.Monitors[vMonitor].Width), aMonitor]);
  Try
+  // EUREKA: This is the responsable to interact with UAC. But we need run
+  // the software on SYSTEM account to work.
+  Try
+   hDesktop := OpenInputDesktop(0, True, MAXIMUM_ALLOWED);
+   If hDesktop <> 0 then
+    Begin
+     SetThreadDesktop(hDesktop);
+     CloseHandle(hDesktop);
+    End;
+  Except
+  End;
   TargetMemoryStream := CaptureScreenProc(vMonitor);
- Finally
+  If Not Assigned(TargetMemoryStream) Then
+   Exit;
+  If vActualImage.Size = 0 Then
+   Begin
+    TargetMemoryStream.Position := 0;
+    vActualImage.CopyFrom(TargetMemoryStream, TargetMemoryStream.Size);
+    TargetMemoryStream.Position := 0;
+   End
+  Else
+   Begin
+    TargetMemoryStream.Position := 0;
+    vActualImage.Position := 0;
+    vResultMemoryStream   := TMemoryStream.Create;
+    If CompareStreamData(vActualImage, TMemoryStream(TargetMemoryStream), vResultMemoryStream) then
+     Begin
+      vActualImage.Clear;
+      vResultMemoryStream.Position := 0;
+      vActualImage.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
+      TmemoryStream(TargetMemoryStream).Clear;
+      vActualImage.Position := 0;
+      TargetMemoryStream.CopyFrom(vActualImage, vActualImage.Size);
+      TargetMemoryStream.Position := 0;
+     End
+    Else
+     FreeAndNil(TargetMemoryStream);
+    FreeAndNil(vResultMemoryStream);
+   End;
+ Except
  End;
  If Assigned(TargetMemoryStream) Then
   Begin
@@ -155,11 +228,13 @@ Begin
 End;
 
 Initialization
+ vActualImage := TMemoryStream.Create;
  DllHandle := LoadLibrary('AegysData.dll');
  If DllHandle > 0 Then
   @CaptureScreenProc := GetProcAddress(DllHandle, 'CaptureScreen');
 
 Finalization
+ FreeAndNil(vActualImage);
  If DLLHandle <> 0 Then
   FreeLibrary(DLLHandle);
 

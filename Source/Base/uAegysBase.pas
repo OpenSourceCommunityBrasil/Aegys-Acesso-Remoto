@@ -224,6 +224,13 @@ Type
                                         MultiPack         : Boolean;
                                         PackCount         : AeInteger;
                                         aBuf              : TAegysBytes)         Of Object;
+ TAegysOnFileTransfer      = Procedure (Connection,
+                                        ID,
+                                        CommandMessage    : String;
+                                        InternalCommand   : TInternalCommand;
+                                        MultiPack         : Boolean;
+                                        PackCount         : AeInteger;
+                                        aBuf              : TAegysBytes)         Of Object;
  TAegysOnSendPackError     = Procedure (aBuf              : TAegysBytes;
                                         aError            : String)              Of Object;
  TAegysOnNewSession        = Procedure (Var vAegysSession    : TAegysSession;
@@ -354,7 +361,7 @@ End;
 
 Type
  PAegysConnections    = ^TAegysConnections;
- TAegysConnections    = Record
+ TAegysConnections    = Packed Record
   Connection,
   ClientID,
   ClientPassword,
@@ -386,6 +393,7 @@ Type
  End;
 
 Type
+ TRESTDWWriteMode = (twmDirect, twmBuffer);
  TAegysClient = Class(TComponent)
  Protected
   //Variáveis, Procedures e  Funções Protegidas
@@ -432,8 +440,8 @@ Type
   vOnDisconnect            : TAegysOnDisconnect;
   vOnScreenCapture,
   vOnAudioCapture,
-  vOnVideoCapture,
-  vOnFileTransfer          : TAegysOnClientBuf;
+  vOnVideoCapture          : TAegysOnClientBuf;
+  vOnFileTransfer          : TAegysOnFileTransfer;
   vOnKeyboardCapture,
   vOnMouseCapture          : TAegysOnClientServiceCommand;
   vOnInternalCommand       : TAegysOnInternalCommand;
@@ -465,51 +473,52 @@ Type
   Procedure OnCheckDisconnect   (aType           : Char);
  Public
   //Métodos, Propriedades, Variáveis, Procedures e Funções Publicas
-  Constructor Create        (AOwner      : TComponent);      Override;
+  Constructor Create        (AOwner       : TComponent);     Override;
   Destructor  Destroy;                                       Override;
   Procedure   ThreadDisconnect;
   Procedure   SetSessionData(ConnectionString,
                              ID,
-                             PWD         : String);
-  Procedure   NewID         (aValue      : String);
+                             PWD          : String);
+  Procedure   NewID         (aValue       : String);
   Function    GetPacketLength: Integer;
   Procedure   Connect;
   Procedure   Disconnect;
   Procedure   DisconnectAllPeers;
   Procedure   DisconnectPeer(aID,
                              aPass,
-                             aConnection : String);
+                             aConnection  : String);
   Procedure   Join          (aID,
                              aPass,
-                             aVideoQ     : String);
-  Procedure   SendCommand   (Value       : String);                         Overload;
-  Procedure   SendCommand   (aDest       : String;
-                             aBuffer     : TAegysBytes);                    Overload;
-  Procedure   SendMessage   (Value       : String;
-                             aDestMyConn : Boolean;
-                             CommandType : TCommandType = tctChat);         Overload;
-  Procedure   SendMessage   (aID, Value  : String;
-                             CommandType : TCommandType = tctChat);         Overload;
-  Procedure   SendMouse     (aID, Value  : String);                         Overload;
-  Procedure   SendMouse     (aDestMyConn : Boolean;
-                             Value       : String);                         Overload;
-  Procedure   SendMonitor   (aID, Value  : String);                         Overload;
-  Procedure   SendMonitor   (aDestMyConn : Boolean;
-                             Value       : String);                         Overload;
+                             aVideoQ      : String);
+  Procedure   SendCommand   (Value        : String);                         Overload;
+  Procedure   SendCommand   (aDest        : String;
+                             aBuffer      : TAegysBytes);                    Overload;
+  Procedure   SendMessage   (Value        : String;
+                             aDestMyConn  : Boolean;
+                             CommandType  : TCommandType = tctChat);         Overload;
+  Procedure   SendMessage   (aID, Value   : String;
+                             CommandType  : TCommandType = tctChat);         Overload;
+  Procedure   SendMouse     (aID, Value   : String);                         Overload;
+  Procedure   SendMouse     (aDestMyConn  : Boolean;
+                             Value        : String);                         Overload;
+  Procedure   SendMonitor   (aID, Value   : String);                         Overload;
+  Procedure   SendMonitor   (aDestMyConn  : Boolean;
+                             Value        : String);                         Overload;
   procedure   SendQuality   (aID,
-                             Value: String);
-  Procedure   SendKeyboard  (aID, Value  : String);                         Overload;
-  Procedure   SendKeyboard  (aDestMyConn : Boolean;
-                             Value       : String);                         Overload;
-  Procedure   SendBytes     (aID         : String;
-                             aBuffer     : TAegysBytes;
-                             aMoreData   : String       = '';
-                             CommandType : TCommandType = tctScreenCapture);Overload;
-  Procedure   SendBytes     (aBuffer     : TAegysBytes;
-                             aDestMyConn : Boolean;
-                             aMoreData   : String       = '';
-                             CommandType : TCommandType = tctScreenCapture);Overload;
-  Procedure   SendBytes     (aBuffer     : TAegysBytes);                    Overload;
+                             Value        : String);
+  Procedure   SendKeyboard  (aID, Value   : String);                         Overload;
+  Procedure   SendKeyboard  (aDestMyConn  : Boolean;
+                             Value        : String);                         Overload;
+  Procedure   SendBytes     (aID          : String;
+                             aBuffer      : TAegysBytes;
+                             aMoreData    : String       = '';
+                             CommandType  : TCommandType = tctScreenCapture);Overload;
+  Procedure   SendBytes     (aBuffer      : TAegysBytes;
+                             aDestMyConn  : Boolean;
+                             aMoreData    : String       = '';
+                             CommandType  : TCommandType = tctScreenCapture);Overload;
+  Procedure   SendBytes     (aBuffer      : TAegysBytes;
+                             aWriteMode   : TRESTDWWriteMode = twmDirect);                 Overload;
  Published
   //Métodos e Propriedades
   Property    Active                     : Boolean                       Read vActive                  Write SetActive;
@@ -548,7 +557,7 @@ Type
   Property    OnScreenCapture            : TAegysOnClientBuf             Read vOnScreenCapture         Write vOnScreenCapture;
   Property    OnAudioCapture             : TAegysOnClientBuf             Read vOnAudioCapture          Write vOnAudioCapture;
   Property    OnVideoCapture             : TAegysOnClientBuf             Read vOnVideoCapture          Write vOnVideoCapture;
-  Property    OnFileTransfer             : TAegysOnClientBuf             Read vOnFileTransfer          Write vOnFileTransfer;
+  Property    OnFileTransfer             : TAegysOnFileTransfer          Read vOnFileTransfer          Write vOnFileTransfer;
   Property    OnKeyboardCapture          : TAegysOnClientServiceCommand  Read vOnKeyboardCapture       Write vOnKeyboardCapture;
   Property    OnMouseCapture             : TAegysOnClientServiceCommand  Read vOnMouseCapture          Write vOnMouseCapture;
   Property    OnChatReceive              : TAegysOnClientCommand         Read vOnChatReceive           Write vOnChatReceive;
@@ -1057,7 +1066,6 @@ Begin
  {$ENDIF}
  vAction        := Assigned(vAegysSession);
  Try
-//  AContext.Connection.IOHandler.CheckForDisconnect;
   vAccept := True;
   Try
    If AContext.Connection.IOHandler.InputBufferIsEmpty Then
@@ -1601,7 +1609,7 @@ Begin
      If Not AContext.Connection.IOHandler.Connected Then
       Abort;
     End;
-//  Processmessages;
+  Processmessages;
  Except
   On E : EIdSocketError Do Abort;
   On E : EIdReadTimeout Do ;
@@ -1922,6 +1930,8 @@ Begin
     (Index <= Count -1) Then
   Begin
     Try
+     If Assigned(TAegysSession(TList(Self).Items[Index])) Then
+      TAegysSession(TList(Self).Items[Index]).Free;
      {$IFDEF FPC}
       Dispose(PAegysSession(TList(Self).Items[Index]));
      {$ELSE}
@@ -2063,9 +2073,12 @@ Begin
       Processmessages;
      End;
    Except
-    vBContext.Connection.CheckForGracefulDisconnect(False);
-    If Not vBContext.Connection.Connected Then
-     Raise;
+    If Assigned(vBContext.Connection) Then
+     Begin
+      vBContext.Connection.CheckForGracefulDisconnect(False);
+      If Not vBContext.Connection.Connected Then
+       Raise;
+     End;
    End;
   End
  Else If Assigned(vAContext) then
@@ -2108,7 +2121,8 @@ Begin
   aPackClass.Command     := Format('%s%s', [cNewPeerList, vNewList]) +
                             Format('%s%s', [cMyConfigs,   MyConfigs]);
   aBuf                   := aPackClass.ToBytes;
-  SendBytes(aBuf);
+  vBContext.Connection.IOHandler.WriteDirect(TidBytes(aBuf));
+//  SendBytes(aBuf);
  Finally
   SetLength(aBuf, 0);
   FreeAndNil(aPackClass);
@@ -2232,7 +2246,10 @@ Begin
    If Assigned(vTcpRequest) Then
     Begin
      If vTcpRequest.Connected Then
-      aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers)
+      Begin
+       aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers);
+       ProcessMessages;
+      End
      Else
       Raise Exception.Create(cCantExecDisconnected);
     End;
@@ -2246,7 +2263,10 @@ Begin
  If Assigned(vTcpRequest) Then
   Begin
    If vTcpRequest.Connected Then
-    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cDisconnectPeer + '%s&%s&%s', [aID, aPass, aConnection]))
+    Begin
+     aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cDisconnectPeer + '%s&%s&%s', [aID, aPass, aConnection]));
+     ProcessMessages;
+    End
    Else
     Raise Exception.Create(cCantExecDisconnected);
   End;
@@ -2262,7 +2282,10 @@ Begin
  If Assigned(vTcpRequest) Then
   Begin
    If vTcpRequest.Connected Then
-    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cRelation + '%s&%s&%s', [vSessionID, aID, aPass, aVideoQ]))
+    Begin
+     aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cRelation + '%s&%s&%s', [vSessionID, aID, aPass, aVideoQ]));
+     ProcessMessages;
+    End
    Else
     Raise Exception.Create(cCantExecDisconnected);
   End;
@@ -2307,7 +2330,9 @@ Begin
   tctFileTransfer  : Begin
                       If Assigned(vOnFileTransfer) Then
                        Begin
-                        vOnFileTransfer   (Connection, ID, Command,
+                        vOnFileTransfer   (Connection, ID,
+                                           Command,
+                                           InternalCommand,
                                            MultiPack,
                                            PackCount, aBuf);
                        End;
@@ -2383,8 +2408,7 @@ Var
   Finally
    SetLength(aBuf, 0);
    FreeAndNil(aPackClass);
-   Processmessages;
-   Sleep(cDelayThread);
+//   Sleep(cDelayThread div 2);
   End;
  End;
 Begin
@@ -2467,7 +2491,6 @@ End;
 Procedure TAegysClient.OnBeforeExecuteData (Var abPackList : TPackList);
  Procedure ReceiveStreamClient;
  Var
-//  I             : Integer;
   aBuf          : TAegysBytes;
   aFirstBufSize : AEInteger;
   aBuffSize,
@@ -2490,7 +2513,6 @@ Procedure TAegysClient.OnBeforeExecuteData (Var abPackList : TPackList);
           Move(aBuf[0], aPackSize, SizeOf(aPackSize));
           aFirstBufSize := Length(aBuf);
           bPackSize     := 0;
-          Processmessages;
           While (aPackSize <> Length(aBuf)) And
                 (aPackSize >  Length(aBuf)) And
                 (aPackSize > 0)             Do
@@ -2505,12 +2527,12 @@ Procedure TAegysClient.OnBeforeExecuteData (Var abPackList : TPackList);
              vActiveTcp.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize)
             Else
              Break;
-            Processmessages;
            End;
           If (aPackSize = Length(aBuf)) And
              (aPackSize > 0)            Then
            abPackList.Add(aBuf);
          Finally
+          Processmessages;
           SetLength(aBuf, 0);
          End;
         End
@@ -2560,6 +2582,7 @@ Begin
      SendBytes(aBuffer);
    Finally
     abPackList.Delete(0);
+    ProcessMessages;
    End;
   End;
 End;
@@ -2581,6 +2604,7 @@ Begin
      Else
       Raise Exception.Create(cSocketDisconnected);
     End;
+   ProcessMessages;
   End;
 // Else
 //  Begin
@@ -2644,7 +2668,8 @@ Begin
  Processmessages;
 End;
 
-Procedure TAegysClient.SendBytes           (aBuffer       : TAegysBytes);
+Procedure TAegysClient.SendBytes(aBuffer      : TAegysBytes;
+                                 aWriteMode   : TRESTDWWriteMode = twmDirect);
 Begin
  If Assigned(vTcpRequest) Then
   If vTcpRequest.Connected Then
@@ -2652,7 +2677,10 @@ Begin
     aOldTime := Now;
     Try
      Processmessages;
-     vTcpRequest.IOHandler.WriteDirect(TIdBytes(aBuffer));
+     If aWriteMode = twmBuffer Then
+      aPackList.Add(aBuffer)
+     Else If aWriteMode = twmDirect Then
+      vTcpRequest.IOHandler.WriteDirect(TIdBytes(aBuffer));
     Except
      On e : Exception Do
       Begin
@@ -2738,7 +2766,8 @@ Begin
   If vTcpRequest.Connected Then
    Begin
     aOldTime := Now;
-    aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, Format('%s&%s&%s', [vConnection, vSessionID, Value]), False);
+    aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, Value, False);
+    Processmessages;
    End;
 End;
 
@@ -2831,6 +2860,7 @@ Begin
   vActive     := False;
   If Assigned(vOnDisconnect) Then
    vOnDisconnect(Self);
+  Processmessages;
  End;
 End;
 
@@ -2854,6 +2884,7 @@ Begin
   Begin
    Try
     vProcessData.Kill;
+    Processmessages;
    Except
    End;
    {$IFDEF FPC}
@@ -2895,6 +2926,7 @@ Var
    WriteDirect(vTcpReceive, aBuf);
   Finally
    SetLength(aBuf, 0);
+   Processmessages;
   End;
  End;
 Begin
@@ -2931,6 +2963,7 @@ Begin
        Begin
         aOldTime             := Now;
         vWelcomeString       := vWelcomeMessage;
+        Processmessages;
         {$IFDEF FPC}
         vProcessData         := TAegysThread.Create(aPackList,
                                                     TComponent(Pointer(@Self)^),
@@ -3387,6 +3420,8 @@ Begin
     (Index <= Count -1) Then
   Begin
    Try
+    If Assigned(PAegysMyConnection(TList(Self).Items[Index])^) Then
+     PAegysMyConnection(TList(Self).Items[Index])^.Free;
     {$IFDEF FPC}
      Dispose(PAegysMyConnection(TList(Self).Items[Index]));
     {$ELSE}

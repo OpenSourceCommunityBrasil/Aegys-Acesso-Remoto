@@ -27,7 +27,7 @@ Uses
 Const
  //Aegys Basics
  cAeBufferVersion      = 12;
- cDelayThread          = 2;
+ cDelayThread          = 4;
  cFrameSkip            = 4;
  cServiceTimeout       = 1000;
  cLimitSource          = 500;
@@ -82,10 +82,12 @@ Const
  cAccessing            = '<|ACCESSING|>';
  cGetFullScreenshot    = '<|GETFULLSCREENSHOT|>';
  cStopAccess           = '<|STOPACCESS|>';
- cFolderList           = '<|FOLDERLIST|>';
  cGetDrivers           = '<|GETDRIVERS|>';
- cFileList             = '<|FILESLIST|>';
  cGetFiles             = '<|GETFILES|>';
+ cGetFolders           = '<|GETFOLDERS|>';
+ cSetDrivers           = '<|SETDRIVERS|>';
+ cSetFiles             = '<|SETFILES|>';
+ cSetFolders           = '<|SETFOLDERS|>';
  cBlockInput           = '<|BLOCKINPUT|>';
  cUnBlockInput         = '<|UNBLOCKINPUT|>';
  cSeparatorTag         = '<|>';

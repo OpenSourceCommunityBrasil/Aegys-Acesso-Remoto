@@ -26,10 +26,9 @@ uses
   FMX.Edit,         FMX.Objects,        FMX.Controls.Presentation, FMX.Layouts,
   FMX.Ani,          FMX.TabControl,     FMX.ListBox, FMX.Menus,    FMX.StdCtrls,
   uAegysBase,       uAegysDataTypes,    uFunctions, CCR.Clipboard, windows, shellapi,
-  Messages,         uSQLiteConfig,      uAegysConsts,              uAegysClientMotor,
-  FireDAC.UI.Intf,  FireDAC.FMXUI.Wait, FireDAC.Stan.Intf,         FireDAC.Comp.UI,
-  FMX.Forms,        FMX.ActnList,       uAegysBufferPack,          Vcl.Graphics,
-  Vcl.Imaging.jpeg, FMX.Graphics;
+  Messages,         uAegysConsts,       uAegysClientMotor,         FMX.Forms,
+  FMX.ActnList,     uAegysBufferPack,   Vcl.Graphics,              Vcl.Imaging.jpeg,
+  FMX.Graphics;
 
 Const
  aFatorTela    = 3;
@@ -86,8 +85,6 @@ type
     LPassword: TLabel;
     sbPasswordCopy: TSpeedButton;
     PhPasswordCopy: TPath;
-    TmrSystemTray: TTimer;
-    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure actPasteIDExecute(Sender: TObject);
@@ -99,7 +96,6 @@ type
     procedure EGuestIDTyping(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure sbOptionsClick(Sender: TObject);
-    procedure TmrSystemTrayTimer(Sender: TObject);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
     procedure FormShow(Sender: TObject);
   private
@@ -110,7 +106,6 @@ type
     vInitTime,
     vFinalTime        : TDateTime;
     aPackList         : TPackList;
-    Locale            : TLocale;
     aConnection,
     vClientID,
     vOldClipboardFile,
@@ -181,6 +176,13 @@ type
                                       ID, Command       : String);
     procedure OnPeerList(InternalCommand: TInternalCommand; Command: String);
     procedure ReposicionarFav;
+    procedure OnFileTransfer(Connection,
+                             ID,
+                             CommandMessage : String;
+                             Command        : TInternalCommand;
+                             MultiPack      : Boolean;
+                             PackCount      : AeInteger;
+                             aBuf           : TAegysBytes);
   public
    aMyAlias,
    aMyFixPass,
@@ -215,6 +217,7 @@ var
   CF_FILE            : Integer;
   mx, my             : Single;
   WndProcHook        : THandle;
+  vActualImage       : TMemoryStream;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -227,8 +230,103 @@ uses uFormTelaRemota,  uFileTransfer,    uFormChat,        FMX.Clipboard,
      System.IOUtils,   System.Rtti,      uLibClass,        uConstants,
      System.DateUtils, FMX.Platform.Win, uFormConfig,
      StreamManager,    uFormSenha,       uSendKeyClass,    uAegysTools,
-     uAegysZlib,       NB30, uFavoritos;
+     uAegysZlib,       NB30, uFavoritos, uFilesFoldersOP,  uASMTools;
 
+
+Procedure ListDrivers(Var ReturnData : TStringList);
+Var
+ ShellProps : TShellProps;
+ I          : Integer;
+Begin
+ ShellProps := TShellProps.Create;
+ ReturnData.Clear;
+ ReturnData.Add(ShellProps.LocalStation);
+ Try
+  For I := 0 To ShellProps.Drivers.Count -1 Do
+   ReturnData.Add(ShellProps.Drivers[I]);
+ Except
+ End;
+ Try
+  ShellProps.Free;
+ Except
+ End;
+End;
+
+Procedure ListFiles(FolderName : String;
+                    Var Return : TStringList);
+Var
+ ShellProps  : TShellProps;
+ I           : Integer;
+ vLinha      : AnsiString;
+ Function GetSize(Bytes : Int64) : String;
+ Const
+  K = Int64(1024);
+  M = K * K;
+  G = K * M;
+  T = K * G;
+ Begin
+       If Bytes < K Then Result := Format('%d B',  [Bytes])
+  Else If Bytes < M Then Result := Format('%f KB', [Bytes / K])
+  Else If Bytes < G Then Result := Format('%f MB', [Bytes / M])
+  Else If Bytes < T Then Result := Format('%f GB', [Bytes / G])
+  Else                   Result := Format('%f TB', [Bytes / T]);
+ End;
+Begin
+ ShellProps  := TShellProps.Create;
+ Return.Clear;
+ Try
+  ShellProps.Folder := FolderName;
+  For I := 0 To ShellProps.FilesCount -1 do
+   Begin
+    If ShellProps.Files[I].FileType <> fpDir Then
+     Begin
+      vLinha := Format('%s|%s|%s|%s', [ShellProps.Files[I].FileName,
+                                       GetSize(ShellProps.Files[I].FileSize),
+                                       ShellProps.Files[I].FileTypeDesc,
+                                       FormatDateTime('dd/mm/yyyy hh:mm:ss', ShellProps.Files[I].LastWrite)]);
+      Return.Add(vLinha);
+     End;
+   End;
+ Except
+
+ End;
+End;
+
+Procedure ListFolders(Directory      : String;
+                      Var ReturnData : TStringList);
+Var
+ FileName,
+ Filelist   : String;
+ Searchrec  : TWin32FindData;
+ FindHandle : THandle;
+Begin
+ ReturnData.Clear;
+ If Directory <> '' Then
+  Begin
+   Try
+    FindHandle := FindFirstFile(PChar(Directory + '*.*'), Searchrec);
+    If FindHandle <> INVALID_HANDLE_VALUE Then
+     Begin
+      Repeat
+       If (Pos('ecycle.bin', LowerCase(Searchrec.cFileName)) = 0) Then
+        Begin
+         FileName := Searchrec.cFileName;
+         If (FileName = '.') Then
+          Continue;
+         If ((Searchrec.dwFileAttributes And FILE_ATTRIBUTE_DIRECTORY) <> 0) Then
+          ReturnData.Add(FileName)
+         Else
+          Filelist := Filelist + (FileName + #13);
+        End;
+      Until Not(FindNextFile(FindHandle, Searchrec));
+     End;
+   Finally
+    Windows.FindClose(FindHandle);
+   End;
+  End;
+// ReturnStr := (Dirlist);
+// Result := ReturnStr;
+End;
 
 Function WndProc(Code: integer; WParam, LParam: LongInt): LRESULT; stdcall;
 var
@@ -280,6 +378,162 @@ Begin
     End;
   End;
  Result := (majorversion < 7);
+End;
+
+
+Procedure TFormConexao.OnFileTransfer(Connection,
+                                      ID,
+                                      CommandMessage    : String;
+                                      Command           : TInternalCommand;
+                                      MultiPack         : Boolean;
+                                      PackCount         : AeInteger;
+                                      aBuf              : TAegysBytes);
+Var
+ I                : Integer;
+ aPackClass       : TPackClass;
+ vBuf             : TAegysBytes;
+ vDataSendReceive : TStringList;
+ Procedure NewPack;
+ Begin
+  aPackClass             := TPackClass.Create;
+  aPackClass.DataMode    := tdmClientCommand;
+  aPackClass.Owner       := Conexao.Connection;
+  aPackClass.Dest        := Connection;
+  aPackClass.DataCheck   := tdcAsync;
+  aPackClass.CommandType := tctFileTransfer;
+ End;
+ Procedure FreePack;
+ Begin
+  SetLength(vBuf, 0);
+  FreeAndNil(aPackClass);
+ End;
+ Function MontaLinhaEnvio(Value : TStringList) : AnsiString;
+ Var
+  I : Integer;
+ Begin
+  Result := '';
+  For I := 0 To Value.Count -1 do
+   Result := Result + Value[I] + sLineBreak;
+ End;
+Begin
+ Case Command Of
+  ticGetFolders : Begin
+                   vDataSendReceive := TStringList.Create;
+                   Try
+                    ListFolders(CommandMessage, vDataSendReceive);
+                   Finally
+                    Try
+                     If vDataSendReceive.Text <> '' Then
+                      Begin
+                       NewPack;
+                       Try
+                        aPackClass.Command     := Format('%s%s', [cSetFolders, vDataSendReceive.Text]);
+                        vBuf                   := aPackClass.ToBytes;
+                        Conexao.SendBytes(vBuf, twmBuffer);
+                       Finally
+                        FreePack;
+                       End;
+                      End;
+                    Finally
+                     FreeAndNil(vDataSendReceive);
+                    End;
+                   End;
+                  End;
+  ticSetFolders : Begin
+                   vDataSendReceive := TStringList.Create;
+                   Try
+                    vDataSendReceive.Text := CommandMessage;
+                    If Copy(vDataSendReceive.Text, 1, 2) <> '..' Then
+                     vDataSendReceive.Text := '..' + #13 + vDataSendReceive.Text;
+                    If Assigned(fFileTransfer) Then
+                     Begin
+                      fFileTransfer.CarregarListaPastas(vDataSendReceive.Text);
+                      fFileTransfer.Caption := Format('Transferência de Arquivo %d', [fFileTransfer.DestCount]);
+                     End;
+                   Finally
+                    FreeAndNil(vDataSendReceive);
+                    NewPack;
+                    Try
+                     aPackClass.Command     := Format('%s%s', [cGetFiles, fFileTransfer.ActiveFolder]);
+                     vBuf                   := aPackClass.ToBytes;
+                     Conexao.SendBytes(vBuf, twmBuffer);
+                    Finally
+                     FreePack;
+                    End;
+                   End;
+                  End;
+  ticGetFiles   : Begin
+                   vDataSendReceive := TStringList.Create;
+                   Try
+                    ListFiles(CommandMessage, vDataSendReceive);
+                   Finally
+                    Try
+                     If vDataSendReceive.Text <> '' Then
+                      Begin
+                       NewPack;
+                       Try
+                        aPackClass.Command     := Format('%s%s', [cSetFiles, MontaLinhaEnvio(vDataSendReceive)]);
+                        vBuf                   := aPackClass.ToBytes;
+                        Conexao.SendBytes(vBuf, twmBuffer);
+                       Finally
+                        FreePack;
+                       End;
+                      End;
+                    Finally
+                     FreeAndNil(vDataSendReceive);
+                    End;
+                   End;
+                  End;
+  ticGetDrivers : Begin
+                   vDataSendReceive := TStringList.Create;
+                   Try
+                    ListDrivers(vDataSendReceive);
+                   Finally
+                    Try
+                     If vDataSendReceive.Text <> '' Then
+                      Begin
+                       NewPack;
+                       Try
+                        aPackClass.Command     := Format('%s%s', [cSetDrivers, vDataSendReceive.Text]);
+                        vBuf                   := aPackClass.ToBytes;
+                        Conexao.SendBytes(vBuf, twmBuffer);
+                       Finally
+                        FreePack;
+                       End;
+                      End;
+                    Finally
+                     FreeAndNil(vDataSendReceive);
+                    End;
+                   End;
+                  End;
+  ticSetFiles   : Begin
+                   If Assigned(fFileTransfer) Then
+                    Begin
+                     fFileTransfer.CarregarListaArquivos(CommandMessage);
+                     fFileTransfer.Caption := Format('Transferência de Arquivo %d', [fFileTransfer.DestCount]);
+                    End;
+                  End;
+  ticSetDrivers : Begin
+                   vDataSendReceive := TStringList.Create;
+                   Try
+                    vDataSendReceive.Text := CommandMessage;
+                    If Assigned(fFileTransfer) Then
+                     Begin
+                      fFileTransfer.ceRemotePath.Items.Clear;
+                      fFileTransfer.lPCRemoto.Text := vDataSendReceive[0];
+                      For I := 1 To vDataSendReceive.count - 1 Do
+                       fFileTransfer.ceRemotePath.Items.Add(' ' + vDataSendReceive[I]);
+                      If fFileTransfer.ceRemotePath.Items.Count > 0 Then
+                       Begin
+                        fFileTransfer.ceRemotePath.ItemIndex := 0;
+                        fFileTransfer.ceRemotePath.OnChange(fFileTransfer.ceRemotePath);
+                       End;
+                     End;
+                   Finally
+                    FreeAndNil(vDataSendReceive);
+                   End;
+                  End;
+ End;
 End;
 
 Procedure TFormConexao.ExecuteCommand(aLine : String);
@@ -627,9 +881,11 @@ end;
 
 procedure TFormConexao.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if Assigned(Conexao) then
-    FreeAndNil(Conexao);
-
+ If Assigned(Conexao) then
+  FreeAndNil(Conexao);
+ If Assigned(fFavoritos) then
+  fFavoritos.Close;
+// Release;
 end;
 
 procedure TFormConexao.SendConfigs;
@@ -655,12 +911,9 @@ Begin
 End;
 
 procedure TFormConexao.FormCreate(Sender: TObject);
-var
-  CFG: TSQLiteConfig;
 begin
  CF_FILE := RegisterClipboardFormat('FileName');
  // inicializando os objetos
- Locale  := TLocale.Create;
  Conexao := TAegysClient.Create(Self);
  // --------------------------
  SetColors;
@@ -669,14 +922,14 @@ begin
  SetSockets;
  isvisible := True;
  // load confg
- CFG := TSQLiteConfig.Create;
- Try
-  lyGuestID.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
-  lyConnect.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
-  lyQuality.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
- Finally
-  FreeAndNil(CFG);
- End;
+// CFG := TSQLiteConfig.Create;
+// Try
+//  lyGuestID.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
+//  lyConnect.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
+//  lyQuality.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
+// Finally
+//  FreeAndNil(CFG);
+// End;
  aPackList         := TPackList.Create;
  SendDataThread    := Nil;
 // SendCommandEvents := Nil;
@@ -688,7 +941,6 @@ end;
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
  FreeAndNil(aPackList);
- FreeAndNil(Locale);
 end;
 
 procedure TFormConexao.FormMouseMove(Sender: TObject; Shift: TShiftState;
@@ -708,17 +960,7 @@ Begin
 End;
 
 procedure TFormConexao.FormShow(Sender: TObject);
-Var
- CFG : TSQLiteConfig;
 Begin
- CFG := TSQLiteConfig.Create;
- Try
-  If StrToIntDef(CFG.getValue(ENABLE_SYSTRAY), 0).ToBoolean Then
-   If isvisible Then
-    SetTrayIcon;
- Finally
-  FreeAndNil(CFG);
- End;
  ReposicionarFav;
 End;
 
@@ -812,15 +1054,15 @@ begin
    If not(LlyGuestIDCaption.Text = '   -   -   ') then
     begin
       if (LlyGuestIDCaption.Text = Conexao.SessionID) then
-        MessageBox(0, Locale.GetLocaleDlg(DLGS, 'ErrorSelfConnect'),
-          Locale.GetLocaleDlg(DLGS, 'RemoteSupport'),
+        MessageBox(0, 'Erro Connectando...',
+          'RemoteSupport',
           MB_ICONASTERISK + MB_TOPMOST)
       else
       begin
         LbtnConectar.Enabled := False;
         Conexao.SendCommand(cFindID + EGuestID.Text);
         btnConectar.Enabled := False;
-        MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
+        MudarStatusConexao(1, 'Procurando ID');
       end;
     end;
   End;
@@ -838,16 +1080,14 @@ end;
 
 procedure TFormConexao.Translate;
 begin
-  self.Caption := Locale.GetLocale(FRMS, 'MainTitle');
-  LSubTitle.Text := Locale.GetLocale(FRMS, 'MainSubTitle');
-  LVersion.Text := Format(Locale.GetLocale(MAIN, 'Version'),
-    [TRDLib.GetAppVersionStr]);
-  LlyMachineIDCaption.Text := Locale.GetLocale(FRMS, 'MainMachineID');
-  LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'MainPassword');
-  LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
-  LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
-  LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
-  Locale.GetLocale(cbQuality, tcbQuality);
+  self.Caption := 'Suporte Remoto';
+  LSubTitle.Text := 'Aegys';
+  LVersion.Text := Format('Versão %s', [TRDLib.GetAppVersionStr]);
+  LlyMachineIDCaption.Text := 'Meu ID';
+  LlyPasswordCaption.Text := 'Password';
+  LlyGuestIDCaption.Text := 'ID do Acesso Remoto';
+  LlyResolutionCaption.Text := 'Qualidade do Vídeo';
+  LbtnConectar.Text := 'Connectar';
   SetSockets;
 
 end;
@@ -890,7 +1130,7 @@ end;
 
 procedure TFormConexao.SetOffline;
 begin
-  LMachineID.Text      := Locale.GetLocale(MSGS, 'Offline');
+  LMachineID.Text      := 'Offline';
   LPassword.Text       := LMachineID.Text;
   btnConectar.Enabled  := False;
   LbtnConectar.Enabled := btnConectar.Enabled;
@@ -1124,15 +1364,18 @@ End;
 Function TFormConexao.OnPulseData(aPack       : TAegysBytes;
                                   CommandType : TCommandType = tctScreenCapture) : Boolean;
 Begin
- Result := Conexao.Active;
- If Result Then
+ If Assigned(Conexao) Then
   Begin
-   If CommandType = tctScreenCapture Then
-    Conexao.SendBytes(aPack)
-   Else
-    Conexao.SendCommand(aConnection, aPack);
+   Result := Conexao.Active;
+   If Result Then
+    Begin
+     If CommandType = tctScreenCapture Then
+      Conexao.SendBytes(aPack)
+     Else
+      Conexao.SendCommand(aConnection, aPack);
+     Processmessages;
+    End;
   End;
- //Processmessages;
 End;
 
 Procedure TFormConexao.OnProcessData(aPackList  : TPackList;
@@ -1164,7 +1407,7 @@ Begin
     Else
      Exit;
    End;
- Finally
+ Except
  End;
 End;
 
@@ -1269,6 +1512,7 @@ Procedure TFormConexao.OnScreenCapture(Connection,
 Var
  ArrayOfPointer : TArrayOfPointer;
  vStream        : TStream;
+ vResultMemoryStream : TMemoryStream;
  vImageFile,
  vAltura,
  vLargura       : String;
@@ -1410,6 +1654,27 @@ Begin
       vStream.Position := 0;
      End;
     Try
+     If (vActualImage.Size = 0) Then
+      Begin
+       vStream.Position := 0;
+       vActualImage.Clear;
+       vActualImage.CopyFrom(vStream, vStream.Size);
+       vStream.Position := 0;
+      End
+     Else
+      Begin
+       vActualImage.Position := 0;
+       vResultMemoryStream := TMemoryStream.Create;
+       ResumeStreamB(vActualImage, vResultMemoryStream, TMemoryStream(vStream));
+       vResultMemoryStream.Position := 0;
+       vActualImage.Clear;
+       vActualImage.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
+       vResultMemoryStream.Position := 0;
+       TMemoryStream(vStream).Clear;
+       vStream.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
+       vStream.Position  := 0;
+       FreeAndnil(vResultMemoryStream);
+      End;
      ResizeScreen(vResolucaoAltura, vResolucaoLargura);
      If (aFirstCapture) And
         (aIncSprite = cMaxSpriteCap) Then
@@ -1419,8 +1684,12 @@ Begin
        Try
         vImageFile                      := EncodeStream(vStreamBitmap);
         MyConnection                    := Conexao.FavConnectionList.GetConnection(Connection, ID);
-        MyConnection.ConnectionLastShot := vImageFile;
-        fFavoritos.SetImage(MyConnection, MyConnection.ConnectionLastShot);
+        If Assigned(MyConnection) Then
+         Begin
+          MyConnection.ConnectionLastShot := vImageFile;
+          If Assigned(fFavoritos) Then
+           fFavoritos.SetImage(MyConnection, MyConnection.ConnectionLastShot);
+         End;
         aFirstCapture := False;
        Finally
         FreeAndNil(vStreamBitmap);
@@ -1436,7 +1705,7 @@ Begin
      FreeAndNil(vStream);
     End;
    Finally
-//    Application.ProcessMessages;
+    Processmessages;
    End;
   End;
 End;
@@ -1444,63 +1713,60 @@ End;
 Procedure TFormConexao.OnPeerList(InternalCommand      : TInternalCommand;
                                   Command              : String);
 Begin
- TThread.CreateAnonymousThread(Procedure
-                               Begin
-                                TThread.Synchronize(Nil, Procedure
-                                                         Var
-                                                          vCommand,
-                                                          vMyConfigs : String;
-                                                          Procedure DecodeConfigs(aMyConfigs : String);
-                                                          Var
-                                                           vTempData : String;
-                                                          Begin
-                                                           vTempData      := DecodeStrings(aMyConfigs);
-                                                           aMyAlias       := Copy(vTempData, 1, Pos('|', vTempData) -1);
-                                                           Delete(vTempData, 1, Pos('|', vTempData));
-                                                           aUnAssistConn  := Copy(vTempData, 1, Pos('|', vTempData) -1) = '1';
-                                                           Delete(vTempData, 1, Pos('|', vTempData));
-                                                           aMyFixPass     := Copy(vTempData, 1, Pos('|', vTempData) -1);
-                                                           Delete(vTempData, 1, Pos('|', vTempData));
-                                                           aMyGroup       := vTempData;
-                                                          End;
-                                                         Begin
-                                                          vMyConfigs := '';
-                                                          vCommand   := Command;
-                                                          Case InternalCommand Of
-                                                           ticPeerOn      : Begin
-                                                                             Conexao.FavConnectionList.FromString(vCommand, tlct_PeerOn);
-                                                                             fFavoritos.CreatePanels(Conexao.FavConnectionList);
-                                                                            End;
-                                                           ticPeerOff     : Begin
-                                                                             Conexao.FavConnectionList.FromString(vCommand, tlct_PeerOff);
-                                                                             fFavoritos.CreatePanels(Conexao.FavConnectionList);
-                                                                            End;
-                                                           ticPeerNewList : Begin
-                                                                             If Pos(cMyConfigs, vCommand) > 0 Then
-                                                                              Begin
-                                                                               vMyConfigs := Copy(vCommand, Pos(cMyConfigs, vCommand) + Length(cMyConfigs), Length(vCommand));
-                                                                               Delete(vCommand, Pos(cMyConfigs, vCommand), Length(vCommand));
-                                                                              End;
-                                                                             DecodeConfigs(vMyConfigs);
-                                                                             Conexao.FavConnectionList.FromString(vCommand, tlct_NewList);
-                                                                             fFavoritos.CreatePanels(Conexao.FavConnectionList);
-                                                                            End;
-                                                          End
-                                                         End);
-                               End).Start;
+  TThread.Synchronize(Nil, Procedure
+                           Var
+                            vCommand,
+                            vMyConfigs : String;
+                            Procedure DecodeConfigs(aMyConfigs : String);
+                            Var
+                             vTempData : String;
+                            Begin
+                             vTempData      := DecodeStrings(aMyConfigs);
+                             aMyAlias       := Copy(vTempData, 1, Pos('|', vTempData) -1);
+                             Delete(vTempData, 1, Pos('|', vTempData));
+                             aUnAssistConn  := Copy(vTempData, 1, Pos('|', vTempData) -1) = '1';
+                             Delete(vTempData, 1, Pos('|', vTempData));
+                             aMyFixPass     := Copy(vTempData, 1, Pos('|', vTempData) -1);
+                             Delete(vTempData, 1, Pos('|', vTempData));
+                             aMyGroup       := vTempData;
+                            End;
+                           Begin
+                            vMyConfigs := '';
+                            vCommand   := Command;
+                            Case InternalCommand Of
+                             ticPeerOn      : Begin
+                                               Conexao.FavConnectionList.FromString(vCommand, tlct_PeerOn);
+                                               fFavoritos.CreatePanels(Conexao.FavConnectionList);
+                                              End;
+                             ticPeerOff     : Begin
+                                               Conexao.FavConnectionList.FromString(vCommand, tlct_PeerOff);
+                                               fFavoritos.CreatePanels(Conexao.FavConnectionList);
+                                              End;
+                             ticPeerNewList : Begin
+                                               If Pos(cMyConfigs, vCommand) > 0 Then
+                                                Begin
+                                                 vMyConfigs := Copy(vCommand, Pos(cMyConfigs, vCommand) + Length(cMyConfigs), Length(vCommand));
+                                                 Delete(vCommand, Pos(cMyConfigs, vCommand), Length(vCommand));
+                                                End;
+                                               DecodeConfigs(vMyConfigs);
+                                               Conexao.FavConnectionList.FromString(vCommand, tlct_NewList);
+                                               fFavoritos.CreatePanels(Conexao.FavConnectionList);
+                                              End;
+                            End
+                           End);
 End;
 
 Procedure TFormConexao.SetSockets;
 Var
- CFG : TSQLiteConfig;
+// CFG : TSQLiteConfig;
  host : string;
 Begin
- CFG := TSQLiteConfig.Create;
+// CFG := TSQLiteConfig.Create;
  Try
   If SERVIDOR <> '' Then
-   host := SERVIDOR
-  Else
-   host := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
+   host := SERVIDOR;
+//  Else
+//   host := iif(CFG.getValue(SERVER) = '', '0.0.0.0', CFG.getValue(SERVER));
   Conexao.Disconnect;
   Conexao.OnBeforeConnect         := OnBeforeConnect;
   Conexao.OnConnect               := OnConnect;
@@ -1519,12 +1785,13 @@ Begin
   Conexao.OnPeerKick              := OnPeerKick;
   Conexao.OnClientInternalCommand := OnInternalCommand;
   Conexao.OnAccessDenied          := AccessDenied;
+  Conexao.OnFileTransfer          := OnFileTransfer;
   Conexao.Host                    := Host;
   Conexao.Port                    := PORTA;
   Sleep(FOLGAPROCESSAMENTO);
   Conexao.Connect;
  Finally
-  FreeAndNil(CFG);
+//  FreeAndNil(CFG);
  End;
 End;
 
@@ -1565,13 +1832,6 @@ begin
   ShowWindow(hAppWnd, SW_SHOW);
 end;
 
-procedure TFormConexao.TmrSystemTrayTimer(Sender: TObject);
-begin
-  // TmrSystemTray.Enabled := False;
-  // if systemtray then
-  // self.Hide;
-end;
-
 procedure TFormConexao.EGuestIDTyping(Sender: TObject);
 begin
   TEdit(Sender).Text := MascaraID(TEdit(Sender).Text, '99-999-999');
@@ -1582,6 +1842,7 @@ Procedure TFormConexao.tmrIntervaloTimer(Sender: TObject);
 Begin
  If (Conexao.SessionTime > INTERVALOCONEXAO) Then
   Begin
+   Processmessages;
    If (FormTelaRemota.Visible) Then
     FormTelaRemota.Close
    Else
@@ -1595,9 +1856,11 @@ Begin
 End;
 
 Initialization
- WndProcHook := SetWindowsHookEx(WH_CALLWNDPROCRET, @WndProc, 0, GetCurrentThreadId);
+ WndProcHook  := SetWindowsHookEx(WH_CALLWNDPROCRET, @WndProc, 0, GetCurrentThreadId);
+ vActualImage := TMemoryStream.Create;
 
 Finalization
  UnhookWindowsHookEx(WndProcHook);
+ FreeAndNil(vActualImage);
 
 End.

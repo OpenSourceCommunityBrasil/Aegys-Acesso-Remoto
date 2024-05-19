@@ -44,7 +44,10 @@ Type
                       ticPeerOn,             ticPeerOff,
                       ticPeerNewList,        ticPeerService,
                       ticPeerSendImage,      ticNewPeerData,
-                      ticEditPeerData,       ticDeletePeerData);
+                      ticEditPeerData,       ticDeletePeerData,
+                      ticGetFiles,           ticGetDrivers,
+                      ticSetFiles,           ticSetDrivers,
+                      ticGetFolders,         ticSetFolders);
  TDataMode         = (tdmServerCommand,      tdmClientCommand,
                       tdmReply);
  TDataType         = (tdtString,             tdtDataBytes);

@@ -150,6 +150,7 @@ object FormConexao: TFormConexao
             Size.Width = 20.000000000000000000
             Size.Height = 20.000000000000000000
             Size.PlatformDefault = False
+            TextSettings.Trimming = None
             OnClick = sbOptionsClick
             object phOptions: TPath
               Align = Client
@@ -270,14 +271,13 @@ object FormConexao: TFormConexao
           object sbMachineIDCopy: TSpeedButton
             Action = actCopyID
             Align = Right
-            Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
             Position.X = 272.000000000000000000
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
-            Visible = True
+            TextSettings.Trimming = None
             object PhMachineIDCopy: TPath
               Align = Client
               Data.Path = {
@@ -410,14 +410,13 @@ object FormConexao: TFormConexao
           object sbPasteID: TSpeedButton
             Action = actPasteID
             Align = Right
-            Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
             Position.X = 272.000000000000000000
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
-            Visible = True
+            TextSettings.Trimming = None
             object PhPasteID: TPath
               Align = Client
               Data.Path = {
@@ -463,7 +462,6 @@ object FormConexao: TFormConexao
           object LbtnConectar: TLabel
             Action = actConnect
             Align = Client
-            Enabled = True
             StyledSettings = [Style]
             HitTest = True
             Size.Width = 308.000000000000000000
@@ -473,7 +471,6 @@ object FormConexao: TFormConexao
             TextSettings.Font.Size = 20.000000000000000000
             TextSettings.FontColor = claWhite
             TextSettings.HorzAlign = Center
-            Visible = True
           end
           object aniBtnLogin: TFloatAnimation
             Duration = 0.500000000000000000
@@ -583,14 +580,13 @@ object FormConexao: TFormConexao
           object sbPasswordCopy: TSpeedButton
             Action = actCopyPassword
             Align = Right
-            Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
             Position.X = 272.000000000000000000
             Size.Width = 36.000000000000000000
             Size.Height = 36.000000000000000000
             Size.PlatformDefault = False
-            Visible = True
+            TextSettings.Trimming = None
             object PhPasswordCopy: TPath
               Align = Client
               Data.Path = {
@@ -622,10 +618,6 @@ object FormConexao: TFormConexao
       end
     end
   end
-  object TmrSystemTray: TTimer
-    Left = 116
-    Top = 172
-  end
   object ActionList1: TActionList
     Left = 256
     Top = 112
@@ -643,10 +635,5 @@ object FormConexao: TFormConexao
     object actPasteID: TAction
       OnExecute = actPasteIDExecute
     end
-  end
-  object FDGUIxWaitCursor1: TFDGUIxWaitCursor
-    Provider = 'FMX'
-    Left = 44
-    Top = 268
   end
 end

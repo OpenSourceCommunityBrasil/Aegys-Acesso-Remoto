@@ -42,7 +42,6 @@ type
     { Private declarations }
   public
     { Public declarations }
-    Locale: TLocale;
   published
     property ListBox: TListBox read FListBox write SetListBox;
     property Mensagem: TMensagemRec write SetMensagem;
@@ -74,12 +73,12 @@ procedure TFrameMensagemChat.SetMensagem(const Value: TMensagemRec);
 begin
   if Value.Atendente then
   begin
-    lblTitulo.Text := Locale.GetLocale(CHAT, 'They');
+    lblTitulo.Text := 'Ele''s';
     lblTitulo.TextSettings.FontColor := $FFED3237;
   end
   else
   begin
-    lblTitulo.Text := Locale.GetLocale(CHAT, 'You');
+    lblTitulo.Text := 'Você';
     lblTitulo.TextSettings.FontColor := TAlphaColorRec.Teal;
   end;
   lblTexto.Text := Value.Texto;

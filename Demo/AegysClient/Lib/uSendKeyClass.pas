@@ -48,7 +48,7 @@ function SendKeys(SendKeysString: PChar; Wait: Boolean): Boolean;
 type
   WBytes = array [0 .. pred(SizeOf(Word))] of byte;
 
-  TSendKey = record
+  TSendKey = Packed Record
     Name: ShortString;
     VKey: byte;
   end;

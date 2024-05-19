@@ -682,7 +682,7 @@ Begin
   vItem^        := Item;
   Result        := Inherited Add(vItem);
   vItem^.PackNo := 1;
- Finally
+ Except
  End;
 End;
 

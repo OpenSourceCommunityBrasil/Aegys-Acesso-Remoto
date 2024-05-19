@@ -27,184 +27,184 @@ Type
 Type
   TShellProps = Class(TObject)
   Private
-    vFileList: TFileList;
-    vListFolder: String;
-    vDriversList: TStringList;
-    vAfterChangeDir: TAfterChangeDir;
-    Function GetFile(Value: Integer): TFileDesc;
-    Procedure SetFolder(Value: String);
-    Function GetFileDateTime(FileName: String;
-      Var Creation, lastAccess, LastWrite: TDatetime): Boolean;
-    Procedure ListarArquivos(DiretorioInicial, Mascara: String;
-      ListTotalDir: Boolean = False; Recursive: Boolean = False);
-    Function GetFilesCount: Integer;
-    Function GetFileTypeRegKey(FileName: String; out Key: HKEY): Integer;
-    Function GetDrivers: TStringList;
-    Procedure GetDriveLetters(AList: TStrings);
-    Function GetPCName: String;
+   vFileList       : TFileList;
+   vListFolder     : String;
+   vDriversList    : TStringList;
+   vAfterChangeDir : TAfterChangeDir;
+   Function  GetFile  (Value : Integer)   : TFileDesc;
+   Procedure SetFolder(Value : String);
+   Function  GetFileDateTime(FileName     : String;
+                             Var Creation,
+                             lastAccess,
+                             LastWrite    : TDatetime) : Boolean;
+   Procedure ListarArquivos (DiretorioInicial,
+                             Mascara      : String;
+                             ListTotalDir : Boolean = False;
+                             Recursive    : Boolean = False);
+   Function  GetFilesCount : Integer;
+   Function  GetFileTypeRegKey(FileName   : String;
+                               Out Key    : HKEY): Integer;
+   Function  GetDrivers    : TStringList;
+   Procedure GetDriveLetters  (AList      : TStrings);
+   Function  GetPCName     : String;
   Public
-    Constructor Create;
-    Destructor Destroy; Override;
-    Property Files[I: Integer]: TFileDesc Read GetFile;
-    Property FilesCount: Integer Read GetFilesCount;
+   Constructor Create;
+   Destructor Destroy; Override;
+   Property Files[I : Integer] : TFileDesc       Read GetFile;
+   Property FilesCount         : Integer         Read GetFilesCount;
   Published
-    Property Folder: String Read vListFolder Write SetFolder;
-    Property OnAfterChangeDir: TAfterChangeDir Read vAfterChangeDir
-      Write vAfterChangeDir;
-    Property Drivers: TStringList Read GetDrivers;
-    Property LocalStation: String Read GetPCName;
+   Property Folder             : String          Read vListFolder     Write SetFolder;
+   Property OnAfterChangeDir   : TAfterChangeDir Read vAfterChangeDir Write vAfterChangeDir;
+   Property Drivers            : TStringList     Read vDriversList;
+   Property LocalStation       : String          Read GetPCName;
   End;
 
   Function GetFileTypeDescription(FileName: String): AnsiString;
 
-implementation
+Implementation
 
-Function TShellProps.GetPCName: String;
+Function TShellProps.GetPCName : String;
 Var
-  Computer: PChar;
-  CSize: DWORD;
+ Computer : PChar;
+ CSize    : DWORD;
 Begin
-  Computer := #0;
-  Result := '';
-  CSize := MAX_COMPUTERNAME_LENGTH + 1;
-  Try
-    GetMem(Computer, CSize);
-    If GetComputerName(Computer, CSize) Then
-      Result := Computer;
-  Finally
-    FreeMem(Computer);
-  End;
+ Computer := #0;
+ Result := '';
+ CSize := MAX_COMPUTERNAME_LENGTH + 1;
+ Try
+  GetMem(Computer, CSize);
+  If GetComputerName(Computer, CSize) Then
+   Result := Computer;
+ Finally
+  FreeMem(Computer);
+ End;
 End;
 
 Function TShellProps.GetDrivers: TStringList;
 Begin
-  Result := TStringList.Create;
-  GetDriveLetters(Result);
+ Result := TStringList.Create;
+ GetDriveLetters(Result);
 End;
 
-Function GetFileTypeDescription(FileName: String): AnsiString;
+Function GetFileTypeDescription(FileName : String): AnsiString;
 Var
-  SHFileInfo: TSHFileInfo;
-  SearchRec: TSearchRec;
+ SHFileInfo : TSHFileInfo;
+ SearchRec  : TSearchRec;
 Begin
-  Result := '';
-  If Trim(FileName) = '' Then
-    Exit;
-  ShGetFileInfo(PChar(FileName), 0, SHFileInfo, SizeOf(TSHFileInfo),
-    SHGFI_TYPENAME or SHGFI_DISPLAYNAME or SHGFI_SYSICONINDEX or SHGFI_ICON);
-  Result := SHFileInfo.szTypeName;
+ Result := '';
+ If Trim(FileName) = '' Then
+  Exit;
+ ShGetFileInfo(PChar(FileName), 0, SHFileInfo, SizeOf(TSHFileInfo),
+               SHGFI_TYPENAME or SHGFI_DISPLAYNAME or SHGFI_SYSICONINDEX or SHGFI_ICON);
+ Result := SHFileInfo.szTypeName;
 End;
 
-Function TShellProps.GetFileTypeRegKey(FileName: String; out Key: HKEY)
-  : Integer;
+Function TShellProps.GetFileTypeRegKey(FileName : String; Out Key : HKEY) : Integer;
 Var
-  hkExt: HKEY;
-  lpszTypeKey: Array [0 .. 1024] of Char;
-  dwSize: DWORD;
-  szExt: String;
+ hkExt       : HKEY;
+ lpszTypeKey : Array [0 .. 1024] of Char;
+ dwSize      : DWORD;
+ szExt       : String;
 Begin
-  // Get the file extension
-  szExt := ExtractFileExt(FileName);
-  // Attempt to open the registry key
-  Result := RegOpenKeyEx(HKEY_CLASSES_ROOT, PChar(szExt), 0, KEY_READ, hkExt);
-  // Check result of open
-  If (Result = ERROR_SUCCESS) Then
+ // Get the file extension
+ szExt := ExtractFileExt(FileName);
+ // Attempt to open the registry key
+ Result := RegOpenKeyEx(HKEY_CLASSES_ROOT, PChar(szExt), 0, KEY_READ, hkExt);
+ // Check result of open
+ If (Result = ERROR_SUCCESS) Then
   Begin
-    // Resource protection
-    Try
-      // Set size of buffer
-      dwSize := SizeOf(lpszTypeKey);
-      // Query for the default value which is the redirect to the extension type key
-      Result := RegQueryValueEx(hkExt, nil, nil, nil, @lpszTypeKey, @dwSize);
-      // Check result
-      If (Result = ERROR_SUCCESS) Then
-      Begin
-        // Open the redirect to the extension type key
-        Result := RegOpenKeyEx(HKEY_CLASSES_ROOT, @lpszTypeKey, 0,
-          KEY_READ, Key);
-      End;
-    Finally
-      // Close the opened key
-      RegCloseKey(hkExt);
-    End;
+   // Resource protection
+   Try
+    // Set size of buffer
+    dwSize := SizeOf(lpszTypeKey);
+    // Query for the default value which is the redirect to the extension type key
+    Result := RegQueryValueEx(hkExt, nil, nil, nil, @lpszTypeKey, @dwSize);
+    // Check result
+    If (Result = ERROR_SUCCESS) Then
+     Begin
+      // Open the redirect to the extension type key
+      Result := RegOpenKeyEx(HKEY_CLASSES_ROOT, @lpszTypeKey, 0, KEY_READ, Key);
+     End;
+   Finally
+    // Close the opened key
+    RegCloseKey(hkExt);
+   End;
   End;
 End;
 
 Function FileSize(Const aFilename: String): Int64;
 Var
-  info: TWin32FileAttributeData;
+ info : TWin32FileAttributeData;
 Begin
-  Result := -1;
-  If Not GetFileAttributesEx(PWideChar(aFilename), GetFileExInfoStandard,
-    @info) Then
-    Exit;
-  Result := Int64(info.nFileSizeLow) or Int64(info.nFileSizeHigh shl 32);
+ Result := -1;
+ If Not GetFileAttributesEx(PWideChar(aFilename), GetFileExInfoStandard, @info) Then
+  Exit;
+ Result := Int64(info.nFileSizeLow) or Int64(info.nFileSizeHigh shl 32);
 End;
 
-Procedure TShellProps.GetDriveLetters(AList: TStrings);
+Procedure TShellProps.GetDriveLetters(AList : TStrings);
 Var
-  vDrivesSize: Cardinal;
-  vDrives: Array [0 .. 128] of Char;
-  vDrive: PChar;
+ vDrivesSize : Cardinal;
+ vDrives     : Array [0 .. 128] of Char;
+ vDrive      : PChar;
 Begin
-  AList.BeginUpdate;
+ AList.BeginUpdate;
+ Try
+  // clear the list from possible leftover from prior operations
+  AList.Clear;
   Try
-    // clear the list from possible leftover from prior operations
-    AList.Clear;
-    Try
-      vDrivesSize := GetLogicalDriveStrings(SizeOf(vDrives), vDrives);
-      If vDrivesSize = 0 Then
-        Exit; // no drive found, no further processing needed
-      vDrive := vDrives;
-      While vDrive^ <> #0 Do
-      Begin
-        AList.Add(StrPas(vDrive));
-        Inc(vDrive, SizeOf(vDrive));
-      End;
-    Except
-
+   vDrivesSize := GetLogicalDriveStrings(SizeOf(vDrives), vDrives);
+   If vDrivesSize = 0 Then
+    Exit; // no drive found, no further processing needed
+   vDrive := vDrives;
+   While vDrive^ <> #0 Do
+    Begin
+     AList.Add(StrPas(vDrive));
+     Inc(vDrive, SizeOf(vDrive));
     End;
-  Finally
-    AList.EndUpdate;
-  End;
+   Except
+
+   End;
+ Finally
+  AList.EndUpdate;
+ End;
 End;
 
 Function TShellProps.GetFilesCount: Integer;
 Begin
-  Result := vFileList.Count;
+ Result := vFileList.Count;
 End;
 
-Function TShellProps.GetFileDateTime(FileName: String;
-  Var Creation, lastAccess, LastWrite: TDatetime): Boolean;
+Function TShellProps.GetFileDateTime(FileName  : String;
+                                     Var Creation,
+                                     lastAccess,
+                                     LastWrite : TDatetime) : Boolean;
 Var
-  Handle: THandle;
-  FindData: TWin32FindData;
-  LocalFileTime: TFileTime;
-  LikeInt: Integer;
+ Handle        : THandle;
+ FindData      : TWin32FindData;
+ LocalFileTime : TFileTime;
+ LikeInt       : Integer;
 Begin
-  Handle := FindFirstFile(PChar(FileName), FindData);
-  If Handle <> INVALID_HANDLE_VALUE Then
+ Handle := FindFirstFile(PChar(FileName), FindData);
+ If Handle <> INVALID_HANDLE_VALUE Then
   Begin
-    FindClose(Handle);
-    If (FindData.dwFileAttributes And FILE_ATTRIBUTE_DIRECTORY) = 0 Then
+   FindClose(Handle);
+   If (FindData.dwFileAttributes And FILE_ATTRIBUTE_DIRECTORY) = 0 Then
     Begin
-      FileTimeToLocalFileTime(FindData.ftCreaTionTime, LocalFileTime);
-      If FileTimeToDosDateTime(LocalFileTime, LongRec(LikeInt).Hi,
-        LongRec(LikeInt).Lo) Then
-        Creation := FileDatetoDateTime(LikeInt);
-      FileTimeToLocalFileTime(FindData.ftLastAccessTime, LocalFileTime);
-      If FileTimeToDosDateTime(LocalFileTime, LongRec(LikeInt).Hi,
-        LongRec(LikeInt).Lo) Then
-        lastAccess := FileDatetoDateTime(LikeInt);
-      FileTimeToLocalFileTime(FindData.ftLastWriteTime, LocalFileTime);
-      If FileTimeToDosDateTime(LocalFileTime, LongRec(LikeInt).Hi,
-        LongRec(LikeInt).Lo) Then
-        LastWrite := FileDatetoDateTime(LikeInt);
-      Result := True;
-      Exit;
+     FileTimeToLocalFileTime(FindData.ftCreaTionTime, LocalFileTime);
+     If FileTimeToDosDateTime(LocalFileTime, LongRec(LikeInt).Hi, LongRec(LikeInt).Lo) Then
+      Creation := FileDatetoDateTime(LikeInt);
+     FileTimeToLocalFileTime(FindData.ftLastAccessTime, LocalFileTime);
+     If FileTimeToDosDateTime(LocalFileTime, LongRec(LikeInt).Hi, LongRec(LikeInt).Lo) Then
+      lastAccess := FileDatetoDateTime(LikeInt);
+     FileTimeToLocalFileTime(FindData.ftLastWriteTime, LocalFileTime);
+     If FileTimeToDosDateTime(LocalFileTime, LongRec(LikeInt).Hi, LongRec(LikeInt).Lo) Then
+      LastWrite := FileDatetoDateTime(LikeInt);
+     Result := True;
+     Exit;
     End;
   End;
-  Result := False;
+ Result := False;
 End;
 
 Procedure TShellProps.ListarArquivos(DiretorioInicial, Mascara: String;
@@ -373,23 +373,32 @@ End;
 
 Function TShellProps.GetFile(Value: Integer): TFileDesc;
 Begin
-  If (Value > -1) And (Value <= vFileList.Count - 1) Then
-    Result := TFileDesc(vFileList[Value]^);
+ If (Value > -1) And (Value <= vFileList.Count - 1) Then
+  Result := TFileDesc(vFileList[Value]^);
 End;
 
 Constructor TShellProps.Create;
 Begin
-  vFileList := TFileList.Create;
-  vDriversList := TStringList.Create;
-  GetDriveLetters(vDriversList);
+ vFileList    := TFileList.Create;
+ vDriversList := TStringList.Create;
+ GetDriveLetters(vDriversList);
 End;
 
 Destructor TShellProps.Destroy;
 Begin
-  vFileList.Clear;
-  FreeAndNil(vFileList);
-  vDriversList.Clear;
-  FreeAndNil(vDriversList);
+ If Assigned(vFileList)    Then
+  Begin
+   If vFileList.Count > 0 Then
+    vFileList.Clear;
+   vFileList.Free;
+  End;
+ If Assigned(vDriversList) Then
+  Begin
+   If vDriversList.Count > 0 Then
+    vDriversList.Clear;
+   vDriversList.Free;
+  End;
+ Inherited;
 End;
 
 end.

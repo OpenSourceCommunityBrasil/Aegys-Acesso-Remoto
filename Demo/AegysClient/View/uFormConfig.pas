@@ -25,7 +25,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ListBox,
   FMX.Objects, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation, FMX.Layouts,
   FMX.Ani, FMX.ActnList, FMX.ImgList,
-  uFunctions, uConstants, uSQLiteConfig, uAegysBase, FMX.ComboEdit;
+  uFunctions, uConstants, uAegysBase, FMX.ComboEdit;
 
 type
   TCallBack = procedure of object;
@@ -69,14 +69,11 @@ type
     procedure FormCreate(Sender: TObject);
     procedure rrReturnClick(Sender: TObject);
     procedure rrApplyClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure rrApplyMouseEnter(Sender: TObject);
     procedure rrApplyMouseLeave(Sender: TObject);
     procedure quicksuppClick(Sender: TObject);
   private
     { Private declarations }
-    Locale: TLocale;
-    Cfg: TSQLiteConfig;
     FCallBack: TCallBack;
     procedure SetColors;
   public
@@ -108,26 +105,25 @@ begin
   server.Enabled := SERVIDOR = '';
   if Not server.Enabled then
    server.ItemIndex := -1;
-  Locale := TLocale.Create;
-  Cfg := TSQLiteConfig.Create;
-  try
-    for I := 0 to pred(Componentcount) do
-      if Components[I] is TComboBox then
-        (Components[I] as TComboBox).ItemIndex :=
-          StrToIntDef(Cfg.getValue((Components[I] as TComboBox).Name), -1)
-      else if Components[I] is TEdit then
-        (Components[I] as TEdit).Text :=
-          Cfg.getValue((Components[I] as TEdit).Name)
-      else if Components[I] is TSwitch then
-        (Components[I] as TSwitch).IsChecked :=
-          StrToIntDef(Cfg.getValue((Components[I] as TSwitch).Name), 0)
-          .ToBoolean
-      else if Components[I] is TComboEdit then
-        (Components[I] as TComboEdit).Text :=
-          Cfg.getValue((Components[I] as TComboEdit).Name);
-  finally
-    Cfg.DisposeOf;
-  end;
+//  Cfg := TSQLiteConfig.Create;
+//  try
+//    for I := 0 to pred(Componentcount) do
+//      if Components[I] is TComboBox then
+//        (Components[I] as TComboBox).ItemIndex :=
+//          StrToIntDef(Cfg.getValue((Components[I] as TComboBox).Name), -1)
+//      else if Components[I] is TEdit then
+//        (Components[I] as TEdit).Text :=
+//          Cfg.getValue((Components[I] as TEdit).Name)
+//      else if Components[I] is TSwitch then
+//        (Components[I] as TSwitch).IsChecked :=
+//          StrToIntDef(Cfg.getValue((Components[I] as TSwitch).Name), 0)
+//          .ToBoolean
+//      else if Components[I] is TComboEdit then
+//        (Components[I] as TComboEdit).Text :=
+//          Cfg.getValue((Components[I] as TComboEdit).Name);
+//  finally
+//    Cfg.DisposeOf;
+//  end;
 
   SetColors;
   Translate;
@@ -140,11 +136,6 @@ begin
   password.Text := FormConexao.aMyFixPass;
 end;
 
-procedure TfConfig.FormDestroy(Sender: TObject);
-begin
-  Locale.DisposeOf;
-end;
-
 procedure TfConfig.quicksuppClick(Sender: TObject);
 begin
  password.Enabled := quicksupp.IsChecked;
@@ -154,11 +145,10 @@ end;
 
 procedure TfConfig.rrApplyClick(Sender: TObject);
 var
-  Res: TResourceStream;
   aJSON: TJSONObject;
   I: Integer;
 begin
-  Cfg := TSQLiteConfig.Create;
+//  Cfg := TSQLiteConfig.Create;
   aJSON := TJSONObject.Create;
   try
 //    for I := 0 to pred(Componentcount) do
@@ -192,7 +182,7 @@ begin
     FormConexao.SendConfigs;
     Close;
   finally
-    Cfg.DisposeOf;
+//    Cfg.DisposeOf;
   end;
 end;
 
@@ -222,17 +212,16 @@ end;
 
 procedure TfConfig.Translate;
 begin
-  Self.Caption := Locale.GetLocale(FRMS, 'ConfigTitle');
-  LLanguageSelector.Text := Locale.GetLocale(FRMS, 'ConfigLanguage');
-  LBackButton.Text := Locale.GetLocale(FRMS, 'ConfigBackButton');
-  LApplyButton.Text := Locale.GetLocale(FRMS, 'ConfigApplyButton');
-  LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'ConfigPassword');
-  password.TextPrompt := Locale.GetLocale(FRMS, 'ConfigPassword');
-  Locale.GetLocale(language, tcbLanguage);
-  LStartup.Text := Locale.GetLocale(FRMS, 'ConfigStartup');
-  LSystray.Text := Locale.GetLocale(FRMS, 'ConfigSystemTray');
-  LQuickSupport.Text := Locale.GetLocale(FRMS, 'ConfigQuickSupport');
-  LServer.Text := Locale.GetLocale(FRMS, 'ConfigServer');
+  Self.Caption := 'Configurações';
+  LLanguageSelector.Text := 'Linguagens';
+  LBackButton.Text := 'Voltar';
+  LApplyButton.Text := 'Salvar';
+  LlyPasswordCaption.Text := 'Password';
+  password.TextPrompt := 'Password';
+  LStartup.Text := 'Startup';
+  LSystray.Text := 'SystemTray';
+  LQuickSupport.Text := 'QuickSupport';
+  LServer.Text := 'Server';
 end;
 
 end.
