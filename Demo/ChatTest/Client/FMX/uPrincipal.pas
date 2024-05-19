@@ -7,8 +7,14 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.Controls.Presentation, FMX.Edit, FMX.StdCtrls, FMX.Layouts, FMX.ListBox,
   System.ImageList, FMX.ImgList, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo,
-  uAegysBase, uAegysDataTypes, FMX.Platform, AndroidAPI.JNI.Telephony,
-  AndroidAPI.Helpers, AndroidAPI.JNI.OS, Androidapi.JNI.Provider; //,System.Permissions, ;
+  uAegysBase, uAegysDataTypes, FMX.Platform
+
+  , AndroidAPI.JNI.Telephony
+  , AndroidAPI.Helpers
+  , AndroidAPI.JNI.OS
+  , Androidapi.JNI.Provider
+
+  ;
 
 Const
  cDadosRecebidos = 'Dados recebidos...';
@@ -64,7 +70,10 @@ type
    Procedure OnScreenCapture   (Connection,
                                 ID,
                                 Command           : String;
+                                MultiPack         : Boolean;
+                                PackCount         : AeInteger;
                                 aBuf              : TAegysBytes);
+
    Procedure OnReceiveCommand  (InternalCommand   : TInternalCommand;
                                 Command           : String);
    Procedure OnConnect         (Sender            : TObject);
@@ -217,8 +226,12 @@ begin
  mReply.Lines.Add(Command);
 end;
 
-procedure TForm4.OnScreenCapture(Connection, ID, Command: String;
-  aBuf: TAegysBytes);
+Procedure TForm4.OnScreenCapture   (Connection,
+                            ID,
+                            Command           : String;
+                            MultiPack         : Boolean;
+                            PackCount         : AeInteger;
+                            aBuf              : TAegysBytes);
 Var
  vStream : TStream;
  vBitmap : TBitmap;
