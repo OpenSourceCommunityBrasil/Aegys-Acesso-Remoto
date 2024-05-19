@@ -361,7 +361,7 @@ End;
 
 Type
  PAegysConnections    = ^TAegysConnections;
- TAegysConnections    = Record
+ TAegysConnections    = Packed Record
   Connection,
   ClientID,
   ClientPassword,
@@ -1066,7 +1066,6 @@ Begin
  {$ENDIF}
  vAction        := Assigned(vAegysSession);
  Try
-//  AContext.Connection.IOHandler.CheckForDisconnect;
   vAccept := True;
   Try
    If AContext.Connection.IOHandler.InputBufferIsEmpty Then
@@ -1100,7 +1099,7 @@ Begin
       Else
        Begin
         Try
-//         Processmessages;
+         Processmessages;
          If AContext.Connection.IOHandler.CheckForDataOnSource(vServiceTimeout) Then
           Begin
            Try
@@ -1157,7 +1156,7 @@ Begin
      If vCommand <> '' Then
       ParseCommand(vCommand, vInternalCommand);
      vOldCommand := vCommand;
-//     Processmessages;
+     Processmessages;
      If vInternalCommand <> ticNone Then
       Begin
        Case vInternalCommand Of
@@ -2074,9 +2073,12 @@ Begin
       Processmessages;
      End;
    Except
-    vBContext.Connection.CheckForGracefulDisconnect(False);
-    If Not vBContext.Connection.Connected Then
-     Raise;
+    If Assigned(vBContext.Connection) Then
+     Begin
+      vBContext.Connection.CheckForGracefulDisconnect(False);
+      If Not vBContext.Connection.Connected Then
+       Raise;
+     End;
    End;
   End
  Else If Assigned(vAContext) then
@@ -2244,7 +2246,10 @@ Begin
    If Assigned(vTcpRequest) Then
     Begin
      If vTcpRequest.Connected Then
-      aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers)
+      Begin
+       aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, cDisconnectAllPeers);
+       ProcessMessages;
+      End
      Else
       Raise Exception.Create(cCantExecDisconnected);
     End;
@@ -2258,7 +2263,10 @@ Begin
  If Assigned(vTcpRequest) Then
   Begin
    If vTcpRequest.Connected Then
-    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cDisconnectPeer + '%s&%s&%s', [aID, aPass, aConnection]))
+    Begin
+     aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cDisconnectPeer + '%s&%s&%s', [aID, aPass, aConnection]));
+     ProcessMessages;
+    End
    Else
     Raise Exception.Create(cCantExecDisconnected);
   End;
@@ -2274,7 +2282,10 @@ Begin
  If Assigned(vTcpRequest) Then
   Begin
    If vTcpRequest.Connected Then
-    aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cRelation + '%s&%s&%s', [vSessionID, aID, aPass, aVideoQ]))
+    Begin
+     aPackList.Add(vConnection, '', tdmServerCommand, tdcAsync, Format(cRelation + '%s&%s&%s', [vSessionID, aID, aPass, aVideoQ]));
+     ProcessMessages;
+    End
    Else
     Raise Exception.Create(cCantExecDisconnected);
   End;
@@ -2397,8 +2408,7 @@ Var
   Finally
    SetLength(aBuf, 0);
    FreeAndNil(aPackClass);
-   Processmessages;
-   Sleep(cDelayThread);
+//   Sleep(cDelayThread div 2);
   End;
  End;
 Begin
@@ -2481,7 +2491,6 @@ End;
 Procedure TAegysClient.OnBeforeExecuteData (Var abPackList : TPackList);
  Procedure ReceiveStreamClient;
  Var
-//  I             : Integer;
   aBuf          : TAegysBytes;
   aFirstBufSize : AEInteger;
   aBuffSize,
@@ -2504,7 +2513,6 @@ Procedure TAegysClient.OnBeforeExecuteData (Var abPackList : TPackList);
           Move(aBuf[0], aPackSize, SizeOf(aPackSize));
           aFirstBufSize := Length(aBuf);
           bPackSize     := 0;
-          Processmessages;
           While (aPackSize <> Length(aBuf)) And
                 (aPackSize >  Length(aBuf)) And
                 (aPackSize > 0)             Do
@@ -2519,12 +2527,12 @@ Procedure TAegysClient.OnBeforeExecuteData (Var abPackList : TPackList);
              vActiveTcp.IOHandler.ReadBytes(TIdBytes(aBuf), bPackSize)
             Else
              Break;
-//            Processmessages;
            End;
           If (aPackSize = Length(aBuf)) And
              (aPackSize > 0)            Then
            abPackList.Add(aBuf);
          Finally
+          Processmessages;
           SetLength(aBuf, 0);
          End;
         End
@@ -2574,6 +2582,7 @@ Begin
      SendBytes(aBuffer);
    Finally
     abPackList.Delete(0);
+    ProcessMessages;
    End;
   End;
 End;
@@ -2595,6 +2604,7 @@ Begin
      Else
       Raise Exception.Create(cSocketDisconnected);
     End;
+   ProcessMessages;
   End;
 // Else
 //  Begin
@@ -2757,6 +2767,7 @@ Begin
    Begin
     aOldTime := Now;
     aPackList.Add(vConnection, aID, tdmClientCommand, tdcAsync, CommandType, Value, False);
+    Processmessages;
    End;
 End;
 
@@ -2849,6 +2860,7 @@ Begin
   vActive     := False;
   If Assigned(vOnDisconnect) Then
    vOnDisconnect(Self);
+  Processmessages;
  End;
 End;
 
@@ -2872,6 +2884,7 @@ Begin
   Begin
    Try
     vProcessData.Kill;
+    Processmessages;
    Except
    End;
    {$IFDEF FPC}
@@ -2913,6 +2926,7 @@ Var
    WriteDirect(vTcpReceive, aBuf);
   Finally
    SetLength(aBuf, 0);
+   Processmessages;
   End;
  End;
 Begin
@@ -2949,6 +2963,7 @@ Begin
        Begin
         aOldTime             := Now;
         vWelcomeString       := vWelcomeMessage;
+        Processmessages;
         {$IFDEF FPC}
         vProcessData         := TAegysThread.Create(aPackList,
                                                     TComponent(Pointer(@Self)^),

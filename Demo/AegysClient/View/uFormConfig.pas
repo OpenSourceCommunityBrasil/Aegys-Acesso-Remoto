@@ -69,13 +69,11 @@ type
     procedure FormCreate(Sender: TObject);
     procedure rrReturnClick(Sender: TObject);
     procedure rrApplyClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure rrApplyMouseEnter(Sender: TObject);
     procedure rrApplyMouseLeave(Sender: TObject);
     procedure quicksuppClick(Sender: TObject);
   private
     { Private declarations }
-    Locale: TLocale;
     FCallBack: TCallBack;
     procedure SetColors;
   public
@@ -107,7 +105,6 @@ begin
   server.Enabled := SERVIDOR = '';
   if Not server.Enabled then
    server.ItemIndex := -1;
-  Locale := TLocale.Create;
 //  Cfg := TSQLiteConfig.Create;
 //  try
 //    for I := 0 to pred(Componentcount) do
@@ -139,11 +136,6 @@ begin
   password.Text := FormConexao.aMyFixPass;
 end;
 
-procedure TfConfig.FormDestroy(Sender: TObject);
-begin
-  Locale.DisposeOf;
-end;
-
 procedure TfConfig.quicksuppClick(Sender: TObject);
 begin
  password.Enabled := quicksupp.IsChecked;
@@ -153,7 +145,6 @@ end;
 
 procedure TfConfig.rrApplyClick(Sender: TObject);
 var
-  Res: TResourceStream;
   aJSON: TJSONObject;
   I: Integer;
 begin
@@ -221,17 +212,16 @@ end;
 
 procedure TfConfig.Translate;
 begin
-  Self.Caption := Locale.GetLocale(FRMS, 'ConfigTitle');
-  LLanguageSelector.Text := Locale.GetLocale(FRMS, 'ConfigLanguage');
-  LBackButton.Text := Locale.GetLocale(FRMS, 'ConfigBackButton');
-  LApplyButton.Text := Locale.GetLocale(FRMS, 'ConfigApplyButton');
-  LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'ConfigPassword');
-  password.TextPrompt := Locale.GetLocale(FRMS, 'ConfigPassword');
-  Locale.GetLocale(language, tcbLanguage);
-  LStartup.Text := Locale.GetLocale(FRMS, 'ConfigStartup');
-  LSystray.Text := Locale.GetLocale(FRMS, 'ConfigSystemTray');
-  LQuickSupport.Text := Locale.GetLocale(FRMS, 'ConfigQuickSupport');
-  LServer.Text := Locale.GetLocale(FRMS, 'ConfigServer');
+  Self.Caption := 'Configurações';
+  LLanguageSelector.Text := 'Linguagens';
+  LBackButton.Text := 'Voltar';
+  LApplyButton.Text := 'Salvar';
+  LlyPasswordCaption.Text := 'Password';
+  password.TextPrompt := 'Password';
+  LStartup.Text := 'Startup';
+  LSystray.Text := 'SystemTray';
+  LQuickSupport.Text := 'QuickSupport';
+  LServer.Text := 'Server';
 end;
 
 end.

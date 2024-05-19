@@ -173,14 +173,14 @@ End;
 
 Procedure TAegysThread.ServiceCommands;
 Begin
-// Processmessages;
+ Processmessages;
  If Assigned(vOnServiceCommands) Then
   vOnServiceCommands(abInternalCommand, abCommand);
 End;
 
 Procedure TAegysThread.ClientCommands;
 Begin
-// Processmessages;
+ Processmessages;
  If Assigned(vOnClientCommands) Then
   vOnClientCommands(abCommandType, abInternalCommand, abOwner, abID, abCommand, abMultiPack, abPackCount, abBuf)
  Else If Assigned(vOnDataReceive) Then
@@ -189,7 +189,7 @@ End;
 
 Procedure TAegysThread.ExecuteData;
 Begin
-// Processmessages;
+ Processmessages;
  If Assigned(vOnExecuteData)     Then
   vOnExecuteData(pPackList^, abPackno);
 End;
@@ -249,7 +249,7 @@ Begin
       Begin
        DirectThreadAction[Integer(ttdReceive)] := True;
        Try
-//        Processmessages;
+        Processmessages;
         //Process Before Execute one Pack
         If Assigned(vOnBeforeExecuteData) Then
          vOnBeforeExecuteData(aPackList);
@@ -373,7 +373,7 @@ Begin
       Begin
        DirectThreadAction[Integer(ttdSend)] := True;
        Try
-//        Processmessages;
+        Processmessages;
         //Try Process one Pack
         vPackno := 0;
         If (pPackList^.Count > 0)         And
@@ -399,7 +399,7 @@ Begin
        End;
       End;
     Finally
-//     Processmessages;
+     Processmessages;
     End;
    Except
     On E : Exception Do
@@ -437,3 +437,4 @@ Begin
 End;
 
 End.
+

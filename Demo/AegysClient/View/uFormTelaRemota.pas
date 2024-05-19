@@ -139,7 +139,6 @@ type
 
 Var
   FormTelaRemota     : TFormTelaRemota;
-  Locale             : TLocale;
   MenuDirection      : TTagEffect;
   CtrlPressed,
   ShiftPressed,
@@ -513,9 +512,9 @@ End;
 
 Procedure TFormTelaRemota.Translate;
 Begin
- LMouse.Text := Locale.GetLocale(FRMS, 'RemoteMouse');
- LFiles.Text := Locale.GetLocale(FRMS, 'RemoteFile');
- LChat.Text  := Locale.GetLocale(FRMS, 'RemoteChat');
+ LMouse.Text := 'Mouse Remoto';
+ LFiles.Text := 'Arquivos Remotos';
+ LChat.Text  := 'Chat';
 End;
 
 Procedure TFormTelaRemota.FormClose  (Sender      : TObject;
@@ -524,7 +523,6 @@ Begin
  taction.Enabled  := False;
  cShowForm        := True;
  FormConexao.SetPeerDisconnected;
- Locale.DisposeOf;
  FreeAndNil(vMouseMove);
  If Assigned(fFileTransfer) then
   fFileTransfer.Close;
@@ -543,7 +541,6 @@ End;
 
 Procedure TFormTelaRemota.FormCreate (Sender      : TObject);
 Begin
- Locale                     := TLocale.Create;
  lyToolBar.Visible          := False;
  rrToolBarToggle.Position.Y := 0;
  rPopupMonitor.Visible      := False;
@@ -591,7 +588,7 @@ Begin
  sbMouse.StaysPressed      := vMostrarMouse;
  Path4.Fill.Color          := StringToAlphaColor('#FFFF1E1E');
  vBlockInputs              := False;
- lblockinput.Text          := Locale.GetLocale(FRMS, 'RemoteBlock');
+ lblockinput.Text          := 'Bloqueio';
  If cShowForm Then
   Begin
    FCollapsed := true;
@@ -614,13 +611,13 @@ Begin
   Begin
    Path4.Fill.Color := StringToAlphaColor('#FF166600');
    vBlockInputs     := True;
-   lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteRelease');
+   lblockinput.Text := 'Desbloqueio';
   End
  Else
   Begin
    Path4.Fill.Color := StringToAlphaColor('#FFFF1E1E');
    vBlockInputs     := False;
-   lblockinput.Text := Locale.GetLocale(FRMS, 'RemoteBlock');
+   lblockinput.Text := 'Bloqueio';
   End;
 End;
 

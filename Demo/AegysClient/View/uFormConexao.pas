@@ -85,7 +85,6 @@ type
     LPassword: TLabel;
     sbPasswordCopy: TSpeedButton;
     PhPasswordCopy: TPath;
-    TmrSystemTray: TTimer;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure actPasteIDExecute(Sender: TObject);
@@ -97,7 +96,6 @@ type
     procedure EGuestIDTyping(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure sbOptionsClick(Sender: TObject);
-    procedure TmrSystemTrayTimer(Sender: TObject);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
     procedure FormShow(Sender: TObject);
   private
@@ -108,7 +106,6 @@ type
     vInitTime,
     vFinalTime        : TDateTime;
     aPackList         : TPackList;
-    Locale            : TLocale;
     aConnection,
     vClientID,
     vOldClipboardFile,
@@ -220,6 +217,7 @@ var
   CF_FILE            : Integer;
   mx, my             : Single;
   WndProcHook        : THandle;
+  vActualImage       : TMemoryStream;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -232,7 +230,7 @@ uses uFormTelaRemota,  uFileTransfer,    uFormChat,        FMX.Clipboard,
      System.IOUtils,   System.Rtti,      uLibClass,        uConstants,
      System.DateUtils, FMX.Platform.Win, uFormConfig,
      StreamManager,    uFormSenha,       uSendKeyClass,    uAegysTools,
-     uAegysZlib,       NB30, uFavoritos, uFilesFoldersOP;
+     uAegysZlib,       NB30, uFavoritos, uFilesFoldersOP,  uASMTools;
 
 
 Procedure ListDrivers(Var ReturnData : TStringList);
@@ -450,7 +448,7 @@ Begin
                     If Assigned(fFileTransfer) Then
                      Begin
                       fFileTransfer.CarregarListaPastas(vDataSendReceive.Text);
-                      fFileTransfer.Caption := Format(Locale.GetLocale(FRMS, 'FileTitle'), [fFileTransfer.DestCount]);
+                      fFileTransfer.Caption := Format('Transferência de Arquivo %d', [fFileTransfer.DestCount]);
                      End;
                    Finally
                     FreeAndNil(vDataSendReceive);
@@ -512,7 +510,7 @@ Begin
                    If Assigned(fFileTransfer) Then
                     Begin
                      fFileTransfer.CarregarListaArquivos(CommandMessage);
-                     fFileTransfer.Caption := Format(Locale.GetLocale(FRMS, 'FileTitle'), [fFileTransfer.DestCount]);
+                     fFileTransfer.Caption := Format('Transferência de Arquivo %d', [fFileTransfer.DestCount]);
                     End;
                   End;
   ticSetDrivers : Begin
@@ -916,7 +914,6 @@ procedure TFormConexao.FormCreate(Sender: TObject);
 begin
  CF_FILE := RegisterClipboardFormat('FileName');
  // inicializando os objetos
- Locale  := TLocale.Create;
  Conexao := TAegysClient.Create(Self);
  // --------------------------
  SetColors;
@@ -944,7 +941,6 @@ end;
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
  FreeAndNil(aPackList);
- FreeAndNil(Locale);
 end;
 
 procedure TFormConexao.FormMouseMove(Sender: TObject; Shift: TShiftState;
@@ -1058,15 +1054,15 @@ begin
    If not(LlyGuestIDCaption.Text = '   -   -   ') then
     begin
       if (LlyGuestIDCaption.Text = Conexao.SessionID) then
-        MessageBox(0, Locale.GetLocaleDlg(DLGS, 'ErrorSelfConnect'),
-          Locale.GetLocaleDlg(DLGS, 'RemoteSupport'),
+        MessageBox(0, 'Erro Connectando...',
+          'RemoteSupport',
           MB_ICONASTERISK + MB_TOPMOST)
       else
       begin
         LbtnConectar.Enabled := False;
         Conexao.SendCommand(cFindID + EGuestID.Text);
         btnConectar.Enabled := False;
-        MudarStatusConexao(1, Locale.GetLocale(MSGS, 'SearchingID'));
+        MudarStatusConexao(1, 'Procurando ID');
       end;
     end;
   End;
@@ -1084,16 +1080,14 @@ end;
 
 procedure TFormConexao.Translate;
 begin
-  self.Caption := Locale.GetLocale(FRMS, 'MainTitle');
-  LSubTitle.Text := Locale.GetLocale(FRMS, 'MainSubTitle');
-  LVersion.Text := Format(Locale.GetLocale(MAIN, 'Version'),
-    [TRDLib.GetAppVersionStr]);
-  LlyMachineIDCaption.Text := Locale.GetLocale(FRMS, 'MainMachineID');
-  LlyPasswordCaption.Text := Locale.GetLocale(FRMS, 'MainPassword');
-  LlyGuestIDCaption.Text := Locale.GetLocale(FRMS, 'MainGuestID');
-  LlyResolutionCaption.Text := Locale.GetLocale(FRMS, 'MainResolution');
-  LbtnConectar.Text := Locale.GetLocale(FRMS, 'MainConnectButton');
-  Locale.GetLocale(cbQuality, tcbQuality);
+  self.Caption := 'Suporte Remoto';
+  LSubTitle.Text := 'Aegys';
+  LVersion.Text := Format('Versão %s', [TRDLib.GetAppVersionStr]);
+  LlyMachineIDCaption.Text := 'Meu ID';
+  LlyPasswordCaption.Text := 'Password';
+  LlyGuestIDCaption.Text := 'ID do Acesso Remoto';
+  LlyResolutionCaption.Text := 'Qualidade do Vídeo';
+  LbtnConectar.Text := 'Connectar';
   SetSockets;
 
 end;
@@ -1136,7 +1130,7 @@ end;
 
 procedure TFormConexao.SetOffline;
 begin
-  LMachineID.Text      := Locale.GetLocale(MSGS, 'Offline');
+  LMachineID.Text      := 'Offline';
   LPassword.Text       := LMachineID.Text;
   btnConectar.Enabled  := False;
   LbtnConectar.Enabled := btnConectar.Enabled;
@@ -1370,15 +1364,18 @@ End;
 Function TFormConexao.OnPulseData(aPack       : TAegysBytes;
                                   CommandType : TCommandType = tctScreenCapture) : Boolean;
 Begin
- Result := Conexao.Active;
- If Result Then
+ If Assigned(Conexao) Then
   Begin
-   If CommandType = tctScreenCapture Then
-    Conexao.SendBytes(aPack)
-   Else
-    Conexao.SendCommand(aConnection, aPack);
+   Result := Conexao.Active;
+   If Result Then
+    Begin
+     If CommandType = tctScreenCapture Then
+      Conexao.SendBytes(aPack)
+     Else
+      Conexao.SendCommand(aConnection, aPack);
+     Processmessages;
+    End;
   End;
-// Processmessages;
 End;
 
 Procedure TFormConexao.OnProcessData(aPackList  : TPackList;
@@ -1410,7 +1407,7 @@ Begin
     Else
      Exit;
    End;
- Finally
+ Except
  End;
 End;
 
@@ -1515,6 +1512,7 @@ Procedure TFormConexao.OnScreenCapture(Connection,
 Var
  ArrayOfPointer : TArrayOfPointer;
  vStream        : TStream;
+ vResultMemoryStream : TMemoryStream;
  vImageFile,
  vAltura,
  vLargura       : String;
@@ -1656,6 +1654,27 @@ Begin
       vStream.Position := 0;
      End;
     Try
+     If (vActualImage.Size = 0) Then
+      Begin
+       vStream.Position := 0;
+       vActualImage.Clear;
+       vActualImage.CopyFrom(vStream, vStream.Size);
+       vStream.Position := 0;
+      End
+     Else
+      Begin
+       vActualImage.Position := 0;
+       vResultMemoryStream := TMemoryStream.Create;
+       ResumeStreamB(vActualImage, vResultMemoryStream, TMemoryStream(vStream));
+       vResultMemoryStream.Position := 0;
+       vActualImage.Clear;
+       vActualImage.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
+       vResultMemoryStream.Position := 0;
+       TMemoryStream(vStream).Clear;
+       vStream.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
+       vStream.Position  := 0;
+       FreeAndnil(vResultMemoryStream);
+      End;
      ResizeScreen(vResolucaoAltura, vResolucaoLargura);
      If (aFirstCapture) And
         (aIncSprite = cMaxSpriteCap) Then
@@ -1686,7 +1705,7 @@ Begin
      FreeAndNil(vStream);
     End;
    Finally
-//    Application.ProcessMessages;
+    Processmessages;
    End;
   End;
 End;
@@ -1813,13 +1832,6 @@ begin
   ShowWindow(hAppWnd, SW_SHOW);
 end;
 
-procedure TFormConexao.TmrSystemTrayTimer(Sender: TObject);
-begin
-  // TmrSystemTray.Enabled := False;
-  // if systemtray then
-  // self.Hide;
-end;
-
 procedure TFormConexao.EGuestIDTyping(Sender: TObject);
 begin
   TEdit(Sender).Text := MascaraID(TEdit(Sender).Text, '99-999-999');
@@ -1830,6 +1842,7 @@ Procedure TFormConexao.tmrIntervaloTimer(Sender: TObject);
 Begin
  If (Conexao.SessionTime > INTERVALOCONEXAO) Then
   Begin
+   Processmessages;
    If (FormTelaRemota.Visible) Then
     FormTelaRemota.Close
    Else
@@ -1843,9 +1856,11 @@ Begin
 End;
 
 Initialization
- WndProcHook := SetWindowsHookEx(WH_CALLWNDPROCRET, @WndProc, 0, GetCurrentThreadId);
+ WndProcHook  := SetWindowsHookEx(WH_CALLWNDPROCRET, @WndProc, 0, GetCurrentThreadId);
+ vActualImage := TMemoryStream.Create;
 
 Finalization
  UnhookWindowsHookEx(WndProcHook);
+ FreeAndNil(vActualImage);
 
 End.

@@ -27,7 +27,7 @@ Uses
 Const
  //Aegys Basics
  cAeBufferVersion      = 12;
- cDelayThread          = 2;
+ cDelayThread          = 4;
  cFrameSkip            = 4;
  cServiceTimeout       = 1000;
  cLimitSource          = 500;

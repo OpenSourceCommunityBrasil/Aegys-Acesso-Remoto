@@ -76,7 +76,6 @@ begin
   ARec.Atendente := AAtendente;
   ItemAdd := TListBoxItem.Create(nil);
   FItem := TFrameMensagemChat.Create(ItemAdd);
-  FItem.Locale := TLocale.Create;
   FItem.Parent := ItemAdd;
   FItem.Mensagem := ARec;
   ItemAdd.Height := FItem.Tamanho;

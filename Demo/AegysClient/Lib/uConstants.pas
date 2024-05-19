@@ -24,8 +24,8 @@ type
 
 const
   PORTA              = 9092;
-  FOLGAPROCESSAMENTO = 1;                //mmHospedagem Linux//mmHospedagem Wind //Desenvolvimento//Local
-  SERVIDOR           = '177.10.144.78'; //'191.96.224.156';//'177.93.106.240';//'177.10.144.78';//'192.168.15.200';
+  FOLGAPROCESSAMENTO = 1;                                  //mmHospedagem Linux//mmHospedagem Wind //Desenvolvimento//Local
+  SERVIDOR           = '200.9.155.39';//'192.168.100.29'; //'177.93.106.240';//'177.10.144.78';//'192.168.15.200';
   cMaxFramesBuffer   = 1;
   cRequestTimeOut    = 5000;
   cConnectTimeOut    = 0;
