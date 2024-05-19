@@ -72,7 +72,11 @@ type
    Procedure OnScreenCapture   (Connection,
                                 ID,
                                 Command           : String;
+                                MultiPack         : Boolean;
+                                PackCount         : AeInteger;
                                 aBuf              : TAegysBytes);
+
+
    Procedure OnReceiveCommand  (InternalCommand   : TInternalCommand;
                                 Command           : String);
    Procedure OnConnect         (Sender            : TObject);
@@ -224,9 +228,11 @@ begin
 end;
 
 Procedure TForm2.OnScreenCapture(Connection,
-                                 ID,
-                                 Command           : String;
-                                 aBuf              : TAegysBytes);
+                            ID,
+                            Command           : String;
+                            MultiPack         : Boolean;
+                            PackCount         : AeInteger;
+                            aBuf              : TAegysBytes);
 begin
   if not(vImgProcessing) then
   begin
