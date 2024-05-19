@@ -1,48 +1,97 @@
-object Form3: TForm3
+object fServer: TfServer
   Left = 256
-  Height = 152
+  Height = 487
   Top = 145
-  Width = 303
+  Width = 713
   BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'Aegys Support Server'
-  ClientHeight = 152
-  ClientWidth = 303
+  ClientHeight = 487
+  ClientWidth = 713
   DockSite = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '2.2.4.0'
-  object bActive: TButton
-    Left = 80
-    Height = 25
-    Top = 96
-    Width = 145
-    Caption = 'Active Server'
-    OnClick = bActiveClick
+  object DBGrid1: TDBGrid
+    Left = 0
+    Height = 487
+    Top = 0
+    Width = 713
+    Align = alClient
+    Color = clWindow
+    Columns = <    
+      item
+        Title.Caption = 'Connection'
+        Width = 163
+        FieldName = 'PROTOCOLO'
+      end    
+      item
+        Title.Caption = 'ID'
+        Width = 140
+        FieldName = 'ID'
+      end    
+      item
+        Title.Caption = 'Senha'
+        Width = 116
+        FieldName = 'SENHA'
+      end    
+      item
+        Title.Caption = 'Senha Gerada'
+        FieldName = 'SENHA2'
+      end    
+      item
+        Title.Caption = 'Latência'
+        Width = 60
+        FieldName = 'LATENCIA'
+      end>
+    DataSource = DataSource1
     TabOrder = 0
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
   end
-  object lClientsConnect: TLabel
-    Left = 128
-    Height = 23
-    Top = 37
-    Width = 50
-    Caption = '00000'
-    Font.Color = clWindowText
-    Font.Height = -19
-    Font.Name = 'Tahoma'
-    ParentColor = False
-    ParentFont = False
+  object DataSource1: TDataSource
+    AutoEdit = False
+    DataSet = QryConexoes
+    Left = 229
+    Top = 190
   end
-  object Label1: TLabel
-    Left = 80
-    Height = 23
-    Top = 8
-    Width = 149
-    Caption = 'Clients Connected'
-    Font.Color = clWindowText
-    Font.Height = -19
-    Font.Name = 'Tahoma'
-    ParentColor = False
-    ParentFont = False
+  object QryConexoes: TBufDataset
+    IndexName = 'DEFAULT_ORDER'
+    MaxIndexesCount = 4
+    FieldDefs = <    
+      item
+        Name = 'PROTOCOLO'
+        DataType = ftString
+        Size = 50
+      end    
+      item
+        Name = 'ID'
+        DataType = ftString
+        Size = 11
+      end    
+      item
+        Name = 'SENHA'
+        DataType = ftString
+        Size = 20
+      end    
+      item
+        Name = 'SENHA2'
+        DataType = ftString
+        Size = 20
+      end    
+      item
+        Name = 'LATENCIA'
+        DataType = ftString
+        Size = 10
+      end>
+    Left = 136
+    Top = 76
+  end
+  object tReload: TTimer
+    Enabled = False
+    Interval = 5000
+    OnTimer = tReloadTimer
+    Left = 348
+    Top = 136
   end
 end

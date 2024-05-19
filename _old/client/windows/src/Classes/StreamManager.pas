@@ -1,20 +1,18 @@
 ﻿unit StreamManager;
 
 {
-   Aegys Remote Access Project.
-  Criado por XyberX (Gilbero Rocha da Silva), o Aegys Remote Access Project tem como objetivo o uso de Acesso remoto
-  Gratuito para utilização de pessoas em geral.
-   O Aegys Remote Access Project tem como desenvolvedores e mantedores hoje
+ Project Aegys Remote Support.
 
-  Membros do Grupo :
+   Created by Gilberto Rocha da Silva in 04/05/2017 based on project Allakore, has by objective to promote remote access
+ and other resources freely to all those who need it, today maintained by a beautiful community. Listing below our
+ higly esteemed collaborators:
 
-  XyberX (Gilberto Rocha)    - Admin - Criador e Administrador  do pacote.
-  Wendel Fassarela           - Devel and Admin
-  Mobius One                 - Devel, Tester and Admin.
-  Gustavo                    - Devel and Admin.
-  Roniery                    - Devel and Admin.
-  Alexandre Abbade           - Devel and Admin.
-  e Outros como você, venha participar também.
+  Gilberto Rocha da Silva (XyberX) (Creator of Aegys Project/Main Developer/Admin)
+  Wendel Rodrigues Fassarella (wendelfassarella) (Creator of Aegys FMX/CORE Developer)
+  Rai Duarte Jales (Raí Duarte) (Aegys Server Developer)
+  Roniery Santos Cardoso (Aegys Developer)
+  Alexandre Carlos Silva Abade (Aegys Developer)
+  Mobius One (Aegys Developer)
 }
 
 interface
@@ -23,40 +21,86 @@ uses
   System.Classes,
   System.Types,
   FMX.Forms,
-//  Execute.DesktopDuplicationAPI,
+  Vcl.Imaging.jpeg,
+  Execute.DesktopDuplicationAPI,
   FMX.Objects
   ,Vcl.Graphics
   ,Winapi.Windows
   ,Vcl.Forms
-  , uAegysBufferPack,
-  ActiveX,
-  FMX.Graphics,
-  FMX.Surfaces;
+  , uAegysBufferPack;
 
 Const
- TNeutroColor     = 255;
- cJPGQual         = 25;
- cCompressionData = True;
+  TNeutroColor = 255;
+  cCaptureJPG  = False;
 
 Type
- TCaptureScreenProc = Function : TStream;
+  TRGBTriple = Packed Record
+    B: Byte;
+    G: Byte;
+    R: Byte;
+  End;
 
-Var
- aFullBmp          : Vcl.Graphics.TBitmap;
- DllHandle         : THandle;
- CaptureScreenProc : TCaptureScreenProc = Nil;
- aConnection       : String;
+Type
+  PRGBTripleArray = ^TRGBTripleArray;
+  TRGBTripleArray = Array [0 .. 4095] of TRGBTriple;
 
 procedure GetScreenToMemoryStream(Var aPackClass     : TPackClass;
                                   DrawCur            : Boolean;
-                                  PixelFormat        : TPixelFormat = pf16bit;
+                                  PixelFormat        : TPixelFormat = pf15bit;
                                   Monitor            : String       = '0';
                                   FullFrame          : Boolean      = False);
+
+procedure ResizeBmp(AImage: TImage; AStream: TMemoryStream; AWidth, AHeight: Single);
+
+Var
+ pdst     : Pointer;
+ ASMSize,
+ muASM    : Integer;
+ cpdst     : Pointer;
+ cASMSize,
+ cmuASM    : Integer;
 
 implementation
 
 uses
-  System.SysUtils, uAegysZlib, uAegysDataTypes;
+  System.SysUtils, uFormConexao, uAegysZlib, uAegysDataTypes;
+
+procedure ResizeBmp(AImage: TImage; AStream: TMemoryStream; AWidth, AHeight: Single);
+var
+  bmpSrc, bmpDest: Vcl.Graphics.TBitmap;
+  msImage: TMemoryStream;
+begin
+  try
+    msImage := TMemoryStream.Create;
+    msImage.Clear;
+    bmpSrc := Vcl.Graphics.TBitmap.Create;
+    bmpDest := Vcl.Graphics.TBitmap.Create;
+    AStream.Position := 0;
+    bmpSrc.LoadFromStream(AStream);
+    bmpDest.Width := Trunc(AWidth);
+    bmpDest.Height := Trunc(AHeight);
+    SetStretchBltMode(bmpDest.Canvas.Handle, HALFTONE);
+    StretchBlt(
+      bmpDest.Canvas.Handle,
+      0,
+      0,
+      bmpDest.Width,
+      bmpDest.Height,
+      bmpSrc.Canvas.Handle,
+      0,
+      0,
+      bmpSrc.Width,
+      bmpSrc.Height,
+      SRCCOPY);
+    bmpDest.SaveToStream(msImage);
+    msImage.Position := 0;
+    AImage.Bitmap.LoadFromStream(msImage);
+  finally
+    FreeAndNil(msImage);
+    bmpSrc.Free;
+    bmpDest.Free;
+  end;
+end;
 
 Procedure DrawScreenCursor(Var Bmp: Vcl.Graphics.TBitmap; const MonitorID: Integer);
 Var
@@ -97,76 +141,204 @@ End;
 
 procedure GetScreenToMemoryStream(Var aPackClass     : TPackClass;
                                   DrawCur            : Boolean;
-                                  PixelFormat        : TPixelFormat = pf16bit;
+                                  PixelFormat        : TPixelFormat = pf15bit;
                                   Monitor            : String       = '0';
                                   FullFrame          : Boolean      = False);
 Var
-  aFinalBytes        : TAegysBytes;
-  vMonitor           : Integer;
+  JPG            : Vcl.Imaging.jpeg.TJPegImage;
+  Mybmp,
+  MybmpPart      : Vcl.Graphics.TBitmap;
+  aPackCountData : AeInteger;
+  I,
+  pRectTop,
+  pRectLeft,
+  pRectBottom,
+  pRectRight,
+  vMonitor    : Integer;
+  aSizeData   : AeInt64;
+  vNewFrame,
+  vMultiPoint : Boolean;
+  aFinalBytes,
+  aBytes,
+  aPackBytes    : TAegysBytes;
   aMonitor,
-  aResolution        : String;
-  TargetMemoryStream : TStream;
+  aResolution   : String;
+  TargetMemoryStream,
+  aMemoryStream : TStream;
+  Procedure BitmapToJpg(Var Bmp : Vcl.Graphics.TBitmap;
+                        Var JPG : Vcl.Imaging.jpeg.TJPegImage;
+                        Quality : Integer = 15);
+  Begin
+   Try
+    JPG := TJPegImage.Create;
+    Try
+//     JPG.CompressionQuality := Quality;
+     JPG.Assign(BMP);
+//     JPG.Compress;
+    Finally
+    End;
+   Finally
+    FreeAndNil(BMP);
+   End;
+  End;
 Begin
  aPackClass := Nil;
- vMonitor   := StrToInt(Monitor) +1;
- aMonitor   := IntToStr(FMX.Forms.Screen.DisplayCount);
+ JPG        := Nil;
+ Mybmp := Vcl.Graphics.TBitmap.Create;
+ vMonitor := StrToInt(Monitor) +1;
+ aMonitor := IntToStr(FMX.Forms.Screen.DisplayCount);
  If (vMonitor > FMX.Forms.Screen.DisplayCount) then
   Exit;
  vMonitor := vMonitor -1;
  aResolution := Format('%s&%s&%s', [FloatToStr(Screen.Monitors[vMonitor].Height), FloatToStr(Screen.Monitors[vMonitor].Width), aMonitor]);
  Try
-  Application.ProcessMessages;
-  TargetMemoryStream := CaptureScreenProc;
+  vMultiPoint := False;
+  vNewFrame   := (FDuplication.GetFrame(FullFrame)) Or (FullFrame);
+  If vNewFrame Then
+   Begin
+    FDuplication.DrawFrame(Mybmp, PixelFormat);
+    If Not FullFrame Then
+     Begin
+      vMultiPoint := FDuplication.DirtyCount >= 1;
+      If vMultiPoint Then
+       Begin
+        If FDuplication.DirtyCount = 1 Then
+         Begin
+         {$POINTERMATH ON}
+          pRectTop    := FDuplication.DirtyRects[0].Top;
+          pRectLeft   := FDuplication.DirtyRects[0].Left;
+          pRectBottom := FDuplication.DirtyRects[0].Bottom;
+          pRectRight  := FDuplication.DirtyRects[0].Right;
+          vMultiPoint := Not((pRectTop   = 0) And
+                             (pRectLeft  = 0) And
+                             (pRectRight  = Screen.Monitors[vMonitor].Width) And
+                             (pRectBottom = Screen.Monitors[vMonitor].Height));
+         End;
+       End;
+     End;
+   End;
  Finally
-  Application.ProcessMessages;
  End;
- If Assigned(TargetMemoryStream) Then
+ If vNewFrame Then
   Begin
-   TargetMemoryStream.Position := 0;
-   If TargetMemoryStream.Size > 0 then
+   If DrawCur Then
+    DrawScreenCursor(Mybmp, StrToInt(Monitor));
+   If Not vMultiPoint Then
     Begin
-     If cCompressionData Then
-      ZCompressStreamBytes(TargetMemoryStream, aFinalBytes)
-     Else
+     TargetMemoryStream := TMemoryStream.Create;
+     If cCaptureJPG Then
       Begin
-       SetLength(aFinalBytes, TargetMemoryStream.Size);
-       TargetMemoryStream.Read(aFinalBytes[0], Length(aFinalBytes));
+       BitmapToJpg(Mybmp, JPG);
+       JPG.SaveToStream(TargetMemoryStream);
+       If Assigned(JPG) Then
+        FreeAndNil(JPG);
+      End
+     Else
+      Mybmp.SaveToStream(TargetMemoryStream);
+     TargetMemoryStream.position := 0;
+     If TargetMemoryStream.Size > 0 then
+      Begin
+       ZCompressStreamBytes(TargetMemoryStream, aFinalBytes);
+       aPackClass  := TPackClass.Create;
+       Try
+        aPackClass.DataCheck    := tdcAsync;
+        aPackClass.DataSize     := Length(aFinalBytes);
+        aPackClass.ProxyToMyConnectionList := True;
+        aPackClass.BufferSize   := aPackClass.DataSize;
+        aPackClass.PacksGeral   := 0;
+        aPackClass.PackNo       := 0;
+        aPackClass.DataMode     := tdmClientCommand;
+        aPackClass.DataType     := tdtDataBytes;
+        aPackClass.CommandType  := tctScreenCapture;
+        aPackClass.DataBytes    := aFinalBytes;
+        aPackClass.BytesOptions := aResolution;
+        aPackClass.Owner        := Conexao.Connection;
+        aPackClass.Dest         := '';
+       Finally
+       End;
       End;
      FreeAndNil(TargetMemoryStream);
-     aPackClass               := TPackClass.Create;
+    End
+   Else
+    Begin
+     aMemoryStream  := TMemoryStream.Create;
+     aPackCountData := FDuplication.DirtyCount;
+     aMemoryStream.Write(aPackCountData, SizeOf(aPackCountData));
+     For I := 0 To FDuplication.DirtyCount -1 Do
+      Begin
+       With FDuplication.DirtyRects[I] Do
+        Begin
+         pRectTop    := Top;
+         pRectLeft   := Left;
+         pRectBottom := Bottom;
+         pRectRight  := Right;
+         MybmpPart := Vcl.Graphics.TBitmap.Create;
+         Try
+          MybmpPart.SetSize(pRectRight  - pRectLeft,
+                            pRectBottom - pRectTop);
+          MybmpPart.PixelFormat := PixelFormat;
+          BitBlt(MybmpPart.Canvas.Handle, 0, 0,
+                 pRectRight,              pRectBottom,
+                 Mybmp.Canvas.Handle,     pRectLeft,
+                 pRectTop,                SRCCOPY);
+          TargetMemoryStream := TMemoryStream.Create;
+          If cCaptureJPG Then
+           Begin
+            BitmapToJpg(MybmpPart, JPG);
+            JPG.SaveToStream(TargetMemoryStream);
+           End
+          Else
+           MybmpPart.SaveToStream(TargetMemoryStream);
+          If TargetMemoryStream.Size > 0 Then
+           Begin
+            TargetMemoryStream.Position := 0;
+            aSizeData                   := TargetMemoryStream.Size;
+            aMemoryStream.Write   (pRectTop,           SizeOf(AeInteger));
+            aMemoryStream.Write   (pRectLeft,          SizeOf(AeInteger));
+            aMemoryStream.Write   (pRectBottom,        SizeOf(AeInteger));
+            aMemoryStream.Write   (pRectRight,         SizeOf(AeInteger));
+            aMemoryStream.Write   (aSizeData,          SizeOf(aSizeData));
+            aMemoryStream.CopyFrom(TargetMemoryStream, aSizeData);
+           End;
+         Finally
+          If Assigned(JPG) Then
+           FreeAndNil(JPG);
+          FreeAndNil(MybmpPart);
+          FreeAndNil(TargetMemoryStream);
+          Application.Processmessages;
+         End;
+        End;
+      End;
+     aMemoryStream.Position  := 0;
+     aPackClass              := TPackClass.Create;
      Try
       aPackClass.DataCheck    := tdcAsync;
-      aPackClass.DataSize     := Length(aFinalBytes);
       aPackClass.ProxyToMyConnectionList := True;
-      aPackClass.BufferSize   := aPackClass.DataSize;
-      aPackClass.PacksGeral   := 0;
-      aPackClass.PackNo       := 0;
+      aPackClass.PacksGeral   := aPackCountData;
+      aPackClass.PackNo       := 1;
       aPackClass.DataMode     := tdmClientCommand;
       aPackClass.DataType     := tdtDataBytes;
       aPackClass.CommandType  := tctScreenCapture;
+      SetLength(aBytes, aMemoryStream.Size);
+      aMemoryStream.Read(aBytes[0], Length(aBytes));
+      ZCompressBytes(aBytes, aFinalBytes);
+      SetLength(aBytes, 0);
+      aPackClass.DataSize     := Length(aFinalBytes);
+      aPackClass.BufferSize   := aPackClass.DataSize;
       aPackClass.DataBytes    := aFinalBytes;
-      SetLength(aFinalBytes, 0);
       aPackClass.BytesOptions := aResolution;
-      aPackClass.Owner        := aConnection;
+      aPackClass.Owner        := Conexao.Connection;
       aPackClass.Dest         := '';
      Finally
+      SetLength(aFinalBytes, 0);
+      FreeAndNil(aMemoryStream);
      End;
-    End
-   Else
-    FreeAndNil(TargetMemoryStream);
+    End;
   End;
+ Application.Processmessages;
+ If Assigned(Mybmp) Then
+  FreeAndNil(Mybmp);
 End;
 
-Initialization
- aFullBmp     := Vcl.Graphics.TBitmap.Create;
- DllHandle := LoadLibrary('AegysData.dll');
- If DllHandle > 0 Then
-  @CaptureScreenProc := GetProcAddress(DllHandle, 'CaptureScreen');
-
-Finalization
- FreeAndNil(aFullBmp);
- If DLLHandle <> 0 Then
-  FreeLibrary(DLLHandle);
-
-End.
+end.
 

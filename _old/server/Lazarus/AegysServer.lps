@@ -1,127 +1,199 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectSession>
+    <PathDelim Value="\"/>
     <Version Value="12"/>
-    <BuildModes Active="Win64"/>
-    <Units Count="17">
-      <Unit0>
+    <BuildModes Active="Linux x64"/>
+    <Units>
+      <Unit>
         <Filename Value="AegysServer.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="38" Y="10"/>
-        <UsageCount Value="21"/>
-      </Unit0>
-      <Unit1>
-        <Filename Value="src/userver.pas"/>
+        <CursorPos X="5" Y="15"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src\userver.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form3"/>
+        <ComponentName Value="fServer"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uServer"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="47"/>
-        <CursorPos X="22" Y="11"/>
-        <FoldState Value=" T3i30m02218 PjJkZ0J"/>
-        <UsageCount Value="21"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="../../Component/Base/uAegysBase.pas"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="133"/>
+        <CursorPos X="29" Y="14"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="2580"/>
-        <CursorPos X="67" Y="2592"/>
-        <UsageCount Value="21"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="174"/>
+        <CursorPos Y="188"/>
+        <UsageCount Value="20"/>
         <Loaded Value="True"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="../../Component/Utils/uAegysZlib.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\Component\Base\uAegysTools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="561"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\Component\Base\uAegysThreads.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="21"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="../../commons/uConstants.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\Component\Base\uAegysDataTypes.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="21"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="userverchat.pas"/>
-        <ComponentName Value="Form3"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="uServerChat"/>
-        <EditorIndex Value="-1"/>
         <UsageCount Value="20"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="../../../../Source/Base/uAegysBase.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\Component\Base\uAegysConsts.pas"/>
+        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="20"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="../../../../Source/Base/uAegysBufferPack.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\Component\Base\uAegysBufferPack.pas"/>
+        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="20"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="../../../../Source/Base/uAegysConsts.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\Component\Base\uAegysBase.pas"/>
+        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="20"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="../../../../Source/Base/uAegysDataTypes.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\commons\uConstants.pas"/>
+        <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="20"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="../../../../Source/Base/uAegysThreads.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\Component\Utils\uAegysZlib.pas"/>
         <EditorIndex Value="-1"/>
+        <CursorPos X="29" Y="8"/>
         <UsageCount Value="20"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="../../../../Source/Base/uAegysTools.pas"/>
-        <EditorIndex Value="-1"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\Component\Base\uAegysTools.pas"/>
         <UsageCount Value="20"/>
-      </Unit11>
-      <Unit12>
-        <Filename Value="../../../../Source/Libs/uAegysZlib.pas"/>
-        <EditorIndex Value="-1"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\Component\Base\uAegysThreads.pas"/>
         <UsageCount Value="20"/>
-      </Unit12>
-      <Unit13>
-        <Filename Value="../../../../Source/Includes/uAegys.inc"/>
-        <EditorIndex Value="-1"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\Component\Base\uAegysDataTypes.pas"/>
         <UsageCount Value="20"/>
-      </Unit13>
-      <Unit14>
-        <Filename Value="uconsts.pas"/>
-        <UnitName Value="uConsts"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="10"/>
-      </Unit14>
-      <Unit15>
-        <Filename Value="../../Component/Base/uAegysBufferPack.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="12"/>
-        <CursorPos X="62" Y="25"/>
-        <UsageCount Value="10"/>
-      </Unit15>
-      <Unit16>
-        <Filename Value="../../Component/Base/uAegysThreads.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="84"/>
-        <CursorPos X="15" Y="97"/>
-        <UsageCount Value="10"/>
-      </Unit16>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\Component\Base\uAegysConsts.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\Component\Base\uAegysBufferPack.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\Component\Base\uAegysBase.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\commons\uConstants.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
     </Units>
-    <JumpHistory HistoryIndex="-1"/>
+    <JumpHistory HistoryIndex="14">
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="98" Column="17" TopLine="82"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="171" Column="32" TopLine="163"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="22" Column="27" TopLine="10"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="171" Column="32" TopLine="151"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="22" Column="27" TopLine="10"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="171" Column="32" TopLine="163"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="148" Column="55" TopLine="141"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="189" Column="11" TopLine="176"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="14" Column="29" TopLine="133"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="189" Column="31" TopLine="176"/>
+      </Position>
+      <Position>
+        <Filename Value="AegysServer.lpr"/>
+        <Caret Line="15" Column="5"/>
+      </Position>
+      <Position>
+        <Filename Value="src\userver.pas"/>
+        <Caret Line="14" Column="29" TopLine="133"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="8" Column="13" TopLine="139"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="189" Column="31" TopLine="176"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\Component\Utils\uAegysZlib.pas"/>
+        <Caret Line="18" Column="22"/>
+      </Position>
+    </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes ActiveMode=""/>
