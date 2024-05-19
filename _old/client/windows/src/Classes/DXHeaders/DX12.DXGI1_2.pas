@@ -6,10 +6,11 @@ unit DX12.DXGI1_2;
 
 
 interface
+
 {$Z4}
 
 uses
-    Windows, Classes, SysUtils, DX12.DXGI;
+    Windows, Classes, SysUtils, DX12.DXGI, ActiveX;
 
 const
     IID_IDXGIDisplayControl: TGUID = '{ea9dbf1a-c88e-4486-854a-98aa0138f30c}';
@@ -39,6 +40,7 @@ type
 
 
     TDXGI_OUTDUPL_MOVE_RECT = record
+
         SourcePoint: TPOINT;
         DestinationRect: TRECT;
     end;
@@ -70,7 +72,6 @@ type
         HotSpot: TPOINT;
     end;
 
-    PDXGI_OUTDUPL_FRAME_INFO = ^TDXGI_OUTDUPL_FRAME_INFO;
     TDXGI_OUTDUPL_FRAME_INFO = record
         LastPresentTime: LARGE_INTEGER;
         LastMouseUpdateTime: LARGE_INTEGER;
@@ -88,11 +89,11 @@ type
         procedure GetDesc(out pDesc: TDXGI_OUTDUPL_DESC); stdcall;
         function AcquireNextFrame(TimeoutInMilliseconds: UINT; out pFrameInfo: TDXGI_OUTDUPL_FRAME_INFO;
             out ppDesktopResource: IDXGIResource): HResult; stdcall;
-        function GetFrameDirtyRects(DirtyRectsBufferSize: UINT; pDirtyRectsBuffer: PRECT;
+        function GetFrameDirtyRects(DirtyRectsBufferSize: UINT; out pDirtyRectsBuffer: PRECT;
             out pDirtyRectsBufferSizeRequired: UINT): HResult; stdcall;
-        function GetFrameMoveRects(MoveRectsBufferSize: UINT; pMoveRectBuffer: PDXGI_OUTDUPL_MOVE_RECT;
+        function GetFrameMoveRects(MoveRectsBufferSize: UINT; out pMoveRectBuffer: PDXGI_OUTDUPL_MOVE_RECT;
             out pMoveRectsBufferSizeRequired: UINT): HResult; stdcall;
-        function GetFramePointerShape(PointerShapeBufferSize: UINT; pPointerShapeBuffer: Pointer;
+        function GetFramePointerShape(PointerShapeBufferSize: UINT; out pPointerShapeBuffer: Pointer;
             out pPointerShapeBufferSizeRequired: UINT; out pPointerShapeInfo: TDXGI_OUTDUPL_POINTER_SHAPE_INFO): HResult;
             stdcall;
         function MapDesktopSurface(out pLockedRect: TDXGI_MAPPED_RECT): HResult; stdcall;
@@ -105,7 +106,7 @@ type
         DXGI_ALPHA_MODE_PREMULTIPLIED = 1,
         DXGI_ALPHA_MODE_STRAIGHT = 2,
         DXGI_ALPHA_MODE_IGNORE = 3,
-        DXGI_ALPHA_MODE_FORCE_DWORD = integer($ffffffff)
+        DXGI_ALPHA_MODE_FORCE_DWORD = INT32($ffffffff)
         );
 
     IDXGISurface2 = interface(IDXGISurface1)
@@ -257,7 +258,7 @@ type
 
     IDXGIAdapter2 = interface(IDXGIAdapter1)
         ['{0AA1AE0A-FA0E-4B84-8644-E05FF8E5ACB5}']
-        function GetDesc2(out pDesc: PDXGI_ADAPTER_DESC2): HResult; stdcall;
+        function GetDesc2(out pDesc: TDXGI_ADAPTER_DESC2): HResult; stdcall;
     end;
 
 

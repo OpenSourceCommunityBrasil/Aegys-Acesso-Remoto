@@ -11,15 +11,15 @@ uses
   Windows,
   classes,
   SysUtils,
-  uDM in 'src\Views\uDM.pas' {DM: TDataModule},
   uFormConexao in 'src\Views\uFormConexao.pas' {FormConexao},
   uFormTelaRemota in 'src\Views\uFormTelaRemota.pas' {FormTelaRemota},
   uFormChat in 'src\Views\uFormChat.pas' {FormChat},
+  uDM in 'src\Views\uDM.pas' {DM: TDataModule},
   uFormConfig in 'src\Views\uFormConfig.pas' {fConfig},
-  uFormSenha in 'src\Views\uFormSenha.pas' {FormSenha},
-  uFileTransfer in 'src\Views\uFileTransfer.pas' {fFileTransfer},
   uFrameMensagemChat in 'src\Views\Frame\uFrameMensagemChat.pas' {FrameMensagemChat: TFrame},
+  uFileTransfer in 'src\Views\uFileTransfer.pas' {fFileTransfer},
   ufrMonitorItem in 'src\Views\Frame\ufrMonitorItem.pas' {frMonitorItem: TFrame},
+  uFormSenha in 'src\Views\uFormSenha.pas' {FormSenha},
   uLibClass in 'src\Classes\uLibClass.pas',
   uSendKeyClass in 'src\Classes\uSendKeyClass.pas',
   StreamManager in 'src\Classes\StreamManager.pas',
@@ -27,7 +27,9 @@ uses
   uFunctions in 'src\Classes\uFunctions.pas',
   uFilesFoldersOP in 'src\Classes\uFilesFoldersOP.pas',
   uIconsAssoc in 'src\Classes\uIconsAssoc.pas',
+  uLocale in '..\..\commons\uLocale.pas',
   uConstants in '..\..\commons\uConstants.pas',
+  Config.SQLite.FireDAC in '..\..\commons\Config.SQLite.FireDAC.pas',
   CCR.Clipboard.Apple.Helpers in 'src\Classes\ClipBoard\CCR.Clipboard.Apple.Helpers.pas',
   CCR.Clipboard.Apple in 'src\Classes\ClipBoard\CCR.Clipboard.Apple.pas',
   CCR.Clipboard.Consts in 'src\Classes\ClipBoard\CCR.Clipboard.Consts.pas',
@@ -45,81 +47,23 @@ uses
   uAegysThreads in '..\..\Component\Base\uAegysThreads.pas',
   uAegysTools in '..\..\Component\Base\uAegysTools.pas',
   uAegysClientMotor in '..\..\Component\Base\uAegysClientMotor.pas',
-  uAegysZlib in '..\..\Component\Utils\uAegysZlib.pas',
-  uLocale in '..\..\commons\uLocale.pas',
-  DX12.D3D11 in 'src\Classes\DXHeaders\DX12.D3D11.pas',
-  DX12.D3DCommon in 'src\Classes\DXHeaders\DX12.D3DCommon.pas',
-  DX12.DXGI in 'src\Classes\DXHeaders\DX12.DXGI.pas',
-  DX12.DXGI1_2 in 'src\Classes\DXHeaders\DX12.DXGI1_2.pas',
-  Execute.DesktopDuplicationAPI in 'src\Classes\Execute.DesktopDuplicationAPI.pas',
-  Config.SQLite.FireDAC in '..\..\commons\Config.SQLite.FireDAC.pas';
+  uAegysZlib in '..\..\Component\Utils\uAegysZlib.pas';
 
 {$R *.res}
 
-procedure ExtractRunAsSystem;
+procedure ExtractResources;
 var
   resource: TResourceStream;
 begin
-  resource := TResourceStream.Create(HInstance, 'RUN_AS_SYSTEM', RT_RCDATA);
-  try
-    resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
-  finally
-    FreeAndNil(resource);
-  end;
-end;
-
-procedure ExtractCommonFiles;
-var
-  resource: TResourceStream;
-begin
-{$IFDEF WIN32}
+  {$IF Defined(WIN32)}
   resource := TResourceStream.Create(HInstance, 'SQLITE32', RT_RCDATA);
   resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\sqlite3.dll');
   FreeAndNil(resource);
-{$ENDIF}
-{$IFDEF WIN64}
+  {$ELSEIF Defined(WIN64)}
   resource := TResourceStream.Create(HInstance, 'SQLITE64', RT_RCDATA);
   resource.SaveToFile(ExtractFilePath(ParamStr(0)) + '\sqlite3.dll');
   FreeAndNil(resource);
-{$ENDIF}
-end;
-
-function IsAccountSystem: Boolean;
-var
-  hToken: THandle;
-  pTokenUser: ^TTokenUser;
-  dwInfoBufferSize: DWORD;
-  pSystemSid: PSID;
-const
-  SECURITY_NT_AUTHORITY: TSIDIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 5));
-  SECURITY_LOCAL_SYSTEM_RID = $00000012;
-begin
-  if not OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, hToken) then
-  begin
-    Result := False;
-    Exit;
-  end;
-
-  GetMem(pTokenUser, 1024);
-  if not GetTokenInformation(hToken, TokenUser, pTokenUser, 1024,
-    dwInfoBufferSize) then
-  begin
-    CloseHandle(hToken);
-    Result := False;
-    Exit;
-  end;
-
-  CloseHandle(hToken);
-
-  if not AllocateAndInitializeSid(SECURITY_NT_AUTHORITY, 1,
-    SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, pSystemSid) then
-  begin
-    Result := False;
-    Exit;
-  end;
-
-  Result := EqualSid(pTokenUser.User.Sid, pSystemSid);
-  FreeSid(pSystemSid);
+  {$IFEND}
 end;
 
 var
@@ -128,22 +72,8 @@ var
 begin
   Application.Initialize;
   Locale := TLocale.Create;
-  // Workaround to run on SYSTEM account. This is necessary in order to be able to interact with UAC.
-{$IFNDEF DEBUG}
-  if not IsAccountSystem then
-  begin
-    ExtractRunAsSystem;
-    ShellExecute(0, 'open', PChar(ExtractFilePath(ParamStr(0)) +
-      '\RunAsSystem.exe'), PChar('"' + ParamStr(0) + '"'), nil, SW_HIDE);
-    Application.Terminate;
-  end
-  else
-  begin
-    Sleep(1000);
-    DeleteFile(ExtractFilePath(ParamStr(0)) + '\RunAsSystem.exe');
-  end;
-{$ENDIF}
-  ExtractCommonFiles;
+  ExtractResources;
+
   Application.Title := Locale.GetLocale(lsSYSTEMINFO, lvSysTitle);
   Application.CreateForm(TFormConexao, FormConexao);
   Application.CreateForm(TDM, DM);

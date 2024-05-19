@@ -25,14 +25,18 @@ Const
  //Aegys Basics
  cAeBufferVersion      = 12;
  cDelayThread          = 2;
+ cFrameSkip            = 4;
  cServiceTimeout       = 1000;
  cLimitSource          = 500;
+ cResuqestTimeout      = 7000;
+ cConnectionTimeout    = 3000;
  //Messages
- cCaptureTitle         = 'Remote Access, Connection "%s",ID "%s"';
+ cCaptureTitle         = 'Remote Access, Connection "%s", FPS "%d"';
  cCantExecDisconnected = 'Cannot Execute Action when Disconnected';
  cCantJoinDisconnected = 'Cannot join when Disconnected';
  cInvalidBufferData    = 'Invalid Buffer Data...';
  cInvalidHeaderData    = 'Invalid Header Data...';
+ cSocketDisconnected   = 'Server Disconnected...';
  cOutOfRange           = 'Element out of Range...';
  cPackInvalidSize      = 'Invalid Pack Size...';
  cPackListNotAssigned  = 'PackList not Assigned...';

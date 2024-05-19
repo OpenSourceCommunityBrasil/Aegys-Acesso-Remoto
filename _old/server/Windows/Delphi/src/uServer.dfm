@@ -1,47 +1,45 @@
-object fServer: TfServer
+object FormServidor: TFormServidor
   Left = 0
   Top = 0
-  BorderIcons = [biSystemMenu]
-  BorderStyle = bsSingle
-  Caption = 'Aegys Support Server'
-  ClientHeight = 458
-  ClientWidth = 707
+  ClientHeight = 463
+  ClientWidth = 748
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
+  Font.Height = -13
+  Font.Name = 'Segoe UI'
   Font.Style = []
-  Position = poScreenCenter
+  OldCreateOrder = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  TextHeight = 13
+  PixelsPerInch = 96
+  TextHeight = 17
   object DBGrid1: TDBGrid
     Left = 0
     Top = 0
-    Width = 707
-    Height = 458
+    Width = 748
+    Height = 463
     Align = alClient
     DataSource = DataSource1
     DrawingStyle = gdsGradient
     TabOrder = 0
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
-    TitleFont.Height = -11
-    TitleFont.Name = 'Tahoma'
+    TitleFont.Height = -13
+    TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
     Columns = <
       item
         Expanded = False
         FieldName = 'PROTOCOLO'
-        Title.Caption = 'Connection'
-        Width = 163
+        Title.Caption = 'Protocolo'
+        Width = 100
         Visible = True
       end
       item
         Expanded = False
         FieldName = 'ID'
-        Width = 140
+        Width = 100
         Visible = True
       end
       item
@@ -71,7 +69,33 @@ object fServer: TfServer
     Top = 144
   end
   object QryConexoes: TFDMemTable
-    FieldDefs = <>
+    Active = True
+    FieldDefs = <
+      item
+        Name = 'PROTOCOLO'
+        DataType = ftString
+        Size = 10
+      end
+      item
+        Name = 'ID'
+        DataType = ftString
+        Size = 11
+      end
+      item
+        Name = 'SENHA'
+        DataType = ftString
+        Size = 20
+      end
+      item
+        Name = 'SENHA2'
+        DataType = ftString
+        Size = 20
+      end
+      item
+        Name = 'LATENCIA'
+        DataType = ftString
+        Size = 10
+      end>
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]
     FetchOptions.Mode = fmAll
@@ -85,7 +109,7 @@ object fServer: TfServer
     Top = 96
     object QryConexoesPROTOCOLO: TStringField
       FieldName = 'PROTOCOLO'
-      Size = 50
+      Size = 10
     end
     object QryConexoesID: TStringField
       FieldName = 'ID'
@@ -103,10 +127,9 @@ object fServer: TfServer
     end
   end
   object tReload: TTimer
-    Enabled = False
     Interval = 5000
     OnTimer = tReloadTimer
-    Left = 320
-    Top = 112
+    Left = 648
+    Top = 40
   end
 end

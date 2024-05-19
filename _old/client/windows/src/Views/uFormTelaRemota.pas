@@ -640,9 +640,9 @@ Begin
  vMostrarMouse        := Not vMostrarMouse;
  sbMouse.StaysPressed := vMostrarMouse;
  If vMostrarMouse Then
-  SendSocketMouse(cShowMouse + 'true')
+  vMouseMove.Add(cShowMouse)
  Else
-  SendSocketMouse(cShowMouse + 'false')
+  vMouseMove.Add(cHideMouse);
 End;
 
 Procedure TFormTelaRemota.PROC_REDIMENSIONARExecute(Sender: TObject);

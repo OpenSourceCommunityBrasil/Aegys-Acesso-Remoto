@@ -3,14 +3,14 @@ program AegysServer;
 uses
   Vcl.Forms,
   uServer in 'src\uServer.pas' {fServer},
+  uConstants in '..\..\..\commons\uConstants.pas',
+  uAegysBase in '..\..\..\Component\Base\uAegysBase.pas',
   uAegysBufferPack in '..\..\..\Component\Base\uAegysBufferPack.pas',
   uAegysConsts in '..\..\..\Component\Base\uAegysConsts.pas',
   uAegysDataTypes in '..\..\..\Component\Base\uAegysDataTypes.pas',
-  uAegysTools in '..\..\..\Component\Base\uAegysTools.pas',
-  uAegysBase in '..\..\..\Component\Base\uAegysBase.pas',
-  uAegysThreads in '..\..\..\Component\Base\uAegysThreads.pas',
   uAegysZlib in '..\..\..\Component\Utils\uAegysZlib.pas',
-  uConstants in '..\..\..\commons\uConstants.pas';
+  uAegysTools in '..\..\..\Component\Base\uAegysTools.pas',
+  uAegysThreads in '..\..\..\Component\Base\uAegysThreads.pas';
 
 {$R *.res}
 

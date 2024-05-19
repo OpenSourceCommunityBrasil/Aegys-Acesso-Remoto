@@ -9,6 +9,9 @@
         <Projects Include="server\Windows\Delphi\AegysServer.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="client\CaptureDll\AegysData.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -35,14 +38,23 @@
     <Target Name="AegysServer:Make">
         <MSBuild Projects="server\Windows\Delphi\AegysServer.dproj" Targets="Make"/>
     </Target>
+    <Target Name="AegysData">
+        <MSBuild Projects="client\CaptureDll\AegysData.dproj"/>
+    </Target>
+    <Target Name="AegysData:Clean">
+        <MSBuild Projects="client\CaptureDll\AegysData.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AegysData:Make">
+        <MSBuild Projects="client\CaptureDll\AegysData.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="AegysSuporteCliente;AegysServer"/>
+        <CallTarget Targets="AegysSuporteCliente;AegysServer;AegysData"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AegysSuporteCliente:Clean;AegysServer:Clean"/>
+        <CallTarget Targets="AegysSuporteCliente:Clean;AegysServer:Clean;AegysData:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AegysSuporteCliente:Make;AegysServer:Make"/>
+        <CallTarget Targets="AegysSuporteCliente:Make;AegysServer:Make;AegysData:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

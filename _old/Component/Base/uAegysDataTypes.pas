@@ -27,29 +27,29 @@ uses
 Type
  TArrayOfPointer   = Array of Pointer;
  PComponent        = ^TComponent;
- TPingSense        = (tpsPing,           tpsPong);
- TInternalCommand  = (ticNone,           ticLogin,
-                      ticConnectionList, ticDataStatus,
-                      ticFindID,         ticIDExistsReqPass,
-                      ticIDNotFound,     ticPing,
-                      ticPong,           ticCheckPass,
-                      ticAccessGranted,  ticGetMonitorCount,
-                      ticChangeMonitor,  ticRelation,
-                      ticConnectedPeer,  ticDisconnectedPeer,
-                      ticDisconnectPeer, ticDisconnectAllPeers,
-                      ticKick,           ticIncommingConnect,
-                      ticNewID,          ticSetPortSend,
-                      ticSetPortRec);
- TDataMode         = (tdmServerCommand,  tdmClientCommand,
+ TPingSense        = (tpsPing,               tpsPong);
+ TInternalCommand  = (ticNone,               ticLogin,
+                      ticConnectionList,     ticDataStatus,
+                      ticFindID,             ticIDExistsReqPass,
+                      ticIDNotFound,         ticPing,
+                      ticPong,               ticCheckPass,
+                      ticAccessGranted,      ticAccessDenied,
+                      ticGetMonitorCount,    ticChangeMonitor,
+                      ticRelation,           ticConnectedPeer,
+                      ticDisconnectedPeer,   ticDisconnectPeer,
+                      ticDisconnectAllPeers, ticKick,
+                      ticIncommingConnect,   ticNewID,
+                      ticSetPortSend,        ticSetPortRec);
+ TDataMode         = (tdmServerCommand,      tdmClientCommand,
                       tdmReply);
- TDataType         = (tdtString,         tdtDataBytes);
- TDataCheck        = (tdcAsync,          tdcSync);
- TCommandType      = (tctScreenCapture,  tctMonitor,
-                      tctAudio,          tctVideo,
-                      tctKeyboard,       tctMouse,
-                      tctFileTransfer,   tctChat,
-                      tctClipBoard,      tctNone);
- TPortDirection    = (tpdInBound,        tpdOutBound);
+ TDataType         = (tdtString,             tdtDataBytes);
+ TDataCheck        = (tdcAsync,              tdcSync);
+ TCommandType      = (tctScreenCapture,      tctMonitor,
+                      tctAudio,              tctVideo,
+                      tctKeyboard,           tctMouse,
+                      tctFileTransfer,       tctChat,
+                      tctClipBoard,          tctNone);
+ TPortDirection    = (tpdInBound,            tpdOutBound);
  TAegysBytes       = Array of Byte;
  {$IFDEF FPC}
   AEInteger        = Longint;

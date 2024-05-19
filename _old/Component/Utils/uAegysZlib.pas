@@ -13,38 +13,36 @@ Const
 
 // Funções de Compressão e descompressão de Stream com ZLib
 Procedure ZCompressStream    (inStream,
-                              outStream        : TStream;
-                              CompressionLevel : TCompressionLevel = clDefault);
-Procedure ZCompressStreamBytes(Var inStream     : TStream;
-                               Var outBytes     : TAegysBytes;
-                               CompressionLevel : TCompressionLevel = clFastest);
+                              outStream          : TStream;
+                              aCompressionLevel  : TCompressionLevel = clDefault);
+Procedure ZCompressStreamBytes(Var inStream      : TStream;
+                               Var outBytes      : TAegysBytes;
+                               aCompressionLevel : TCompressionLevel = clFastest);
 Procedure ZCompressBytes     (Var inBytes,
-                              outBytes         : TAegysBytes;
-                              CompressionLevel : TCompressionLevel = clFastest);
+                              outBytes           : TAegysBytes;
+                              aCompressionLevel  : TCompressionLevel = clFastest);
 Procedure ZDecompressBytes   (Var inBytes,
-                              outBytes         : TAegysBytes);
-Procedure ZDecompressBytesStream(Var inBytes      : TAegysBytes;
-                                 Var OutStream    : TStream;
-                                 CompressionLevel : TCompressionLevel = clFastest);
-Procedure ZDecompressStream  (inStream,
-                              outStream        : TStream);
-Function ZDecompressStreamNew(Const S          : TStream)       : TStream;
-Function ZDecompressStr      (Const S          : String;
-                              Var Value        : String)        : Boolean;
-Function ZDecompressStreamD  (Const S          : TStringStream;
-                              Var Value        : TStringStream) : Boolean;
-Function ZCompressStreamNew  (Const S          : String)        : TStream;
-Function ZCompressStreamSS   (Const S          : String)        : TStringStream;
-Function ZCompressStr        (Const S          : String;
-                              Var Value        : String)        : Boolean;
-Function ZCompressStreamD    (S                : TStream;
-                              Var Value        : TStream)       : Boolean;
+                              outBytes           : TAegysBytes);
+Procedure ZDecompressBytesStream(Var inBytes     : TAegysBytes;
+                                 Var OutStream   : TStream);
+Procedure ZDecompressStream     (inStream,
+                                 outStream       : TStream);
+Function ZDecompressStreamNew   (Const S         : TStream)       : TStream;
+Function ZDecompressStr         (Const S         : String;
+                                 Var Value       : String)        : Boolean;
+Function ZDecompressStreamD     (Const S         : TStringStream;
+                                 Var Value       : TStringStream) : Boolean;
+Function ZCompressStreamNew     (Const S         : String)        : TStream;
+Function ZCompressStreamSS      (Const S         : String)        : TStringStream;
+Function ZCompressStr           (Const S         : String;
+                                 Var Value       : String)        : Boolean;
+Function ZCompressStreamD       (S               : TStream;
+                                 Var Value       : TStream)       : Boolean;
 
 implementation
 
 Procedure ZDecompressBytesStream(Var inBytes      : TAegysBytes;
-                                 Var OutStream    : TStream;
-                                 CompressionLevel : TCompressionLevel = clFastest);
+                                 Var OutStream    : TStream);
 Var
  D : TDecompressionstream;
  B : Array [1 .. CompressBuffer] of Byte;
@@ -150,7 +148,7 @@ End;
 
 Procedure ZCompressBytes     (Var inBytes,
                               outBytes         : TAegysBytes;
-                              CompressionLevel : TCompressionLevel = clFastest);
+                              aCompressionLevel : TCompressionLevel = clFastest);
 Var
  DS        : TCompressionStream;
  Size      : AeInt64;
@@ -163,7 +161,7 @@ Begin
  Try
   inStream.Write(inBytes[0], Length(inBytes));
   inStream.Position := 0; // Goto Start of input stream
-  DS := TCompressionStream.Create(CompressionLevel, outStream);
+  DS := TCompressionStream.Create(aCompressionLevel, outStream);
   Try
    Size := inStream.Size;
    inStream.Position := 0;
@@ -188,7 +186,7 @@ End;
 
 Procedure ZCompressStreamBytes(Var inStream     : TStream;
                                Var outBytes     : TAegysBytes;
-                               CompressionLevel : TCompressionLevel = clFastest);
+                               aCompressionLevel : TCompressionLevel = clFastest);
 Var
   DS        : TCompressionStream;
   outStream : TMemoryStream;
@@ -198,7 +196,7 @@ Begin
  SetLength(outBytes, 0);
  outStream := TMemoryStream.Create;
  Try
-  DS := TCompressionStream.Create(CompressionLevel, outStream);
+  DS := TCompressionStream.Create(aCompressionLevel, outStream);
   Try
    Size := inStream.Size;
    inStream.Position := 0;
@@ -216,13 +214,13 @@ Begin
 End;
 
 Procedure ZCompressStream(inStream, outStream: TStream;
-                          CompressionLevel: TCompressionLevel = clDefault);
+                          aCompressionLevel: TCompressionLevel = clDefault);
 Var
   DS: TCompressionStream;
   Size: AeInt64;
 Begin
   inStream.Position := 0; // Goto Start of input stream
-  DS := TCompressionStream.Create(CompressionLevel, outStream);
+  DS := TCompressionStream.Create(aCompressionLevel, outStream);
   Try
     Size := inStream.Size;
     inStream.Position := 0;

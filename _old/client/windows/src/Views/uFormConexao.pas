@@ -39,7 +39,7 @@ uses
   uAegysZlib, uAegysTools,
   uFunctions, CCR.Clipboard, StreamManager,
 
-  Config.SQLite.FireDAC, uLocale, Execute.DesktopDuplicationAPI
+  Config.SQLite.FireDAC, uLocale
   ;
 
 type
@@ -111,11 +111,15 @@ type
     procedure FormActivate(Sender: TObject);
   private
     Position,
+    vFPS,
     MousePosX,
     MousePosY         : Integer;
+    vInitTime,
+    vFinalTime        : TDateTime;
     aPackList         : TPackList;
     Locale            : TLocale;
     aConnection,
+    vClientID,
     vOldClipboardFile,
     vOldClipboardText : String;
     TrayWnd           : HWND;
@@ -164,7 +168,7 @@ type
                                       Var ClientID,
                                       ClientPassword,
                                       Alias             : String);
-    function  OnPulseData            (aPack             : TAegysBytes;
+    Function  OnPulseData            (aPack             : TAegysBytes;
                                       CommandType       : TCommandType = tctScreenCapture): Boolean;
     procedure OnProcessData          (aPackList         : TPackList;
                                       aFullFrame        : Boolean);
@@ -177,6 +181,7 @@ type
     procedure OnMouseCapture         (Command           : String);
     procedure KillThreads;
     procedure ExecuteCommand         (aLine             : String);
+    procedure AccessDenied;
   public
     Procedure Kick;
     procedure SetPeerDisconnected;
@@ -188,6 +193,8 @@ type
     procedure SetSockets;
   end;
 
+  Function RFB_Data : Boolean;
+
 var
   FormConexao        : TFormConexao;
   Conexao            : TAegysClient;
@@ -195,11 +202,11 @@ var
   vDrawCursor,
   Bblockinput        : Boolean;
   vResolucaoLargura,
+  vOldResolucaoLargura,
   vResolucaoAltura,
+  vOldResolucaoAltura,
   CF_FILE            : Integer;
   mx, my             : Single;
-  FDuplication       : TDesktopDuplicationWrapper;
-  vOldBMP            : TMemoryStream;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -212,16 +219,60 @@ uses
   uFormTelaRemota, uFileTransfer, uFormChat, uLibClass, uConstants, uFormConfig,
   uFormSenha, uSendKeyClass, NB30;
 
+
+Function RFB_Data : Boolean;
+var
+ ver            : tosversioninfo;
+ majorversion,
+ minorversion,
+ buildnumber    : Integer;
+ name,
+ csdversion     : String;
+Begin
+ majorversion := 0;
+ minorversion := 0;
+ Ver.dwOSVersionInfoSize := SizeOf( TOSVersionInfo );
+ If Windows.GetVersionEx(Ver) Then
+  Begin
+   With Ver Do
+    Begin
+     Case dwPlatformId Of
+      VER_PLATFORM_WIN32s        : Name := 'Win32s';
+      VER_PLATFORM_WIN32_WINDOWS : Name := 'Windows 95';
+      VER_PLATFORM_WIN32_NT      : Name := 'Windows NT';
+     End;
+     majorversion := dwMajorVersion;
+     minorversion := dwminorversion;
+     buildnumber  := dwBuildNumber;
+     csdversion   := szCSDVersion;
+//            label1.caption:=name;
+//            label10.caption:=minorversion;
+//            label2.caption:=majorversion;
+//            label3.caption:=buildnumber;
+//            label4.caption:=csdversion;
+    End;
+  End;
+ Result := (majorversion < 7);
+End;
+
 Procedure TFormConexao.ExecuteCommand(aLine : String);
 Var
  aTempID        : String;
  InicioPalavra,
  TamanhoPalavra : Integer;
+ vOnMouseShow   : Boolean;
 Begin
+ vOnMouseShow   := False;
  If aLine.Contains(cShowMouse)    Then
-  vMostrarMouse := True;
+  Begin
+   vOnMouseShow  := True;
+   vMostrarMouse := vOnMouseShow;
+  End;
  If aLine.Contains(cHideMouse)    Then
-  vMostrarMouse := False;
+  Begin
+   vOnMouseShow  := True;
+   vMostrarMouse := False;
+  End;
  If aLine.Contains(cBlockInput)   Then
   Begin
    BInputsBlock := True;
@@ -442,22 +493,8 @@ Begin
    Else
     Mouse_Event(MOUSEEVENTF_WHEEL, 0, 0, DWORD(Position), 0);
   End;
- Position := Pos(cShowMouse, aLine);
- If Position > 0 then
-  Begin
-   Delete(aLine, InitStrPos, Position + Length(cShowMouse) -1);
-   If Pos(cEndTag, aLine) > 0 Then
-    Begin
-     aLine := Copy(aLine, InitStrPos, Pos(cEndTag, aLine) - 1);
-     Delete(aLine, InitStrPos, Pos(cEndTag, aLine) + Length(cEndTag) -1);
-    End
-   Else
-    Begin
-     aLine := Copy(aLine, InitStrPos, Length(aLine));
-     Delete(aLine, InitStrPos, Length(aLine));
-    End;
-   vDrawCursor := aLine = 'true';
-  End;
+ If vOnMouseShow then
+  vDrawCursor := vMostrarMouse;
  Bblockinput := aLine.Contains(cBlockInput);
  If Bblockinput Then
   Begin
@@ -596,29 +633,24 @@ procedure TFormConexao.FormCreate(Sender: TObject);
 var
   CFG: TSQLiteConfig;
 begin
-  FDuplication := Nil;
-  vOldBMP      := TMemoryStream.Create;
-  CF_FILE := RegisterClipboardFormat('FileName');
-  // inicializando os objetos
-  Locale := TLocale.Create;
-  Conexao := TAegysClient.Create(Self);
-  // --------------------------
-  SetColors;
-  SetOffline;
-  Translate;
-  isvisible := True;
-  // load confg
-  CFG := TSQLiteConfig.Create;
-  try
-    lyGuestID.Visible := not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0)
-      .ToBoolean;
-    lyConnect.Visible := not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0)
-      .ToBoolean;
-    lyQuality.Visible := not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0)
-      .ToBoolean;
-  finally
-    CFG.DisposeOf;
-  end;
+ CF_FILE := RegisterClipboardFormat('FileName');
+ // inicializando os objetos
+ Locale  := TLocale.Create;
+ Conexao := TAegysClient.Create(Self);
+ // --------------------------
+ SetColors;
+ SetOffline;
+ Translate;
+ isvisible := True;
+ // load confg
+ CFG := TSQLiteConfig.Create;
+ Try
+  lyGuestID.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
+  lyConnect.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
+  lyQuality.Visible := Not StrToIntDef(CFG.getValue(QUICK_SUPPORT), 0).ToBoolean;
+ Finally
+  FreeAndNil(CFG);
+ End;
  aPackList         := TPackList.Create;
  SendDataThread    := Nil;
 // SendCommandEvents := Nil;
@@ -629,9 +661,8 @@ end;
 
 procedure TFormConexao.FormDestroy(Sender: TObject);
 begin
- FreeAndNil(vOldBMP);
  FreeAndNil(aPackList);
- Locale.DisposeOf;
+ FreeAndNil(Locale);
 end;
 
 procedure TFormConexao.FormMouseMove(Sender: TObject; Shift: TShiftState;
@@ -642,18 +673,18 @@ begin
 end;
 
 procedure TFormConexao.FormShow(Sender: TObject);
-var
-  CFG: TSQLiteConfig;
-begin
-  CFG := TSQLiteConfig.Create;
-  try
-    if StrToIntDef(CFG.getValue(ENABLE_SYSTRAY), 0).ToBoolean then
-      if isvisible then
-        SetTrayIcon;
-  finally
-    CFG.DisposeOf;
-  end;
-end;
+Var
+ CFG : TSQLiteConfig;
+Begin
+ CFG := TSQLiteConfig.Create;
+ Try
+  If StrToIntDef(CFG.getValue(ENABLE_SYSTRAY), 0).ToBoolean Then
+   If isvisible Then
+    SetTrayIcon;
+ Finally
+  FreeAndNil(CFG);
+ End;
+End;
 
 procedure TFormConexao.HideApponTaskbar;
 var
@@ -687,6 +718,7 @@ procedure TFormConexao.MudarStatusConexao(AStatus: Integer; AMensagem: string);
 var
   cColor: TAlphaColor;
 begin
+ cColor := TAlphaColorRec.Yellow;
   case AStatus of
     1:
       cColor := TAlphaColorRec.Yellow;
@@ -736,6 +768,8 @@ procedure TFormConexao.actConnectExecute(Sender: TObject);
 begin
  If LbtnConectar.Enabled Then
   Begin
+   vOldResolucaoAltura   := -1;
+   vOldResolucaoLargura  := -1;
    If Assigned(FormTelaRemota) Then
     FreeAndNil(FormTelaRemota);
    vDrawCursor := False;
@@ -852,21 +886,6 @@ Begin
    {$ENDIF}
    FreeAndNil(SendDataThread);
   End;
-// If Assigned(SendCommandEvents) Then //Thread de Comandos
-//  Begin
-//   Try
-//    SendCommandEvents.Kill;
-//   Except
-//   End;
-//   {$IFDEF FPC}
-//    WaitForThreadTerminate(SendCommandEvents.Handle, 100);
-//   {$ELSE}
-//    {$IF Not Defined(HAS_FMX)}
-//     WaitForSingleObject  (SendCommandEvents.Handle, 100);
-//    {$IFEND}
-//   {$ENDIF}
-//   FreeAndNil(SendCommandEvents);
-//  End;
 End;
 
 procedure TFormConexao.SetPeerDisconnected;
@@ -958,6 +977,7 @@ begin
  TThread.Synchronize(Nil, Procedure
                           Begin
                            SetOnline;
+                           aConnection := Conexao.Connection;
                           End);
 end;
 
@@ -974,6 +994,13 @@ Begin
  If Not Assigned(FormSenha) Then
   FormSenha := TFormSenha.Create(Self);
  FormSenha.Showmodal;
+End;
+
+procedure TFormConexao.AccessDenied;
+Begin
+ btnConectar.Enabled  := True;
+ LbtnConectar.Enabled := btnConectar.Enabled;
+ MudarStatusConexao(3, Format('Id "%s" denied...', [EGuestID.Text]));
 End;
 
 procedure TFormConexao.OnBeginTransactionError(Connection : String);
@@ -1034,15 +1061,14 @@ Var
    vMonitor := aMonitor;
    If vMonitor = '' Then
     vMonitor := '0';
-   If Not Assigned(FDuplication) Then
-    FDuplication := TDesktopDuplicationWrapper.Create;
-   GetScreenToMemoryStream(aPackClass, vDrawCursor, pf15bit, vMonitor, aFullFrame);
+   GetScreenToMemoryStream(aPackClass, vDrawCursor, pf16bit, vMonitor, aFullFrame);
   Finally
   End;
  End;
 Begin
  Try
   aPackClass              := Nil;
+  Processmessages;
   aCapture;
   If Assigned(aPackClass)  Then
    Begin
@@ -1065,15 +1091,14 @@ Procedure TFormConexao.OnAccessGranted(Connection        : String;
 Begin
  Try
   //ResolucaoLargura
+  vFPS := 0;
   If Not Assigned(FormTelaRemota) Then
    FormTelaRemota                 := TFormTelaRemota.Create(Self);
-  FormTelaRemota.Caption          := Format(cCaptureTitle, [Connection, ClientID]);
+  vClientID                       := ClientID;
+  FormTelaRemota.Caption          := Format(cCaptureTitle, [vClientID, vFPS]);
   FormTelaRemota.Connection       := Connection;
   aConnection                     := FormTelaRemota.Connection;
   FormTelaRemota.Show;
-//  SendCommandEvents               := TAegysMotorThread.Create(FormTelaRemota.aPackList);
-//  SendCommandEvents.OnPulseData   := OnPulseData;
-//  SendCommandEvents.Resume;
  Finally
 
  End;
@@ -1112,8 +1137,6 @@ Procedure TFormConexao.OnPeerDisconnected(Connection        : String;
                                           ClientPassword,
                                           Alias             : String); //Captura de tela
 Begin
-// If Conexao.ConnectionList.Count = 0 Then
-//  Windows.ShowWindow(FormToHWND(Self), SW_RESTORE);
  SetPeerDisconnected;
 End;
 
@@ -1146,6 +1169,7 @@ Var
  vStream        : TStream;
  vAltura,
  vLargura       : String;
+ vGetFPS,
  aPackCountData,
  I, pRectTop,
  pRectLeft,
@@ -1156,23 +1180,83 @@ Var
  bBuf           : TAegysBytes;
  aOldbmpPart,
  MybmpPart      : Vcl.Graphics.TBitmap;
- JPG            : Vcl.Imaging.jpeg.TJPegImage;
  vStreamBitmap  : TMemoryStream;
-// Procedure BitmapToJpg(Var Bmp : Vcl.Graphics.TBitmap;
-//                       Var JPG : Vcl.Imaging.jpeg.TJPegImage;
-//                       Quality : Integer = 100);
-// Begin
-//  Try
-//   JPG := TJPegImage.Create;
-//   Try
-//    JPG.Assign(BMP);
-//    JPG.CompressionQuality := Quality;
-//   Finally
-//   End;
-//  Finally
-//   FreeAndNil(BMP);
-//  End;
-// End;
+ Function GetFps : Integer;
+ Begin
+  Result     := 0;
+  vFinalTime := Now;
+  If MilliSecondsBetween(vInitTime, vFinalTime) >= 1000 Then
+   Begin
+    Result    := vFPS;
+    vFPS      := 0;
+    vInitTime := Now;
+   End
+  Else
+   Inc(vFPS);
+ End;
+ Procedure ResizeScreen(Altura, Largura : Integer);
+ Var
+  vScreenSizeFact,
+  vFatorA : Integer;
+  Function MDC(a, b : Integer) : Integer;
+  Var
+   resto : Integer;
+  Begin
+   While b <> 0 Do
+    Begin
+     resto := a mod b;
+     a     := b;
+     b     := resto;
+    End;
+   Result := a;
+  End;
+  Function ProporcaoTela(Direita, Topo : Integer) : Integer;
+  Begin
+   Result := Round(Direita / MDC(Direita, Topo))
+  End;
+ Begin
+  If ((vResolucaoAltura  >  0)  And
+      (vResolucaoLargura >  0)) And
+     ((vResolucaoAltura  <> vOldResolucaoAltura)   Or
+      (vResolucaoLargura <> vOldResolucaoLargura)) Then
+   Begin
+    vOldResolucaoAltura   := vResolucaoAltura;
+    vOldResolucaoLargura  := vResolucaoLargura;
+    If vOldResolucaoAltura  > vOldResolucaoLargura Then
+     Begin
+      vFatorA          := Round((vOldResolucaoLargura  / vOldResolucaoAltura)  * 100);
+      FormTelaRemota.Width  := Round((Screen.Height    / 100) * vFatorA);
+      If vOldResolucaoAltura > Screen.Height Then
+       vFatorA          := Round((Screen.Height        / vOldResolucaoAltura)  * 100)
+      Else
+       vFatorA          := Round((vOldResolucaoAltura  / Screen.Height)        * 100);
+      vScreenSizeFact  := Round((Screen.Height / 100)  * vFatorA);
+      FormTelaRemota.Height := vScreenSizeFact + ((round(Screen.Height) - vScreenSizeFact) div 2);
+      FormTelaRemota.Top    := Round((Screen.Height / 2) - (FormTelaRemota.Height / 2));
+      FormTelaRemota.Left   := Round(Screen.Width - FormTelaRemota.Width);
+     End
+    Else
+     Begin
+      If vOldResolucaoAltura  > Screen.Height Then
+       vFatorA              := Round((Screen.Height         / vOldResolucaoAltura)   * 100)
+      Else If vOldResolucaoAltura = Screen.Height Then
+       vFatorA              := Round(((vOldResolucaoAltura  - 100) / Screen.Height)  * 100)
+      Else
+       vFatorA              := Round((vOldResolucaoAltura   / Screen.Height)         * 100);
+      FormTelaRemota.Height := Round((Screen.Height         / 100) * vFatorA);
+      If vOldResolucaoLargura  > Screen.Width Then
+       vFatorA              := Round((Screen.Width          / vOldResolucaoLargura)  * 100)
+      Else If vOldResolucaoLargura  = Screen.Width Then
+       vFatorA              := Round(((vOldResolucaoLargura - 50) / Screen.Width)    * 100)
+      Else
+       vFatorA              := Round((vOldResolucaoLargura   / Screen.Width)         * 100);
+      vScreenSizeFact       := Round((Screen.Width          / 100) * vFatorA);
+      FormTelaRemota.Width  := vScreenSizeFact;
+      FormTelaRemota.Top    := Round((Screen.Height / 2) - (FormTelaRemota.Height / 2));
+      FormTelaRemota.Left   := Round((Screen.Width  / 2) - (FormTelaRemota.Width  / 2));
+     End;
+   End;
+ End;
 Begin
  If Assigned(FormTelaRemota) Then
   Begin
@@ -1183,81 +1267,35 @@ Begin
       ArrayOfPointer := [@vAltura, @vLargura];
       ParseValues(Command, ArrayOfPointer);
       If vAltura <> '' Then
-       vResolucaoAltura  := StrToInt(vAltura);
+       vResolucaoAltura  := Round(StrToFloat(vAltura));
       If vLargura <> '' Then
-       vResolucaoLargura := StrToInt(vLargura);
+       vResolucaoLargura := Round(StrToFloat(vLargura));
      End;
-    If Not MultiPack Then
+    If cCompressionData Then
+     ZDecompressBytesStream(aBuf, vStream)
+    Else
      Begin
-      ZDecompressBytesStream(aBuf, vStream);
+      vStream.Write(aBuf[0], Length(aBuf));
       vStream.Position := 0;
-      FreeAndNil(vOldBMP);
-      vOldBMP := TMemoryStream.Create;
-      vOldBMP.CopyFrom(vStream, vStream.Size);
-      vStream.Position := 0;
-      Try
-       FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vStream); //.Bitmap.LoadFromStream(vStream);
-       Application.Processmessages;
-      Finally
-      End;
-     End
-    Else //MultiPack
-     Begin
-      ZDecompressBytes(aBuf, bBuf);
-      aBuf := bBuf;
-      SetLength(bBuf, 0);
-      aBuffPosition := 0;
-      Move(aBuf[aBuffPosition], Pointer(@aPackCountData)^, SizeOf(aPackCountData));
-      aBuffPosition := SizeOf(aPackCountData);
-      aOldbmpPart   := Vcl.Graphics.TBitmap.Create;
-      vOldBMP.Position := 0;
-      aOldbmpPart.LoadFromStream(vOldBMP);
-      For I := 0 To aPackCountData -1 Do
-       Begin
-        Move(aBuf[aBuffPosition], Pointer(@pRectTop)^, SizeOf(pRectTop));
-        aBuffPosition := aBuffPosition + SizeOf(pRectTop);
-        Move(aBuf[aBuffPosition], Pointer(@pRectLeft)^, SizeOf(pRectLeft));
-        aBuffPosition := aBuffPosition + SizeOf(pRectLeft);
-        Move(aBuf[aBuffPosition], Pointer(@pRectBottom)^, SizeOf(pRectBottom));
-        aBuffPosition := aBuffPosition + SizeOf(pRectBottom);
-        Move(aBuf[aBuffPosition], Pointer(@pRectRight)^, SizeOf(pRectRight));
-        aBuffPosition := aBuffPosition + SizeOf(pRectRight);
-        Move(aBuf[aBuffPosition], Pointer(@aSizeData)^, SizeOf(aSizeData));
-        aBuffPosition := aBuffPosition + SizeOf(aSizeData);
-        SetLength(bBuf, aSizeData);
-        Move(aBuf[aBuffPosition], bBuf[0], aSizeData);
-        aBuffPosition := aBuffPosition + aSizeData;
-        MybmpPart     := Vcl.Graphics.TBitmap.Create;
-        vStreamBitmap := TMemoryStream.Create;
-        Try
-         vStreamBitmap.Write(bBuf[0], aSizeData);
-         vStreamBitmap.Position := 0;
-         Try
-          MybmpPart.LoadFromStream(vStreamBitmap);
-         Finally
-         End;
-         BitBlt(aOldbmpPart.Canvas.Handle, pRectLeft, pRectTop,
-                pRectRight,                pRectBottom,
-                MybmpPart.Canvas.Handle, 0, 0, SRCCOPY);
-        Finally
-         FreeAndNil(vStreamBitmap);
-         FreeAndNil(MybmpPart);
-        End;
-       End;
-      vOldBMP.Clear;
-      Try
-       FreeAndNil(vOldBMP);
-       vOldBMP := TMemoryStream.Create;
-       aOldbmpPart.SaveToStream(vOldBMP);
-       FreeAndNil(aOldbmpPart);
-      Finally
-       vOldBMP.Position := 0;
-       FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vOldBMP); //.Bitmap.LoadFromStream(vStream);
-       Application.Processmessages;
-      End;
      End;
+    Try
+     ResizeScreen(vResolucaoAltura, vResolucaoLargura);
+     FormTelaRemota.imgTelaRemota.Fill.Bitmap.Bitmap.LoadFromStream(vStream); //.Bitmap.LoadFromStream(vStream);
+     vGetFPS := GetFps;
+     Application.ProcessMessages;
+     If vGetFPS > 0 Then
+      Begin
+       TThread.Queue(Nil,  Procedure
+                           Begin
+                            FormTelaRemota.Caption := Format(cCaptureTitle, [vClientID, vGetFPS]);
+                            Application.ProcessMessages;
+                           End);
+      End;
+    Finally
+     FreeAndNil(vStream);
+    End;
    Finally
-    FreeAndNil(vStream);
+    Application.ProcessMessages;
    End;
   End;
 End;
@@ -1296,7 +1334,7 @@ Begin
     Conexao.Connect;
   end;
  Finally
-  CFG.DisposeOf;
+  FreeAndNil(CFG);
  End;
 End;
 
@@ -1366,4 +1404,4 @@ Begin
  Conexao.SessionTime := Conexao.SessionTime + 1;
 End;
 
-end.
+End.
