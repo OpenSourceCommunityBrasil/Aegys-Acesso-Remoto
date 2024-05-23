@@ -22,7 +22,7 @@ Begin
    FreeAndNil(DesktopDuplication);
    DesktopDuplication := TVCLDesktopDuplication.CreateParamMonitor(Round(aMonitor));
   End;
- If DesktopDuplication.FrameGet then
+ If DesktopDuplication.FrameGet(10) then
   Begin
    Result := TMemoryStream.Create;
    Result.CopyFrom(DesktopDuplication.vImageStream, DesktopDuplication.vImageStream.Size);

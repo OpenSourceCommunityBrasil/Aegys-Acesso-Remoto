@@ -17,7 +17,7 @@ Procedure ZCompressStream    (inStream,
                               aCompressionLevel  : TCompressionLevel = clDefault);
 Procedure ZCompressStreamBytes(Var inStream      : TStream;
                                Var outBytes      : TAegysBytes;
-                               aCompressionLevel : TCompressionLevel = clDefault);
+                               aCompressionLevel : TCompressionLevel = clFastest);
 Procedure ZCompressBytes     (Var inBytes,
                               outBytes           : TAegysBytes;
                               aCompressionLevel  : TCompressionLevel = clDefault);
@@ -186,7 +186,7 @@ End;
 
 Procedure ZCompressStreamBytes(Var inStream      : TStream;
                                Var outBytes      : TAegysBytes;
-                               aCompressionLevel : TCompressionLevel = clDefault);
+                               aCompressionLevel : TCompressionLevel = clFastest);
 Var
   DS        : TCompressionStream;
   outStream : TMemoryStream;
