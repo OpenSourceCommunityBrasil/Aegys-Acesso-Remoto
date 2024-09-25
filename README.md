@@ -24,7 +24,7 @@ Componente OpenSource de acesso remoto para Delphi baseado no antigo AllaKore
   - [x] Windows
   - [ ] Linux
   - [ ] MacOS
-  - [ ] Android
+  - [x] Android
   - [ ] iOS
 
 # Links:
