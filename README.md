@@ -15,7 +15,7 @@ Componente OpenSource de acesso remoto para Delphi baseado no antigo AllaKore
 - [ ] Chat interativo com mensagens
 - [x] Transferência de arquivos independente de sessão ativa
 - [ ] Copiar e colar diretamente entre as máquinas através de atalhos do teclado
-- [ ] Lista de acessos recentes
+- [x] Lista de acessos recentes
 - [ ] Capacidade de Gravar sessão remota
 - Multiconexões:
   - [ ] Várias instâncias conectando em uma outra
