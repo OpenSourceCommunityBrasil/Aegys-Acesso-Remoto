@@ -1601,15 +1601,15 @@ Begin
       Exit;
      End;
    End;
-  Sleep(cDelayThread div 2);
+//  Sleep(cDelayThread div 2);
   If AContext.Connection <> Nil Then
    If AContext.Connection.IOHandler <> Nil Then
     Begin
-     AContext.Connection.IOHandler.CheckForDisconnect(False);
+     AContext.Connection.IOHandler.CheckForDisconnect(False, False);
      If Not AContext.Connection.IOHandler.Connected Then
       Abort;
     End;
-  Processmessages;
+//  Processmessages;
  Except
   On E : EIdSocketError Do Abort;
   On E : EIdReadTimeout Do ;
@@ -1630,7 +1630,7 @@ Begin
         Begin
          If AContext.Connection.IOHandler <> Nil Then
           Begin
-           AContext.Connection.IOHandler.CheckForDisconnect;
+           AContext.Connection.IOHandler.CheckForDisconnect(False, False);
            If Not AContext.Connection.IOHandler.Connected Then
             Abort
            Else

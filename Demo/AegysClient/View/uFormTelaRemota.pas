@@ -520,23 +520,29 @@ End;
 Procedure TFormTelaRemota.FormClose  (Sender      : TObject;
                                       Var Action  : TCloseAction);
 Begin
- taction.Enabled  := False;
- cShowForm        := True;
- FormConexao.SetPeerDisconnected;
- FreeAndNil(vMouseMove);
- If Assigned(fFileTransfer) then
-  fFileTransfer.Close;
- If Assigned(FormChat) then
-  FormChat.Close;
- Try
-  Conexao.DisconnectAllPeers;
-  FormConexao.SetOnline;
- Finally
-  FormConexao.Show;
-  FormTelaRemota := Nil;
-  Action := TCloseAction.caFree;
- End;
- FreeAndNil(aPackList);
+ TThread.Synchronize(Nil, Procedure
+                     Begin
+                      taction.Enabled  := False;
+                      tCapturarComandos.Enabled  := False;
+                      cShowForm        := True;
+                      FormConexao.SetPeerDisconnected;
+                      FreeAndNil(vMouseMove);
+                      If Assigned(fFileTransfer) then
+                       fFileTransfer.Close;
+                      If Assigned(FormChat) then
+                       FormChat.Close;
+                      Try
+                       Conexao.DisconnectAllPeers;
+                       FormConexao.SetOnline;
+                      Finally
+                       FormTelaRemota := Nil;
+//                       Action := TCloseAction.caFree;
+                      End;
+                      FreeAndNil(aPackList);
+                     End);
+ FormTelaRemota.DisposeOf;
+ Processmessages;
+ FormConexao.Show;
 End;
 
 Procedure TFormTelaRemota.FormCreate (Sender      : TObject);
@@ -600,7 +606,7 @@ End;
 Procedure TFormTelaRemota.PROC_ARQUIVOSExecute(Sender: TObject);
 Begin
  if Not Assigned(fFileTransfer) then
-  fFileTransfer := TfFileTransfer.Create(Nil);
+  fFileTransfer := TfFileTransfer.Create(Self);
  fFileTransfer.DestConnection := vConnection;
  fFileTransfer.Show;
 End;

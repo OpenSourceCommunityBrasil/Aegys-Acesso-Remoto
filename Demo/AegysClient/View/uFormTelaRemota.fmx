@@ -10028,7 +10028,7 @@ object FormTelaRemota: TFormTelaRemota
     Visible = False
   end
   object tCapturarComandos: TTimer
-    Interval = 1
+    Interval = 3
     OnTimer = tCapturarComandosTimer
     Left = 216
     Top = 240

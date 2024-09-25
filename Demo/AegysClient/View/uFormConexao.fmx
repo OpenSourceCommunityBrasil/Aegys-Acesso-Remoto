@@ -22,6 +22,7 @@ object FormConexao: TFormConexao
   DesignerMasterStyle = 0
   object tmrIntervalo: TTimer
     Enabled = False
+    Interval = 2000
     OnTimer = tmrIntervaloTimer
     Left = 256
     Top = 224

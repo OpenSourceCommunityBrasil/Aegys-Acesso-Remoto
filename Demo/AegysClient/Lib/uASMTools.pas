@@ -83,7 +83,6 @@ Begin
    ja @@cycle
    pop EDI
    pop ESI                   //Recupera ESI na pilha
-   call Processmessages
   @@end:
  End;
  Result := muASM;
@@ -167,12 +166,10 @@ Begin
   P3      := MySecondStream.Memory;
   muASM   := 0;
   ASMSize := MyCompareStream.Size;
-  Processmessages;
   If ResumeStreamASM(P1, P2, P3) <> 0 Then
    Begin
     SecondStream.Write(P3^, ASMSize);
     SecondStream.Position := 0;
-    Application.ProcessMessages;
    End;
  Finally
   MyFirstStream.Free;

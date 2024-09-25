@@ -376,9 +376,12 @@ End;
 
 procedure TfFavoritos.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
- DestroyPanels;
- fFavoritos := Nil;
- Release;
+ TThread.Synchronize(Nil, Procedure
+                     Begin
+                      DestroyPanels;
+                      fFavoritos := Nil;
+                     End);
+ fFavoritos.DisposeOf;
 end;
 
 procedure TfFavoritos.pmDadosPopup(Sender: TObject);

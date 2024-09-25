@@ -881,11 +881,15 @@ end;
 
 procedure TFormConexao.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
- If Assigned(Conexao) then
-  FreeAndNil(Conexao);
- If Assigned(fFavoritos) then
-  fFavoritos.Close;
-// Release;
+ TThread.Synchronize(Nil, Procedure
+                     Begin
+                      If Assigned(Conexao) then
+                       FreeAndNil(Conexao);
+                      If Assigned(fFavoritos) then
+                       fFavoritos.Close;
+                      FormConexao := Nil;
+                     End);
+ FormConexao.DisposeOf;
 end;
 
 procedure TFormConexao.SendConfigs;
@@ -1386,26 +1390,34 @@ Var
  Var
   vMonitor : String;
  Begin
+  Processmessages;
   Try
    vMonitor := aMonitor;
    If vMonitor = '' Then
     vMonitor := '0';
    GetScreenToMemoryStream(aPackClass, vDrawCursor, pf16bit, vMonitor, aFullFrame);
   Finally
+   Processmessages;
   End;
  End;
 Begin
  Try
+  Processmessages;
   aPackClass              := Nil;
   aCapture;
   If Assigned(aPackClass)  Then
    Begin
-    If Not Assigned(Conexao) Then
-     Exit;
-    If Assigned(aPackList)   Then
-     aPackList.Add(aPackClass)
-    Else
-     Exit;
+    TThread.Synchronize(Nil, Procedure
+                             Begin
+                              Processmessages;
+                              If Not Assigned(Conexao) Then
+                               Exit;
+                              If Assigned(aPackList)   Then
+                               aPackList.Add(aPackClass)
+                              Else
+                               Exit;
+                              Processmessages;
+                             End);
    End;
  Except
  End;
@@ -1654,27 +1666,27 @@ Begin
       vStream.Position := 0;
      End;
     Try
-     If (vActualImage.Size = 0) Then
-      Begin
-       vStream.Position := 0;
-       vActualImage.Clear;
-       vActualImage.CopyFrom(vStream, vStream.Size);
-       vStream.Position := 0;
-      End
-     Else
-      Begin
-       vActualImage.Position := 0;
-       vResultMemoryStream := TMemoryStream.Create;
-       ResumeStreamB(vActualImage, vResultMemoryStream, TMemoryStream(vStream));
-       vResultMemoryStream.Position := 0;
-       vActualImage.Clear;
-       vActualImage.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
-       vResultMemoryStream.Position := 0;
-       TMemoryStream(vStream).Clear;
-       vStream.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
-       vStream.Position  := 0;
-       FreeAndnil(vResultMemoryStream);
-      End;
+//     If (vActualImage.Size = 0) Then
+//      Begin
+     vStream.Position := 0;
+//       vActualImage.Clear;
+//       vActualImage.CopyFrom(vStream, vStream.Size);
+//       vStream.Position := 0;
+//      End
+//     Else
+//      Begin
+//       vActualImage.Position := 0;
+//       vResultMemoryStream := TMemoryStream.Create;
+//       ResumeStreamB(vActualImage, vResultMemoryStream, TMemoryStream(vStream));
+//       vResultMemoryStream.Position := 0;
+//       vActualImage.Clear;
+//       vActualImage.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
+//       vResultMemoryStream.Position := 0;
+//       TMemoryStream(vStream).Clear;
+//       vStream.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
+//       vStream.Position  := 0;
+//       FreeAndnil(vResultMemoryStream);
+//      End;
      ResizeScreen(vResolucaoAltura, vResolucaoLargura);
      If (aFirstCapture) And
         (aIncSprite = cMaxSpriteCap) Then

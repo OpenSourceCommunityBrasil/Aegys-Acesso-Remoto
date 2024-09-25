@@ -157,6 +157,20 @@ implementation
 
 Uses uAegysBase, uAegysDataTypes, uAegysConsts, uAegysBufferPack;
 
+Function GetValue(Var Value : String) : String;
+Begin
+ If Pos('|', Value) > 0 Then
+  Begin
+   Result := Copy(Value, 1, Pos('|', Value) -1);
+   Delete(Value, 1, Pos('|', Value));
+  End
+ Else
+  Begin
+   Result := Copy(Value, 1, Length(Value));
+   Delete(Value, 1, Length(Value));
+  End;
+End;
+
 Function TfFileTransfer.GetIcon(FileName: String): FMX.Graphics.TBitmap;
 Var
  Icon: TIcon;
@@ -221,112 +235,108 @@ Begin
 End;
 
 procedure TfFileTransfer.CarregarListaPastas(Directory : String);
-Var
- I               : Integer;
- FoldersAndFiles : TStringList;
 Begin
- vDestCount      := 0;
- FoldersAndFiles := TStringList.Create;
- FoldersAndFiles.Text := Directory;
- SGRemote.RowCount := 0;
- SGRemote.RowCount := 1;
- SGRemote.Enabled := True;
- If FoldersAndFiles.Count = 0 Then
-  Begin
-   SGRemote.Cells[0, SGRemote.RowCount - 1] := '';
-   SGRemote.Cells[1, SGRemote.RowCount - 1] := '...';
-   SGRemote.Cells[2, SGRemote.RowCount - 1] := '';
-   SGRemote.Cells[2, SGRemote.RowCount - 1] := '';
-   SGRemote.Cells[3, SGRemote.RowCount - 1] := '';
-  End;
- For I := 0 To FoldersAndFiles.Count - 1 Do
-  Begin
-   If (FoldersAndFiles.Strings[i] = '.') Or
-      (FoldersAndFiles.Strings[i] = '')  Then
-    Continue;
-   If Not((SGRemote.Cells[1, SGRemote.RowCount - 1] = '')     Or
-          (SGRemote.Cells[1, SGRemote.RowCount - 1] = '...')) Then
-    SGRemote.RowCount := SGRemote.RowCount + 1;
-   SGRemote.Cells[1, SGRemote.RowCount - 1] := FoldersAndFiles.Strings[i];
-   SGRemote.Cells[0, SGRemote.RowCount - 1] := '.';
-   Inc(vDestCount);
-  End;
- FoldersAndFiles.Free;
+ TThread.Synchronize(Nil, Procedure
+                     Var
+                      I               : Integer;
+                      FoldersAndFiles : TStringList;
+                     Begin
+                      vDestCount      := 0;
+                      FoldersAndFiles := TStringList.Create;
+                      FoldersAndFiles.Text := Directory;
+                      SGRemote.RowCount := 0;
+                      SGRemote.RowCount := 1;
+                      SGRemote.Enabled := True;
+                      If FoldersAndFiles.Count = 0 Then
+                       Begin
+                        SGRemote.Cells[0, SGRemote.RowCount - 1] := '';
+                        SGRemote.Cells[1, SGRemote.RowCount - 1] := '...';
+                        SGRemote.Cells[2, SGRemote.RowCount - 1] := '';
+                        SGRemote.Cells[2, SGRemote.RowCount - 1] := '';
+                        SGRemote.Cells[3, SGRemote.RowCount - 1] := '';
+                       End;
+                      For I := 0 To FoldersAndFiles.Count - 1 Do
+                       Begin
+                        If (FoldersAndFiles.Strings[i] = '.') Or
+                           (FoldersAndFiles.Strings[i] = '')  Then
+                         Continue;
+                        If Not((SGRemote.Cells[1, SGRemote.RowCount - 1] = '')     Or
+                               (SGRemote.Cells[1, SGRemote.RowCount - 1] = '...')) Then
+                         SGRemote.RowCount := SGRemote.RowCount + 1;
+                        SGRemote.Cells[1, SGRemote.RowCount - 1] := FoldersAndFiles.Strings[i];
+                        SGRemote.Cells[0, SGRemote.RowCount - 1] := '.';
+                        Inc(vDestCount);
+                       End;
+                      FoldersAndFiles.Free;
+                     End);
 End;
 
 procedure TfFileTransfer.CarregarListaArquivos(Directory : String);
-Var
- I               : Integer;
- vFilename,
- vLine           : String;
- FoldersAndFiles : TStringList;
- Function GetValue(Var Value : String) : String;
- Begin
-  If Pos('|', Value) > 0 Then
-   Begin
-    Result := Copy(Value, 1, Pos('|', Value) -1);
-    Delete(Value, 1, Pos('|', Value));
-   End
-  Else
-   Begin
-    Result := Copy(Value, 1, Length(Value));
-    Delete(Value, 1, Length(Value));
-   End;
- End;
 Begin
- FoldersAndFiles := TStringList.Create;
- FoldersAndFiles.Text := Directory;
- For I := 0 To FoldersAndFiles.Count - 1  Do
-  Begin
-   If (FoldersAndFiles.Strings[i] = '.')  Or
-      (FoldersAndFiles.Strings[i] = '..') Then
-    Continue;
-   vLine             := FoldersAndFiles.Strings[i];
-   SGRemote.RowCount := SGRemote.RowCount + 1;
-   vFilename         := GetValue(vLine);
-   SGRemote.Cells[0, SGRemote.RowCount - 1] := ExtractFileExt(vFilename);
-   SGRemote.Cells[1, SGRemote.RowCount - 1] := vFilename;
-   SGRemote.Cells[2, SGRemote.RowCount - 1] := GetValue(vLine);
-   SGRemote.Cells[3, SGRemote.RowCount - 1] := GetValue(vLine);
-   SGRemote.Cells[4, SGRemote.RowCount - 1] := GetValue(vLine);
-   Inc(vDestCount);
-  End;
- FoldersAndFiles.Free;
+ TThread.Synchronize(Nil, Procedure
+                     Var
+                      I               : Integer;
+                      vFilename,
+                      vLine           : String;
+                      FoldersAndFiles : TStringList;
+                     Begin
+                      FoldersAndFiles := TStringList.Create;
+                      FoldersAndFiles.Text := Directory;
+                      For I := 0 To FoldersAndFiles.Count - 1  Do
+                       Begin
+                        If (FoldersAndFiles.Strings[i] = '.')  Or
+                           (FoldersAndFiles.Strings[i] = '..') Then
+                         Continue;
+                        vLine             := FoldersAndFiles.Strings[i];
+                        SGRemote.RowCount := SGRemote.RowCount + 1;
+                        vFilename         := GetValue(vLine);
+                        SGRemote.Cells[0, SGRemote.RowCount - 1] := ExtractFileExt(vFilename);
+                        SGRemote.Cells[1, SGRemote.RowCount - 1] := vFilename;
+                        SGRemote.Cells[2, SGRemote.RowCount - 1] := GetValue(vLine);
+                        SGRemote.Cells[3, SGRemote.RowCount - 1] := GetValue(vLine);
+                        SGRemote.Cells[4, SGRemote.RowCount - 1] := GetValue(vLine);
+                        Inc(vDestCount);
+                       End;
+                      FoldersAndFiles.Free;
+                     End);
 End;
 
 procedure TfFileTransfer.GoToDirectory(Directory : String);
 Var
  aPackClass : TPackClass;
  vBuf       : TAegysBytes;
- Procedure NewPack;
- Begin
-  aPackClass             := TPackClass.Create;
-  aPackClass.DataMode    := tdmClientCommand;
-  aPackClass.Owner       := Conexao.Connection;
-  aPackClass.Dest        := aDest;
-  aPackClass.DataCheck   := tdcAsync;
-  aPackClass.CommandType := tctFileTransfer;
- End;
- Procedure FreePack;
- Begin
-  SetLength(vBuf, 0);
-  FreeAndNil(aPackClass);
- End;
 Begin
  If Length(Directory) > 0 Then
   Begin
-   If Not (Directory[Length(Directory)] = '\') Then
-    Directory := Directory + '\';
-   vDirectory_Edit := Directory;
-   SGRemote.Enabled := False;
-   NewPack;
-   Try
-    aPackClass.Command     := Format('%s%s', [cGetFolders, vDirectory_Edit]);
-    vBuf                   := aPackClass.ToBytes;
-    Conexao.SendBytes(vBuf, twmBuffer);
-   Finally
-    FreePack;
-   End;
+   TThread.Synchronize(Nil, Procedure
+                       Procedure NewPack;
+                       Begin
+                        aPackClass             := TPackClass.Create;
+                        aPackClass.DataMode    := tdmClientCommand;
+                        aPackClass.Owner       := Conexao.Connection;
+                        aPackClass.Dest        := aDest;
+                        aPackClass.DataCheck   := tdcAsync;
+                        aPackClass.CommandType := tctFileTransfer;
+                       End;
+                       Procedure FreePack;
+                       Begin
+                        SetLength(vBuf, 0);
+                        FreeAndNil(aPackClass);
+                       End;
+                       Begin
+                        If Not (Directory[Length(Directory)] = '\') Then
+                         Directory := Directory + '\';
+                        vDirectory_Edit := Directory;
+                        SGRemote.Enabled := False;
+                        NewPack;
+                        Try
+                         aPackClass.Command     := Format('%s%s', [cGetFolders, vDirectory_Edit]);
+                         vBuf                   := aPackClass.ToBytes;
+                         Conexao.SendBytes(vBuf, twmBuffer);
+                        Finally
+                         FreePack;
+                        End;
+                       End);
   End;
 End;
 
@@ -380,12 +390,17 @@ End;
 procedure TfFileTransfer.FormClose(Sender       : TObject;
                                    Var Action   : TCloseAction);
 begin
- If Assigned(vIconsIndex) Then
-  FreeAndNil(vIconsIndex);
- If Assigned(ShellProps) Then
-  FreeAndNil(ShellProps);
- fFileTransfer := Nil;
- Action := TCloseAction.caFree;
+ TThread.Synchronize(Nil, Procedure
+                     Begin
+                      TActiveLoad.Enabled := False;
+                      tLoadAction.Enabled := False;
+                      If Assigned(vIconsIndex) Then
+                       FreeAndNil(vIconsIndex);
+                      If Assigned(ShellProps) Then
+                       FreeAndNil(ShellProps);
+                      fFileTransfer := Nil;
+                     End);
+ fFileTransfer.DisposeOf;
 end;
 
 Procedure TfFileTransfer.OnLocalDblClick(Sender : TObject);
@@ -394,16 +409,19 @@ Var
 Begin
  If SGLocal.Selected <> -1 Then
   Begin
-   vOldPath   := SGLocal.Cells[1, SGLocal.Selected];
-   If (vOldPath <> '..')   And
-      (vOldPath <> '..\')  Then
-    EnterLocalDir(vActiveLocalFolder + vOldPath)
-   Else
-    Begin
-     Delete(vActiveLocalFolder, Length(vActiveLocalFolder), 1);
-     vOldPath := ExtractFilePath(vActiveLocalFolder);
-     EnterLocalDir(vOldPath);
-    End;
+   TThread.Synchronize(Nil, Procedure
+                       Begin
+                        vOldPath   := SGLocal.Cells[1, SGLocal.Selected];
+                        If (vOldPath <> '..')   And
+                           (vOldPath <> '..\')  Then
+                         EnterLocalDir(vActiveLocalFolder + vOldPath)
+                        Else
+                         Begin
+                          Delete(vActiveLocalFolder, Length(vActiveLocalFolder), 1);
+                          vOldPath := ExtractFilePath(vActiveLocalFolder);
+                          EnterLocalDir(vOldPath);
+                         End;
+                       End);
   End;
 End;
 
@@ -414,35 +432,38 @@ Var
 begin
  If SGRemote.Selected > -1 Then
   Begin
-   ARow := SGRemote.Selected;
-   If SGRemote.Cells[0, ARow] = '.' Then
-    Begin
-     If (SGRemote.Cells[1, ARow] = '..')  Or
-        (SGRemote.Cells[1, ARow] = '..\') Then
-      Begin
-       SGRemote.Enabled := False;
-       If Length(vLastFolder) > 0 Then
-        vActiveFolder := Copy(vActiveFolder, 1, Length(vActiveFolder) - Length(vLastFolder));
-       vTempFolder := vActiveFolder;
-       If vTempFolder <> '' Then
-        If vTempFolder[Length(vTempFolder)] = '\' Then
-         Delete(vTempFolder, Length(vTempFolder), 1);
-       Delete(vTempFolder, 1, LastDelimiter('\', vTempFolder));
-       If Length(vTempFolder) > 0 Then
-        vLastFolder := IncludeTrailingPathDelimiter(vTempFolder);
-      End
-     Else
-      Begin
-       vActiveFolder  := vActiveFolder + IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
-       vLastFolder    := IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
-      End;
-     eRemotePath.Text := vActiveFolder;
-     eRemotePath.Text := Copy(eRemotePath.Text,
-                              Length(Trim(ceRemotePath.Items[ceRemotePath.ItemIndex])) + 1,
-                              Length(eRemotePath.Text) -
-                              Length(Trim(ceRemotePath.Items[ceRemotePath.ItemIndex])));
-     LoadRemoteData;
-    End;
+   TThread.Synchronize(Nil, Procedure
+                       Begin
+                        ARow := SGRemote.Selected;
+                        If SGRemote.Cells[0, ARow] = '.' Then
+                         Begin
+                          If (SGRemote.Cells[1, ARow] = '..')  Or
+                             (SGRemote.Cells[1, ARow] = '..\') Then
+                           Begin
+                            SGRemote.Enabled := False;
+                            If Length(vLastFolder) > 0 Then
+                             vActiveFolder := Copy(vActiveFolder, 1, Length(vActiveFolder) - Length(vLastFolder));
+                            vTempFolder := vActiveFolder;
+                            If vTempFolder <> '' Then
+                             If vTempFolder[Length(vTempFolder)] = '\' Then
+                              Delete(vTempFolder, Length(vTempFolder), 1);
+                            Delete(vTempFolder, 1, LastDelimiter('\', vTempFolder));
+                            If Length(vTempFolder) > 0 Then
+                             vLastFolder := IncludeTrailingPathDelimiter(vTempFolder);
+                           End
+                          Else
+                           Begin
+                            vActiveFolder  := vActiveFolder + IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
+                            vLastFolder    := IncludeTrailingPathDelimiter(SGRemote.Cells[1, ARow]);
+                           End;
+                          eRemotePath.Text := vActiveFolder;
+                          eRemotePath.Text := Copy(eRemotePath.Text,
+                                                   Length(Trim(ceRemotePath.Items[ceRemotePath.ItemIndex])) + 1,
+                                                   Length(eRemotePath.Text) -
+                                                   Length(Trim(ceRemotePath.Items[ceRemotePath.ItemIndex])));
+                          LoadRemoteData;
+                         End;
+                       End);
   End;
 End;
 
@@ -544,13 +565,23 @@ begin
 end;
 
 procedure TfFileTransfer.FormShow(Sender : TObject);
-Var
- I : Integer;
 Begin
- cbLocalDrivers.Items.Clear;
- For I := 0 To ShellProps.Drivers.Count - 1 do
-  cbLocalDrivers.Items.Add(' ' + ShellProps.Drivers[I]);
- TActiveLoad.Enabled := True;
+ TThread.Synchronize(Nil, Procedure
+                     Var
+                      I : Integer;
+                     Begin
+                      cbLocalDrivers.Items.Clear;
+                      For I := 0 To ShellProps.Drivers.Count - 1 do
+                       cbLocalDrivers.Items.Add(' ' + ShellProps.Drivers[I]);
+                      // TActiveLoad.Enabled := True;
+                      If cbLocalDrivers.Items.Count > 0 Then
+                       Begin
+                        cbLocalDrivers.ItemIndex := 0;
+                        cbLocalDrivers.OnChange(cbLocalDrivers);
+                       End;
+                      lNomeComputadorLocal.Text := ShellProps.LocalStation;
+                      Conexao.SendMessage(aDest, cGetDrivers, tctFileTransfer);
+                     End);
 end;
 
 procedure TfFileTransfer.SGLocalDrawColumnCell(Sender       : TObject;
@@ -659,20 +690,26 @@ end;
 procedure TfFileTransfer.TActiveLoadTimer(Sender : TObject);
 begin
  TActiveLoad.Enabled := False;
- If cbLocalDrivers.Items.Count > 0 Then
-  Begin
-   cbLocalDrivers.ItemIndex := 0;
-   cbLocalDrivers.OnChange(cbLocalDrivers);
-  End;
- lNomeComputadorLocal.Text := ShellProps.LocalStation;
- Conexao.SendMessage(aDest, cGetDrivers, tctFileTransfer);
- Application.ProcessMessages;
+ TThread.Synchronize(Nil, Procedure
+                     Begin
+                      If cbLocalDrivers.Items.Count > 0 Then
+                       Begin
+                        cbLocalDrivers.ItemIndex := 0;
+                        cbLocalDrivers.OnChange(cbLocalDrivers);
+                       End;
+                      lNomeComputadorLocal.Text := ShellProps.LocalStation;
+                      Conexao.SendMessage(aDest, cGetDrivers, tctFileTransfer);
+                     // Application.ProcessMessages;
+                     End);
 end;
 
 procedure TfFileTransfer.tLoadActionTimer(Sender : TObject);
 begin
  tLoadAction.Enabled := False;
- ceRemotePath.OnChange(ceRemotePath);
+ TThread.Synchronize(Nil, Procedure
+                     Begin
+                      ceRemotePath.OnChange(ceRemotePath);
+                     End);
 end;
 
 end.

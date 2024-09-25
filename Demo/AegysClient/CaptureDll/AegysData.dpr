@@ -3,6 +3,7 @@
 uses
   Sharemem,
   Windows,
+  vcl.Forms,
   System.Classes,
   System.SysUtils,
   UDesktopDuplication in 'UDesktopDuplication.pas';
@@ -22,8 +23,10 @@ Begin
    FreeAndNil(DesktopDuplication);
    DesktopDuplication := TVCLDesktopDuplication.CreateParamMonitor(Round(aMonitor));
   End;
- If DesktopDuplication.FrameGet(10) then
+ Application.ProcessMessages;
+ If DesktopDuplication.FrameGet(1) then
   Begin
+   Application.ProcessMessages;
    Result := TMemoryStream.Create;
    Result.CopyFrom(DesktopDuplication.vImageStream, DesktopDuplication.vImageStream.Size);
    Result.Position := 0;

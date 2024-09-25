@@ -151,6 +151,7 @@ Begin
  Try
   // EUREKA: This is the responsable to interact with UAC. But we need run
   // the software on SYSTEM account to work.
+  Application.ProcessMessages;
   Try
    hDesktop := OpenInputDesktop(0, True, MAXIMUM_ALLOWED);
    If hDesktop <> 0 then
@@ -163,31 +164,32 @@ Begin
   TargetMemoryStream := CaptureScreenProc(vMonitor);
   If Not Assigned(TargetMemoryStream) Then
    Exit;
-  If vActualImage.Size = 0 Then
-   Begin
-    TargetMemoryStream.Position := 0;
-    vActualImage.CopyFrom(TargetMemoryStream, TargetMemoryStream.Size);
-    TargetMemoryStream.Position := 0;
-   End
-  Else
-   Begin
-    TargetMemoryStream.Position := 0;
-    vActualImage.Position := 0;
-    vResultMemoryStream   := TMemoryStream.Create;
-    If CompareStreamData(vActualImage, TMemoryStream(TargetMemoryStream), vResultMemoryStream) then
-     Begin
-      vActualImage.Clear;
-      vResultMemoryStream.Position := 0;
-      vActualImage.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
-      TmemoryStream(TargetMemoryStream).Clear;
-      vActualImage.Position := 0;
-      TargetMemoryStream.CopyFrom(vActualImage, vActualImage.Size);
-      TargetMemoryStream.Position := 0;
-     End
-    Else
-     FreeAndNil(TargetMemoryStream);
-    FreeAndNil(vResultMemoryStream);
-   End;
+//  If vActualImage.Size = 0 Then
+//   Begin
+//    TargetMemoryStream.Position := 0;
+//    vActualImage.CopyFrom(TargetMemoryStream, TargetMemoryStream.Size);
+  Application.ProcessMessages;
+  TargetMemoryStream.Position := 0;
+//   End
+//  Else
+//   Begin
+//    TargetMemoryStream.Position := 0;
+//    vActualImage.Position := 0;
+//    vResultMemoryStream   := TMemoryStream.Create;
+//    If CompareStreamData(vActualImage, TMemoryStream(TargetMemoryStream), vResultMemoryStream) then
+//     Begin
+//      vActualImage.Clear;
+//      vResultMemoryStream.Position := 0;
+//      vActualImage.CopyFrom(vResultMemoryStream, vResultMemoryStream.Size);
+//      TmemoryStream(TargetMemoryStream).Clear;
+//      vActualImage.Position := 0;
+//      TargetMemoryStream.CopyFrom(vActualImage, vActualImage.Size);
+//      TargetMemoryStream.Position := 0;
+//     End
+//    Else
+//     FreeAndNil(TargetMemoryStream);
+//    FreeAndNil(vResultMemoryStream);
+//   End;
  Except
  End;
  If Assigned(TargetMemoryStream) Then
@@ -195,6 +197,7 @@ Begin
    TargetMemoryStream.Position := 0;
    If TargetMemoryStream.Size > 0 then
     Begin
+     Application.ProcessMessages;
      If cCompressionData Then
       ZCompressStreamBytes(TargetMemoryStream, aFinalBytes)
      Else
@@ -202,6 +205,7 @@ Begin
        SetLength(aFinalBytes, TargetMemoryStream.Size);
        TargetMemoryStream.Read(aFinalBytes[0], Length(aFinalBytes));
       End;
+     Application.ProcessMessages;
      FreeAndNil(TargetMemoryStream);
      aPackClass               := TPackClass.Create;
      Try
@@ -224,6 +228,7 @@ Begin
     End
    Else
     FreeAndNil(TargetMemoryStream);
+   Application.ProcessMessages;
   End;
 End;
 
