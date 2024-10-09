@@ -12,7 +12,7 @@ uses
   FireDAC.DApt, FireDAC.Phys.FBDef, FireDAC.Phys.IBBase, FireDAC.Phys.FB;
 
 Const
- cServidor_BD = 'localhost';
+ cServidor_BD = '127.0.0.1';
  cPorta_BD    = '3050';
  cUsuario_BD  = 'SYSDBA';
  cSenha_BD    = 'masterkey';

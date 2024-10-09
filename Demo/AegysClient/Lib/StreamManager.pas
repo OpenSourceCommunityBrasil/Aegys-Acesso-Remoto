@@ -197,7 +197,7 @@ Begin
    TargetMemoryStream.Position := 0;
    If TargetMemoryStream.Size > 0 then
     Begin
-     Application.ProcessMessages;
+//     Processmessages;
      If cCompressionData Then
       ZCompressStreamBytes(TargetMemoryStream, aFinalBytes)
      Else
@@ -205,7 +205,7 @@ Begin
        SetLength(aFinalBytes, TargetMemoryStream.Size);
        TargetMemoryStream.Read(aFinalBytes[0], Length(aFinalBytes));
       End;
-     Application.ProcessMessages;
+//     Application.ProcessMessages;
      FreeAndNil(TargetMemoryStream);
      aPackClass               := TPackClass.Create;
      Try

@@ -4,7 +4,7 @@ Interface
 
 Uses
 {$IFDEF FPC}zstream, base64,{$ENDIF}
- SysUtils, Classes, zlib, uAegysDataTypes,
+ FMX.Forms, SysUtils, Classes, zlib, uAegysDataTypes,
  uAegysTools;
 
 Const
@@ -17,7 +17,7 @@ Procedure ZCompressStream    (inStream,
                               aCompressionLevel  : TCompressionLevel = clDefault);
 Procedure ZCompressStreamBytes(Var inStream      : TStream;
                                Var outBytes      : TAegysBytes;
-                               aCompressionLevel : TCompressionLevel = clFastest);
+                               aCompressionLevel : TCompressionLevel = clDefault);
 Procedure ZCompressBytes     (Var inBytes,
                               outBytes           : TAegysBytes;
                               aCompressionLevel  : TCompressionLevel = clDefault);
@@ -186,7 +186,7 @@ End;
 
 Procedure ZCompressStreamBytes(Var inStream      : TStream;
                                Var outBytes      : TAegysBytes;
-                               aCompressionLevel : TCompressionLevel = clFastest);
+                               aCompressionLevel : TCompressionLevel = clDefault);
 Var
   DS        : TCompressionStream;
   outStream : TMemoryStream;
@@ -201,6 +201,7 @@ Begin
    Size := inStream.Size;
    inStream.Position := 0;
    DS.Write(Size, SizeOf(AEInt64));
+   Application.Processmessages;
    DS.CopyFrom(inStream, inStream.Size);
   Finally
    DS.Free;
@@ -210,6 +211,7 @@ Begin
   SetLength(outBytes, outStream.Size);
   outStream.Read(outBytes[0], outStream.Size);
   FreeANdNil(outStream);
+  Application.Processmessages;
  End;
 End;
 

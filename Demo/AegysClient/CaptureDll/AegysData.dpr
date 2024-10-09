@@ -23,14 +23,9 @@ Begin
    FreeAndNil(DesktopDuplication);
    DesktopDuplication := TVCLDesktopDuplication.CreateParamMonitor(Round(aMonitor));
   End;
- Application.ProcessMessages;
- If DesktopDuplication.FrameGet(1) then
-  Begin
-   Application.ProcessMessages;
-   Result := TMemoryStream.Create;
-   Result.CopyFrom(DesktopDuplication.vImageStream, DesktopDuplication.vImageStream.Size);
-   Result.Position := 0;
-  End;
+ Application.Processmessages;
+ Result := TMemoryStream.Create;
+ DesktopDuplication.FrameGet(Result);
 End;
 
 Exports

@@ -1377,7 +1377,7 @@ Begin
       Conexao.SendBytes(aPack)
      Else
       Conexao.SendCommand(aConnection, aPack);
-     Processmessages;
+//     Processmessages;
     End;
   End;
 End;
@@ -1390,7 +1390,6 @@ Var
  Var
   vMonitor : String;
  Begin
-  Processmessages;
   Try
    vMonitor := aMonitor;
    If vMonitor = '' Then
@@ -1402,14 +1401,12 @@ Var
  End;
 Begin
  Try
-  Processmessages;
   aPackClass              := Nil;
   aCapture;
   If Assigned(aPackClass)  Then
    Begin
     TThread.Synchronize(Nil, Procedure
                              Begin
-                              Processmessages;
                               If Not Assigned(Conexao) Then
                                Exit;
                               If Assigned(aPackList)   Then
@@ -1658,6 +1655,7 @@ Begin
       If vLargura <> '' Then
        vResolucaoLargura := Round(StrToFloat(vLargura));
      End;
+    Processmessages;
     If cCompressionData Then
      ZDecompressBytesStream(aBuf, vStream)
     Else
@@ -1665,6 +1663,7 @@ Begin
       vStream.Write(aBuf[0], Length(aBuf));
       vStream.Position := 0;
      End;
+    Processmessages;
     Try
 //     If (vActualImage.Size = 0) Then
 //      Begin
@@ -1705,6 +1704,7 @@ Begin
         aFirstCapture := False;
        Finally
         FreeAndNil(vStreamBitmap);
+        Processmessages;
        End;
       End
      Else If (aFirstCapture) Then
@@ -1715,6 +1715,7 @@ Begin
       FormTelaRemota.Caption := Format(cCaptureTitle, [vClientID, vGetFPS]);
     Finally
      FreeAndNil(vStream);
+     Processmessages;
     End;
    Finally
     Processmessages;

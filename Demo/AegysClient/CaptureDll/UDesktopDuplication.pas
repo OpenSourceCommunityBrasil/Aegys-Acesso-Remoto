@@ -13,7 +13,8 @@ uses
   DX12.D3DCommon,
   DX12.D3D11,
   FMX.Graphics,
-  FMX.Surfaces;
+  FMX.Surfaces,
+  FMX.Forms;
 
 type
   TVCLDesktopDuplication = class(TObject)
@@ -30,7 +31,8 @@ type
     vQualityParam: TBitmapCodecSaveParams;
     constructor CreateParamMonitor(AMonitorNum: Integer);
     destructor Destroy; override;
-    function FrameGet(quality: Integer = 15): boolean;
+    function FrameGet(quality: Integer = 1): boolean;Overload;
+    function FrameGet(Var Stream : TStream): boolean;Overload;
     property ImageStream: TMemoryStream read vImageStream;
   end;
 
@@ -89,7 +91,7 @@ begin
   inherited;
 end;
 
-function TVCLDesktopDuplication.FrameGet(quality: Integer = 15): boolean;
+function TVCLDesktopDuplication.FrameGet(quality: Integer = 1): boolean;
 var
   i: Integer;
   vMappedResourceBytes: PByte;
@@ -145,6 +147,71 @@ begin
        CoUninitialize();
       End;
       vImageStream.Position := 0;
+      Result := true;
+    end;
+  except
+    Result := false;
+  end;
+end;
+
+function TVCLDesktopDuplication.FrameGet(Var Stream : TStream): boolean;
+var
+  i: Integer;
+  vMappedResourceBytes: PByte;
+  vTextureDesc: TD3D11_TEXTURE2D_DESC;
+  vTexture2D, vTexture2DTemp: ID3D11Texture2D;
+  vMappedResource: TD3D11_MAPPED_SUBRESOURCE;
+  vDXGIResource: IDXGIResource;
+  vDXGIFrameInfo: TDXGI_OUTDUPL_FRAME_INFO;
+begin
+  try
+    Result := false;
+    vQualityParam.quality := 8;
+
+    vOutputDuplication.ReleaseFrame;
+
+    if Failed(vOutputDuplication.AcquireNextFrame(1, vDXGIFrameInfo, vDXGIResource)) then
+      Exit;
+
+    if vDXGIFrameInfo.TotalMetadataBufferSize > 0 then
+    begin
+      if Failed(vDXGIResource.QueryInterface(IID_ID3D11Texture2D, vTexture2D)) then
+        Exit;
+
+      vTexture2D.GetDesc(vTextureDesc);
+
+      vTextureDesc.BindFlags := 0;
+
+      vTextureDesc.CPUAccessFlags := Ord(D3D11_CPU_ACCESS_READ) or
+        Ord(D3D11_CPU_ACCESS_WRITE);
+
+      vTextureDesc.Usage := D3D11_USAGE_STAGING;
+
+      vTextureDesc.MiscFlags := 0;
+
+      if Failed(vDX11Deice.CreateTexture2D(vTextureDesc, nil, vTexture2DTemp)) then
+        Exit;
+
+      vDX11DeviceContext.CopyResource(vTexture2DTemp, vTexture2D);
+
+      vDX11DeviceContext.Map(vTexture2DTemp, 0, D3D11_MAP_READ_WRITE, 0, vMappedResource);
+      vMappedResourceBytes := vMappedResource.pData;
+      vBitmapSurface.SetSize(vTextureDesc.Width, vTextureDesc.Height);
+      for i := 0 to vTextureDesc.Height - 1 do
+       begin
+        Move(vMappedResourceBytes^, vBitmapSurface.ScanLine[i]^, vMappedResource.RowPitch);
+        Inc(vMappedResourceBytes, vMappedResource.RowPitch);
+        Application.Processmessages;
+       end;
+      TMemoryStream(Stream).Clear;
+      CoInitializeEx(nil, COINIT_MULTITHREADED);
+      Try
+       vCodecManager.SaveToStream(Stream, vBitmapSurface, '.bmp', @vQualityParam);
+       Application.Processmessages;
+      Finally
+       CoUninitialize();
+      End;
+      Stream.Position := 0;
       Result := true;
     end;
   except

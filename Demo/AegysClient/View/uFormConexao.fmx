@@ -272,6 +272,7 @@ object FormConexao: TFormConexao
           object sbMachineIDCopy: TSpeedButton
             Action = actCopyID
             Align = Right
+            Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
             Position.X = 272.000000000000000000
@@ -411,6 +412,7 @@ object FormConexao: TFormConexao
           object sbPasteID: TSpeedButton
             Action = actPasteID
             Align = Right
+            Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
             Position.X = 272.000000000000000000
@@ -463,6 +465,7 @@ object FormConexao: TFormConexao
           object LbtnConectar: TLabel
             Action = actConnect
             Align = Client
+            Enabled = True
             StyledSettings = [Style]
             HitTest = True
             Size.Width = 308.000000000000000000
@@ -581,6 +584,7 @@ object FormConexao: TFormConexao
           object sbPasswordCopy: TSpeedButton
             Action = actCopyPassword
             Align = Right
+            Enabled = True
             ImageIndex = -1
             Margins.Left = 10.000000000000000000
             Position.X = 272.000000000000000000
